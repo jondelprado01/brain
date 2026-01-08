@@ -39,8 +39,10 @@ if (isset($_REQUEST['partnum'])) {
 		}
 		
 		//CONSTRUCT GROUP FOR PRIMARY DATA
-		foreach ($primary_data_raw as $pmdr) {
-			$implode = $pmdr[0].'|'.$pmdr[1].'|'.$pmdr[2].'|'.$pmdr[3].'|'.$pmdr[4].'|'.$pmdr[6].'|'.$pmdr[15];
+		foreach ($primary_data_raw as $pmdr_key => $pmdr) {
+			$ded_id = (isset($pmdr[15]) && $pmdr[15] != null) ? $pmdr[15] : '0';
+			$primary_data_raw[$pmdr_key][15] = $ded_id;
+			$implode = $pmdr[0].'|'.$pmdr[1].'|'.$pmdr[2].'|'.$pmdr[3].'|'.$pmdr[4].'|'.$pmdr[6].'|'.$ded_id;
 			array_push($primary_data, $implode);
 		}
 
