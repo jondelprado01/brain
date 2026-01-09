@@ -11,21 +11,55 @@ $(document).ready(function(){
     //const minUTPI = document.querySelector('#minUTPI');
     //const maxUTPI = document.querySelector('#maxUTPI');
 
-    const table = new DataTable('#mainTable',
-        {
+    // const table = new DataTable('#mainTable, #variableTable',
+    //     {
+    //         scrollY: 'calc(100vh - 570px)',
+    //         columns: [
+    //             { data: 'HANDLER' },
+    //             { data: 'PKG_TYPE' },
+    //             { data: 'BODY_SIZE' },
+    //             { data: 'LEAD_COUNT_MIN' },
+    //             { data: 'LEAD_COUNT_MAX' },
+    //             { data: 'TEMP_CLASS' },
+    //             { data: 'UTPI' },
+    //             { data: 'FIXED_ITPU' },
+    //             { data: 'TTPU_THRESHOLD' },
+    //             { data: 'THRESHOLD_FORMULA' }
+    //         ],
+    //         colReorder: {
+    //             columns: ':not(:first-child)'
+    //         },
+    //         columnControl: [
+    //             {
+    //                 target: 0,
+    //                 content: ['order']
+    //             },
+    //             {
+    //                 target: 1,
+    //                 content: ['search']
+    //             }
+    //         ],
+    //         ordering: {
+    //             indicators: false,
+    //             handler: false
+    //         },
+    //         fixedHeader: true,
+    //         autoFill: true,
+    //         keys: true,
+    //         lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, 'All'] ],
+    //         layout: {
+    //             topStart: {
+    //                 buttons: ['copy', 'csv', 'excel']
+    //             },
+    //             topEnd: 'pageLength'
+    //         }
+    //     }
+    // );
+
+    function initTable(table_id){
+        return new DataTable(table_id, {
             scrollY: 'calc(100vh - 570px)',
-            columns: [
-                { data: 'HANDLER' },
-                { data: 'PKG_TYPE' },
-                { data: 'BODY_SIZE' },
-                { data: 'LEAD_COUNT_MIN' },
-                { data: 'LEAD_COUNT_MAX' },
-                { data: 'TEMP_CLASS' },
-                { data: 'UTPI' },
-                { data: 'FIXED_ITPU' },
-                { data: 'TTPU_THRESHOLD' },
-                { data: 'THRESHOLD_FORMULA' }
-            ],
+            columns: getColumnConfig(table_id),
             colReorder: {
                 columns: ':not(:first-child)'
             },
@@ -53,10 +87,68 @@ $(document).ready(function(){
                 },
                 topEnd: 'pageLength'
             }
-        }
-    );
+        });
+        // return $(table_id).DataTable({
+        //     scrollY: 'calc(100vh - 570px)',
+        //     columns: getColumnConfig(selector),
+        //     colReorder: {
+        //         columns: ':not(:first-child)'
+        //     },
+        //     columnControl: [
+        //         {
+        //             target: 0,
+        //             content: ['order']
+        //         },
+        //         {
+        //             target: 1,
+        //             content: ['search']
+        //         }
+        //     ],
+        //     ordering: {
+        //         indicators: false,
+        //         handler: false
+        //     },
+        //     fixedHeader: true,
+        //     autoFill: true,
+        //     keys: true,
+        //     lengthMenu: [ [10, 25, 50, -1], [10, 25, 50, 'All'] ],
+        //     layout: {
+        //         topStart: {
+        //             buttons: ['copy', 'csv', 'excel']
+        //         },
+        //         topEnd: 'pageLength'
+        //     }
+        // });
+    }
 
-    table.search.fixed('range', function (searchStr, data, index) {
+    function getColumnConfig(selector){
+        var columns = [
+            { data: 'HANDLER' },
+                { data: 'PKG_TYPE' },
+                { data: 'BODY_SIZE' },
+                { data: 'LEAD_COUNT_MIN' },
+                { data: 'LEAD_COUNT_MAX' },
+                { data: 'TEMP_CLASS' },
+                { data: 'UTPI' },
+                { data: 'FIXED_ITPU' }
+        ];
+        if (selector == "#variableTable") {
+            columns.push(
+                { data: 'TTPU_THRESHOLD' },
+                { data: 'THRESHOLD_FORMULA' }
+            );
+        }
+
+        return columns;
+    }
+
+    const fixed_table = initTable("#mainTable");
+    const variable_table = initTable("#variableTable");
+
+    fixed_table.search.fixed('range', function (searchStr, data, index) {return true;});
+    variable_table.search.fixed('range', function (searchStr, data, index) {return true;});
+
+    // table.search.fixed('range', function (searchStr, data, index) {
         //var srcMinUTPI = parseInt(minUTPI.value, 10);
         //var srcMaxUTPI = parseInt(maxUTPI.value, 10);
         //var srcUTPI = parseInt(data['UTPI']) || 0; // use data for the LC column
@@ -86,8 +178,8 @@ $(document).ready(function(){
         }
         */
 
-        return true;
-    });
+        // return true;
+    // });
     
     /*
     minUTPI.addEventListener('input', function () {

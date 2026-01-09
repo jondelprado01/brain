@@ -52,7 +52,7 @@ $assets = RENDER_ASSETS("module");
         <script src="../../js/datatables-index-time/jszip.min.js"></script>
         <script src="../../js/datatables-index-time/buttons.dataTables.js"></script>
         <script src="../../js/datatables-index-time/dataTables.buttons.js"></script>
-        <script src="../../js/index-time-fixed_rm.js"></script>
+        <script src="../../js/index-time-fixed.js"></script>
         <style>
             #dt-length-0{
                 margin-right: 0.5em!important;
@@ -78,47 +78,47 @@ $assets = RENDER_ASSETS("module");
                         <div class="col-lg-12">
                             <?php
                                 $fixed = '';
-                                $alternate = '';
+                                $variable = '';
 
                                 if (isset($_REQUEST['tab'])) {
                                     switch ($_REQUEST['tab']) {
                                         case 'fixed':
                                             $fixed = 'active';
                                             break;    
-                                        case 'alternate':
-                                            $alternate = 'active';
+                                        case 'variable':
+                                            $variable = 'active';
                                     }
                                 }
                                 else {$fixed = 'active';}
                             ?>
 
-                            <!--
+                            
                             <nav class="pt-3">
                                 <div class="nav nav-tabs d-flex justify-content-evenly" id="nav-tab" role="tablist">
                                     <button tab-name="fixed" class="nav-link index-link <?php echo $fixed; ?>" 
                                         id="nav-fixed-tab" data-bs-toggle="tab" data-bs-target="#nav-fixed" type="button" role="tab" aria-controls="nav-fixed" aria-selected="false">
                                         Fixed
                                     </button>
-                                    <button tab-name="alternate" class="nav-link index-link <?php echo $alternate; ?>" 
-                                        id="nav-alternate-tab" data-bs-toggle="tab" data-bs-target="#nav-alternate" type="button" role="tab" aria-controls="nav-alternate" aria-selected="false">
-                                        Alternate
+                                    <button tab-name="variable" class="nav-link index-link <?php echo $variable; ?>" 
+                                        id="nav-variable-tab" data-bs-toggle="tab" data-bs-target="#nav-variable" type="button" role="tab" aria-controls="nav-variable" aria-selected="false">
+                                        Variable
                                     </button>
                                 </div>
                             </nav>
-                            -->
+                           
 
                             <div class="tab-content d-flex justify-content-center" id="nav-tabContent">
 
                                 <div class="tab-pane w-100 fade <?php echo ($fixed != '') ? 'show ' : ''; echo $fixed;?>" id="nav-fixed" role="tabpanel" aria-labelledby="nav-fixed-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <!--
+                                        
                                         <div class="card-header d-flex justify-content-between">
                                             <div>
                                                 <h5 class="card-title"><i class="fa-solid fa-lock"></i> Fixed</h5>
                                                 <small>Fixed Index Time</small>
                                             </div>
                                         </div>
-                                        -->
+                                       
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-lg-12">
@@ -133,51 +133,45 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"mainTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPU Threshold</th><th>Threshold Formula</th></tr>";
+                                                            echo "<tr><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
                                                             foreach($aryFIT as $intISDID => $aryFITTemp) {
                                                                 #2025-12-08 RM this is split out instead of reading from the temp so i can do additional formatting (i planned to, but didnt actually)
-                                                                $aryLine = array(
-                                                                    "HANDLER"=>$aryFITTemp["HANDLER"],
-                                                                    "PKG_TYPE"=>$aryFITTemp["PKG_TYPE"],
-                                                                    "BODY_SIZE"=>$aryFITTemp["BODY_SIZE"],
-                                                                    "LEAD_COUNT_MIN"=>$aryFITTemp["LEAD_COUNT_MIN"],
-                                                                    "LEAD_COUNT_MAX"=>$aryFITTemp["LEAD_COUNT_MAX"],
-                                                                    "TEMP_CLASS"=>$aryFITTemp["TEMP_CLASS"],
-                                                                    "UTPI"=>$aryFITTemp["UTPI"],
-                                                                    "FIXED_ITPU"=>$aryFITTemp["INDEX_VALUE"],
-                                                                    "TTPU_THRESHOLD"=>$aryFITTemp["TTPU_THRESHOLD"],
-                                                                    "THRESHOLD_FORMULA"=>$aryFITTemp["THRESHOLD_FORMULA"]
-                                                                );
-
-                                                                #Print_R2($aryLine);
-                                                                #die();
-
-                                                                #echo "<tr><td>".implode("</td><td>",$aryLine)."</td></tr>";
-                                                                if($intCtr == 0) {
-                                                                    echo "<tr id=\"tr_111\">";
-                                                                }else{
-                                                                    echo "<tr>";
+                                                                if ($aryFITTemp['THRESHOLD_FORMULA'] == null || $aryFITTemp['THRESHOLD_FORMULA'] == "") {
+                                                                    $aryLine = array(
+                                                                        "HANDLER"=>$aryFITTemp["HANDLER"],
+                                                                        "PKG_TYPE"=>$aryFITTemp["PKG_TYPE"],
+                                                                        "BODY_SIZE"=>$aryFITTemp["BODY_SIZE"],
+                                                                        "LEAD_COUNT_MIN"=>$aryFITTemp["LEAD_COUNT_MIN"],
+                                                                        "LEAD_COUNT_MAX"=>$aryFITTemp["LEAD_COUNT_MAX"],
+                                                                        "TEMP_CLASS"=>$aryFITTemp["TEMP_CLASS"],
+                                                                        "UTPI"=>$aryFITTemp["UTPI"],
+                                                                        "FIXED_ITPU"=>$aryFITTemp["INDEX_VALUE"]
+                                                                    );
+    
+                                                                    #Print_R2($aryLine);
+                                                                    #die();
+    
+                                                                    #echo "<tr><td>".implode("</td><td>",$aryLine)."</td></tr>";
+                                                                    if($intCtr == 0) {
+                                                                        echo "<tr id=\"tr_111\">";
+                                                                    }else{
+                                                                        echo "<tr>";
+                                                                    }
+                                                                    echo "<td>".$aryLine["HANDLER"]."</td>";
+                                                                    echo "<td>".$aryLine["PKG_TYPE"]."</td>";
+                                                                    echo "<td>".$aryLine["BODY_SIZE"]."</td>";
+                                                                    echo "<td>".$aryLine["LEAD_COUNT_MIN"]."</td>";
+                                                                    echo "<td>".$aryLine["LEAD_COUNT_MAX"]."</td>";
+                                                                    echo "<td>".$aryLine["TEMP_CLASS"]."</td>";
+                                                                    echo "<td>".$aryLine["UTPI"]."</td>";
+                                                                    echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
+                                                                    echo "</tr>";
+    
+                                                                    ++$intCtr;
                                                                 }
-                                                                echo "<td>".$aryLine["HANDLER"]."</td>";
-                                                                echo "<td>".$aryLine["PKG_TYPE"]."</td>";
-                                                                echo "<td>".$aryLine["BODY_SIZE"]."</td>";
-                                                                echo "<td>".$aryLine["LEAD_COUNT_MIN"]."</td>";
-                                                                echo "<td>".$aryLine["LEAD_COUNT_MAX"]."</td>";
-                                                                echo "<td>".$aryLine["TEMP_CLASS"]."</td>";
-                                                                echo "<td>".$aryLine["UTPI"]."</td>";
-                                                                echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
-                                                                if(!is_null($aryLine["TTPU_THRESHOLD"])) {
-                                                                    echo "<td>".number_format($aryLine["TTPU_THRESHOLD"],3)."</td>";
-                                                                }else{
-                                                                    echo "<td></td>";                                                                
-                                                                }                                                                
-                                                                echo "<td>".$aryLine["THRESHOLD_FORMULA"]."</td>";
-                                                                echo "</tr>";
-
-                                                                ++$intCtr;
                                                             }
 
                                                             echo "</TBODY></TABLE>";
@@ -199,7 +193,7 @@ $assets = RENDER_ASSETS("module");
                                                                 TEMP_CLASS,
                                                                 UTPI,
                                                                 INDEX_VALUE,
-                                                                TTPU_THRESHOLD,
+                                                                TTPI_THRESHOLD,
                                                                 THRESHOLD_FORMULA
                                                                 #FINAL_FORMULA
                                                                 FROM BRAIN.V_INDEX_OVERRIDE
@@ -231,18 +225,71 @@ $assets = RENDER_ASSETS("module");
                                     </div>
                                 </div>
 
-                                <div class="tab-pane w-100 fade <?php echo ($alternate != '') ? 'show ' : ''; echo $alternate;?>" id="nav-alternate" role="tabpanel" aria-labelledby="nav-alternate-tab" tabindex="0">
+                                <div class="tab-pane w-100 fade <?php echo ($variable != '') ? 'show ' : ''; echo $variable;?>" id="nav-variable" role="tabpanel" aria-labelledby="nav-variable-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
                                         <div class="card-header d-flex justify-content-between">
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-arrows-turn-to-dots"></i> Alternate</h5>
-                                                <small>Alternate Index Time</small>
+                                                <h5 class="card-title"><i class="fa-solid fa-arrows-turn-to-dots"></i> Variable</h5>
+                                                <small>Variable Index Time</small>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
                                                 <div class="col-lg-12">
+                                                    <?php
+                                                        VARIABLE_INDEX_RENDER($aryFIT,$bolDebug);
 
+                                                        function VARIABLE_INDEX_RENDER($aryFIT,$bolDebug=false){
+                                                            echo "<table id=\"variableTable\" class=\"display compact h-100 cell-border\">";
+                                                            #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
+                                                            echo "<THEAD BGCOLOR=SILVER>";
+                                                            echo "<tr><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th></tr>";
+                                                            echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
+
+                                                            $intCtr = 0;
+                                                            foreach($aryFIT as $intISDID => $aryFITTemp) {
+                                                                if ($aryFITTemp['THRESHOLD_FORMULA'] != null && $aryFITTemp['THRESHOLD_FORMULA'] != "") {
+                                                                        $aryLine = array(
+                                                                            "HANDLER"=>$aryFITTemp["HANDLER"],
+                                                                            "PKG_TYPE"=>$aryFITTemp["PKG_TYPE"],
+                                                                            "BODY_SIZE"=>$aryFITTemp["BODY_SIZE"],
+                                                                            "LEAD_COUNT_MIN"=>$aryFITTemp["LEAD_COUNT_MIN"],
+                                                                            "LEAD_COUNT_MAX"=>$aryFITTemp["LEAD_COUNT_MAX"],
+                                                                            "TEMP_CLASS"=>$aryFITTemp["TEMP_CLASS"],
+                                                                            "UTPI"=>$aryFITTemp["UTPI"],
+                                                                            "FIXED_ITPU"=>$aryFITTemp["INDEX_VALUE"],
+                                                                            "TTPI_THRESHOLD"=>$aryFITTemp["TTPI_THRESHOLD"],
+                                                                            "THRESHOLD_FORMULA"=>$aryFITTemp["THRESHOLD_FORMULA"]
+                                                                        );
+                                                                        
+                                                                        if($intCtr == 0) {
+                                                                            echo "<tr id=\"tr_111\">";
+                                                                        }else{
+                                                                            echo "<tr>";
+                                                                        }
+                                                                        echo "<td>".$aryLine["HANDLER"]."</td>";
+                                                                        echo "<td>".$aryLine["PKG_TYPE"]."</td>";
+                                                                        echo "<td>".$aryLine["BODY_SIZE"]."</td>";
+                                                                        echo "<td>".$aryLine["LEAD_COUNT_MIN"]."</td>";
+                                                                        echo "<td>".$aryLine["LEAD_COUNT_MAX"]."</td>";
+                                                                        echo "<td>".$aryLine["TEMP_CLASS"]."</td>";
+                                                                        echo "<td>".$aryLine["UTPI"]."</td>";
+                                                                        echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
+                                                                        if(!is_null($aryLine["TTPI_THRESHOLD"])) {
+                                                                            echo "<td>".number_format($aryLine["TTPI_THRESHOLD"],3)."</td>";
+                                                                        }else{
+                                                                            echo "<td></td>";                                                                
+                                                                        }                                                                
+                                                                        echo "<td>".$aryLine["THRESHOLD_FORMULA"]."</td>";
+                                                                        echo "</tr>";
+        
+                                                                        ++$intCtr;
+                                                                    }
+                                                                }
+
+                                                            echo "</TBODY></TABLE>";
+                                                        }
+                                                    ?>
                                                 </div>
                                             </div>
                                         </div>
