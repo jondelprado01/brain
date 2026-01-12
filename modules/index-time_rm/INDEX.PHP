@@ -243,13 +243,14 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"variableTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th></tr>";
+                                                            echo "<tr><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th><th>Action</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
                                                             foreach($aryFIT as $intISDID => $aryFITTemp) {
                                                                 if ($aryFITTemp['THRESHOLD_FORMULA'] != null && $aryFITTemp['THRESHOLD_FORMULA'] != "") {
                                                                         $aryLine = array(
+                                                                            "ISM_ID"=>$aryFITTemp["ISM_ID"],
                                                                             "HANDLER"=>$aryFITTemp["HANDLER"],
                                                                             "PKG_TYPE"=>$aryFITTemp["PKG_TYPE"],
                                                                             "BODY_SIZE"=>$aryFITTemp["BODY_SIZE"],
@@ -281,6 +282,7 @@ $assets = RENDER_ASSETS("module");
                                                                             echo "<td></td>";                                                                
                                                                         }                                                                
                                                                         echo "<td>".$aryLine["THRESHOLD_FORMULA"]."</td>";
+                                                                        echo '<td><button type="button" class="btn btn-calculation btn-link" btn-data='.json_encode($aryLine).'>Calculation</button></td>';
                                                                         echo "</tr>";
         
                                                                         ++$intCtr;
@@ -303,6 +305,169 @@ $assets = RENDER_ASSETS("module");
                 </div>
             </div>
             
+        </div>
+        
+        <!-- VARIABLE INDEX TIME CALCULATION MODAL -->
+         <div class="modal fade zoom" id="variableIndexModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="variableIndexModalLabel">
+            <div class="modal-dialog modal-dialog-centered modal-xl" style="min-width:90%;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="variableIndexModalLabel">Variable Index Time Calculation - <span class="vit-handler"></span></h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-4 pb-4 pr-2 pl-2">
+                        <table class="table table-bordered mb-4">
+                            <thead>
+                                <tr>
+                                    <th>Handler</th>
+                                    <th>Package Type</th>
+                                    <th>Body Size</th>
+                                    <th>Leads Min</th>
+                                    <th>Leads Max</th>
+                                    <th>Temp Class</th>
+                                    <th>UTPI</th>
+                                    <th>Fixed ITPU</th>
+                                    <th>TTPI Threshold</th>
+                                    <th>Threshold Formula</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="vit-handler"></td>
+                                    <td class="vit-ptype"></td>
+                                    <td class="vit-bsize"></td>
+                                    <td class="vit-lmin"></td>
+                                    <td class="vit-lmax"></td>
+                                    <td class="vit-temp"></td>
+                                    <td class="vit-utpi"></td>
+                                    <td class="vit-fitpu"></td>
+                                    <td class="vit-ttpith"></td>
+                                    <td class="vit-thform"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <?php
+                                        for ($i=1; $i <= 10; $i++) { 
+                                            $sign = ($i <= 9) ? "<=" : ">";
+
+                                            switch ($i) {
+                                                case $i == 1:
+                                                    $bg_parent = "#5A7FB0";
+                                                    break;
+
+                                                case $i == 2:
+                                                    $bg_parent = "#6BA6F0";
+                                                    break;
+
+                                                case $i == 3:
+                                                    $bg_parent = "#6AB6AE";
+                                                    break;
+
+                                                case $i == 4:
+                                                    $bg_parent = "#6FC39A";
+                                                    break;
+
+                                                case $i == 5:
+                                                    $bg_parent = "#E6C157";
+                                                    break;
+
+                                                case $i == 6:
+                                                    $bg_parent = "#F1A15F";
+                                                    break;
+
+                                                case $i == 7:
+                                                    $bg_parent = "#E57373";
+                                                    break;
+
+                                                case $i == 8:
+                                                    $bg_parent = "#A48BEA";
+                                                    break;
+
+                                                case $i == 9:
+                                                    $bg_parent = "#B9A6F3";
+                                                    break;
+                                                
+                                                default:
+                                                    $bg_parent = "#9AA6B2";
+                                                    break;
+                                            }
+
+                                            if ($i <= 9) {
+                                                echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' '.$i.'</th>';
+                                            }
+                                            else{
+                                                echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' 9</th>';
+                                            }
+                                        }
+                                    ?>
+                                </tr>
+                                <tr>
+                                    <?php
+                                        for ($i=0.2; $i <= 10; $i+= 0.2) {
+                                            $i = round($i, 1);
+                                            switch (true) {
+                                                case $i <= 1:
+                                                    $bg_child = "#9BB4D6";
+                                                    break;
+
+                                                case ($i > 1 && $i <= 2):
+                                                    $bg_child = "#A9C8F6";
+                                                    break;
+
+                                                case ($i > 2 && $i <= 3):
+                                                    $bg_child = "#A3D6D0";
+                                                    break;
+
+                                                case ($i > 3 && $i <= 4):
+                                                    $bg_child = "#A8DBC1";
+                                                    break;
+
+                                                case ($i > 4 && $i <= 5):
+                                                    $bg_child = "#F1DEA0";
+                                                    break;
+
+                                                case ($i > 5 && $i <= 6):
+                                                    $bg_child = "#F6C199";
+                                                    break;
+
+                                                case ($i > 6 && $i <= 7):
+                                                    $bg_child = "#F0ADAD";
+                                                    break;
+
+                                                case ($i > 7 && $i <= 8):
+                                                    $bg_child = "#CFC1F4";
+                                                    break;
+
+                                                case ($i > 8 && $i <= 9):
+                                                    $bg_child = "#D6CBF8";
+                                                    break;
+                                                
+                                                default:
+                                                    $bg_child = "#C6CED6";
+                                                    break;
+                                            }
+                                            echo '<th style="background: '.$bg_child.';">'.$i.'</th>';
+                                        }
+                                    ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>1</td>
+                                    <td>1</td>
+                                    <td>1</td>
+                                    <td>1</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
 
     </body>

@@ -135,7 +135,8 @@ $(document).ready(function(){
         if (selector == "#variableTable") {
             columns.push(
                 { data: 'TTPU_THRESHOLD' },
-                { data: 'THRESHOLD_FORMULA' }
+                { data: 'THRESHOLD_FORMULA' },
+                { data: 'ACTION' },
             );
         }
 
@@ -196,6 +197,23 @@ $(document).ready(function(){
     });
     */
     
+    //VARIABLE INDEX CALCULATION - JON 01/09/2026
+    $(".btn-calculation").on("click", function(){
+        let data = JSON.parse($(this).attr("btn-data"));
+        
+        $(".vit-handler").text(data['HANDLER']);
+        $(".vit-ptype").text((data['PKG_TYPE'] != null && data['PKG_TYPE'] != "") ? data['PKG_TYPE'] : "--");
+        $(".vit-bsize").text((data['BODY_SIZE'] != null && data['BODY_SIZE'] != "") ? data['BODY_SIZE'] : "--");
+        $(".vit-lmin").text((data['LEAD_COUNT_MIN'] != null && data['LEAD_COUNT_MIN'] != "") ? data['LEAD_COUNT_MIN'] : "--");
+        $(".vit-lmax").text((data['LEAD_COUNT_MAX'] != null && data['LEAD_COUNT_MAX'] != "") ? data['LEAD_COUNT_MAX'] : "--");
+        $(".vit-temp").text((data['TEMP_CLASS'] != null && data['TEMP_CLASS'] != "") ? data['TEMP_CLASS'] : "--");
+        $(".vit-utpi").text(data['UTPI']);
+        $(".vit-fitpu").text(data['FIXED_ITPU']);
+        $(".vit-ttpith").text(data['TTPI_THRESHOLD']);
+        $(".vit-thform").text(data['THRESHOLD_FORMULA']);
+
+        $("#variableIndexModal").modal("show");
+    });
 });
 
 
