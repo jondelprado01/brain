@@ -316,155 +316,86 @@ $assets = RENDER_ASSETS("module");
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body pt-4 pb-4 pr-2 pl-2">
-                        <table class="table table-bordered mb-4">
-                            <thead>
-                                <tr>
-                                    <th>Handler</th>
-                                    <th>Package Type</th>
-                                    <th>Body Size</th>
-                                    <th>Leads Min</th>
-                                    <th>Leads Max</th>
-                                    <th>Temp Class</th>
-                                    <th>UTPI</th>
-                                    <th>Fixed ITPU</th>
-                                    <th>TTPI Threshold</th>
-                                    <th>Threshold Formula</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="vit-handler"></td>
-                                    <td class="vit-ptype"></td>
-                                    <td class="vit-bsize"></td>
-                                    <td class="vit-lmin"></td>
-                                    <td class="vit-lmax"></td>
-                                    <td class="vit-temp"></td>
-                                    <td class="vit-utpi"></td>
-                                    <td class="vit-fitpu"></td>
-                                    <td class="vit-ttpith"></td>
-                                    <td class="vit-thform"></td>
-                                </tr>
-                            </tbody>
-                        </table>
 
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <?php
-                                        for ($i=1; $i <= 10; $i++) { 
-                                            $sign = ($i <= 9) ? "<=" : ">";
+                        <div class="table-responsive-sm">
+                            <table class="table table-bordered mb-4">
+                                <thead>
+                                    <tr>
+                                        <th>Handler</th>
+                                        <th>Package Type</th>
+                                        <th>Body Size</th>
+                                        <th>Leads Min</th>
+                                        <th>Leads Max</th>
+                                        <th>Temp Class</th>
+                                        <th>UTPI</th>
+                                        <th>Fixed ITPU</th>
+                                        <th>TTPI Threshold</th>
+                                        <th>Threshold Formula</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td class="vit-handler"></td>
+                                        <td class="vit-ptype"></td>
+                                        <td class="vit-bsize"></td>
+                                        <td class="vit-lmin"></td>
+                                        <td class="vit-lmax"></td>
+                                        <td class="vit-temp"></td>
+                                        <td class="vit-utpi"></td>
+                                        <td class="vit-fitpu"></td>
+                                        <td class="vit-ttpith"></td>
+                                        <td class="vit-thform"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div style="overflow-x: auto;" class="table-responsive-sm">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <?php
+                                            for ($i=1; $i <= 10; $i++) { 
+                                                $sign = ($i <= 9) ? "<=" : ">";
 
-                                            switch ($i) {
-                                                case $i == 1:
-                                                    $bg_parent = "#5A7FB0";
-                                                    break;
+                                                $bg_parent = parentHeaderBG($i);
 
-                                                case $i == 2:
-                                                    $bg_parent = "#6BA6F0";
-                                                    break;
-
-                                                case $i == 3:
-                                                    $bg_parent = "#6AB6AE";
-                                                    break;
-
-                                                case $i == 4:
-                                                    $bg_parent = "#6FC39A";
-                                                    break;
-
-                                                case $i == 5:
-                                                    $bg_parent = "#E6C157";
-                                                    break;
-
-                                                case $i == 6:
-                                                    $bg_parent = "#F1A15F";
-                                                    break;
-
-                                                case $i == 7:
-                                                    $bg_parent = "#E57373";
-                                                    break;
-
-                                                case $i == 8:
-                                                    $bg_parent = "#A48BEA";
-                                                    break;
-
-                                                case $i == 9:
-                                                    $bg_parent = "#B9A6F3";
-                                                    break;
-                                                
-                                                default:
-                                                    $bg_parent = "#9AA6B2";
-                                                    break;
+                                                if ($i <= 9) {
+                                                    echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' '.$i.'</th>';
+                                                }
+                                                else{
+                                                    echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' 9</th>';
+                                                }
                                             }
+                                        ?>
+                                    </tr>
+                                    <tr>
+                                        <?php
+                                            for ($i=0.2; $i <= 10; $i+= 0.2) {
+                                                $i = round($i, 1);
 
-                                            if ($i <= 9) {
-                                                echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' '.$i.'</th>';
+                                                $bg_child = childHeaderBG($i);
+
+                                                echo '<th style="background: '.$bg_child.';">'.$i.'</th>';
                                             }
-                                            else{
-                                                echo '<th style="background: '.$bg_parent.';" colspan="5">'.$sign.' 9</th>';
+                                        ?>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <?php
+                                            for ($i=0.2; $i <= 10; $i+= 0.2) {
+                                                $i = round($i, 1);
+
+                                                $bg_child = childHeaderBG($i);
+                                                echo '<td style="background: '.$bg_child.';" class="fw-bold td-calc" data-color="'.$bg_child.'" data-id="'.$i.'">1</td>';
                                             }
-                                        }
-                                    ?>
-                                </tr>
-                                <tr>
-                                    <?php
-                                        for ($i=0.2; $i <= 10; $i+= 0.2) {
-                                            $i = round($i, 1);
-                                            switch (true) {
-                                                case $i <= 1:
-                                                    $bg_child = "#9BB4D6";
-                                                    break;
+                                        ?>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
-                                                case ($i > 1 && $i <= 2):
-                                                    $bg_child = "#A9C8F6";
-                                                    break;
-
-                                                case ($i > 2 && $i <= 3):
-                                                    $bg_child = "#A3D6D0";
-                                                    break;
-
-                                                case ($i > 3 && $i <= 4):
-                                                    $bg_child = "#A8DBC1";
-                                                    break;
-
-                                                case ($i > 4 && $i <= 5):
-                                                    $bg_child = "#F1DEA0";
-                                                    break;
-
-                                                case ($i > 5 && $i <= 6):
-                                                    $bg_child = "#F6C199";
-                                                    break;
-
-                                                case ($i > 6 && $i <= 7):
-                                                    $bg_child = "#F0ADAD";
-                                                    break;
-
-                                                case ($i > 7 && $i <= 8):
-                                                    $bg_child = "#CFC1F4";
-                                                    break;
-
-                                                case ($i > 8 && $i <= 9):
-                                                    $bg_child = "#D6CBF8";
-                                                    break;
-                                                
-                                                default:
-                                                    $bg_child = "#C6CED6";
-                                                    break;
-                                            }
-                                            echo '<th style="background: '.$bg_child.';">'.$i.'</th>';
-                                        }
-                                    ?>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td>1</td>
-                                    <td>1</td>
-                                    <td>1</td>
-                                    <td>1</td>
-                                    <td>1</td>
-                                </tr>
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -472,3 +403,97 @@ $assets = RENDER_ASSETS("module");
 
     </body>
 </html>
+
+<?php
+
+    function parentHeaderBG($i){
+        switch ($i) {
+            case $i == 1:
+                $color = "#5A7FB0";
+                break;
+
+            case $i == 2:
+                $color = "#6BA6F0";
+                break;
+
+            case $i == 3:
+                $color = "#6AB6AE";
+                break;
+
+            case $i == 4:
+                $color = "#6FC39A";
+                break;
+
+            case $i == 5:
+                $color = "#E6C157";
+                break;
+
+            case $i == 6:
+                $color = "#F1A15F";
+                break;
+
+            case $i == 7:
+                $color = "#E57373";
+                break;
+
+            case $i == 8:
+                $color = "#A48BEA";
+                break;
+
+            case $i == 9:
+                $color = "#B9A6F3";
+                break;
+            
+            default:
+                $color = "#9AA6B2";
+                break;
+        }
+        return $color;
+    }
+
+    function childHeaderBG($i){
+        switch ($i) {
+            case $i <= 1:
+                $color = "#9BB4D6";
+                break;
+
+            case ($i > 1 && $i <= 2):
+                $color = "#A9C8F6";
+                break;
+
+            case ($i > 2 && $i <= 3):
+                $color = "#A3D6D0";
+                break;
+
+            case ($i > 3 && $i <= 4):
+                $color = "#A8DBC1";
+                break;
+
+            case ($i > 4 && $i <= 5):
+                $color = "#F1DEA0";
+                break;
+
+            case ($i > 5 && $i <= 6):
+                $color = "#F6C199";
+                break;
+
+            case ($i > 6 && $i <= 7):
+                $color = "#F0ADAD";
+                break;
+
+            case ($i > 7 && $i <= 8):
+                $color = "#CFC1F4";
+                break;
+
+            case ($i > 8 && $i <= 9):
+                $color = "#D6CBF8";
+                break;
+            
+            default:
+                $color = "#C6CED6";
+                break;
+        }
+        return $color;
+    }
+
+?>

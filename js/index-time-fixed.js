@@ -198,7 +198,7 @@ $(document).ready(function(){
     */
     
     //VARIABLE INDEX CALCULATION - JON 01/09/2026
-    $(".btn-calculation").on("click", function(){
+    $(document).delegate(".btn-calculation", "click", function(){
         let data = JSON.parse($(this).attr("btn-data"));
         
         $(".vit-handler").text(data['HANDLER']);
@@ -208,9 +208,30 @@ $(document).ready(function(){
         $(".vit-lmax").text((data['LEAD_COUNT_MAX'] != null && data['LEAD_COUNT_MAX'] != "") ? data['LEAD_COUNT_MAX'] : "--");
         $(".vit-temp").text((data['TEMP_CLASS'] != null && data['TEMP_CLASS'] != "") ? data['TEMP_CLASS'] : "--");
         $(".vit-utpi").text(data['UTPI']);
-        $(".vit-fitpu").text(data['FIXED_ITPU']);
-        $(".vit-ttpith").text(data['TTPI_THRESHOLD']);
+        $(".vit-fitpu").text(parseFloat(data['FIXED_ITPU']).toFixed(2));
+        $(".vit-ttpith").text(parseFloat(data['TTPI_THRESHOLD']).toFixed(2));
         $(".vit-thform").text(data['THRESHOLD_FORMULA']);
+
+        let td_color = "";
+
+        $(".td-calc").each(function(){
+            let utpi = parseFloat(data['UTPI']);
+            let ttpi_inc = parseFloat($(this).attr("data-id"));
+            let ttpi_thr = parseFloat(data['TTPI_THRESHOLD']);
+            let fixed_itpu = parseFloat(data['FIXED_ITPU']);
+            let calc_res = 0;
+            
+            if (ttpi_inc < ttpi_thr) {
+                calc_res = utpi*((-0.99*(ttpi_inc/utpi))+2.65);
+                td_color = $(this).attr("data-color");
+            }
+            else{
+                calc_res = fixed_itpu;
+            }
+
+            $(this).text(calc_res.toFixed(2));
+            $(this).css("background-color", td_color);
+        });
 
         $("#variableIndexModal").modal("show");
     });
