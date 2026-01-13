@@ -1,3 +1,11 @@
+ //2026-01-12 RM
+labelVG = [];
+dataVG = [];
+
+$(document).on('keyup', function(e) {
+    if (e.key == "Escape") $("#variableIndexModal").modal("hide");
+});
+
 $(document).ready(function(){
     $(".index-link").on("click", function(){
         let url = new URL($(location).attr('href'));
@@ -199,6 +207,7 @@ $(document).ready(function(){
     
     //VARIABLE INDEX CALCULATION - JON 01/09/2026
     $(document).delegate(".btn-calculation", "click", function(){
+
         let data = JSON.parse($(this).attr("btn-data"));
         
         $(".vit-handler").text(data['HANDLER']);
@@ -214,27 +223,103 @@ $(document).ready(function(){
 
         let td_color = "";
 
+        //2026-01-12 RM
+        aryLabel = [];
+        aryLabel.push(data['HANDLER']);
+        
+        aryPkg = [];
+
+        if(data['PKG_TYPE'] != null) {
+            aryPkg.push(data['PKG_TYPE'])
+        }
+        if(data['BODY_SIZE'] != null) {
+            aryPkg.push(data['BODY_SIZE'])
+        }
+        switch (true) {
+            case data['LEAD_COUNT_MIN'] != null && data['LEAD_COUNT_MAX'] != null:
+                aryPkg.push(data['LEAD_COUNT_MIN'] + ' to ' + data['LEAD_COUNT_MAX'] + ' pins');
+                break;
+            case data['LEAD_COUNT_MIN'] != null:
+                aryPkg.push(data['LEAD_COUNT_MIN'] + '+ pins');
+                break;
+            case data['LEAD_COUNT_MAX'] != null:
+                aryPkg.push('0 to ' + data['LEAD_COUNT_MAX'] + ' pins');
+                break;
+        }
+
+        if(aryPkg.length > 0) {
+            aryLabel.push('(' + aryPkg.join(' ') + ')');
+        }
+
+        if(data['TEMP_CLASS'] != null) {
+            aryLabel.push(data['TEMP_CLASS']);
+        }
+        if(data['UTPI'] != null) {
+            aryLabel.push('x' + data['UTPI']);
+        }
+
+        strHeader = aryLabel.join(' ');
+        labelVG = [];
+        dataVG = [];
+
         $(".td-calc").each(function(){
             let utpi = parseFloat(data['UTPI']);
             let ttpi_inc = parseFloat($(this).attr("data-id"));
             let ttpi_thr = parseFloat(data['TTPI_THRESHOLD']);
+            let ttpu_coeff = parseFloat(data['COEFFICIENT']);
+            let adder_const = parseFloat(data['CONSTANT']);
             let fixed_itpu = parseFloat(data['FIXED_ITPU']);
             let calc_res = 0;
             
+            //2026-01-12 RM
+            labelVG.push(ttpi_inc);
+
             if (ttpi_inc < ttpi_thr) {
-                calc_res = utpi*((-0.99*(ttpi_inc/utpi))+2.65);
+                calc_res = utpi*((ttpu_coeff*(ttpi_inc/utpi))+adder_const);
                 td_color = $(this).attr("data-color");
+
             }
             else{
                 calc_res = fixed_itpu;
+
             }
+
+            //2026-01-12 RM
+            dataVG.push(calc_res);
 
             $(this).text(calc_res.toFixed(2));
             $(this).css("background-color", td_color);
+
         });
 
+        VarGraph_show();
+        //x = document.getElementById('VarIndex');
+        //x.update();
         $("#variableIndexModal").modal("show");
     });
 });
 
 
+function VarGraph_show() {
+    try {
+        Chart.getChart('VarIndex').destroy();
+    } catch { 
+
+    }
+
+    const myChart = new Chart("VarIndex", {
+        type: "line",
+        data: {
+            labels: labelVG,
+            datasets: [{
+                label: strHeader,
+                data: dataVG,
+                fill: false,
+                borderColor: 'rgb(75, 192, 192)'
+            }]
+        },
+        options: {
+            aspectRatio: 4
+        }
+    });
+}

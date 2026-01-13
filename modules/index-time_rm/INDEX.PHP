@@ -52,6 +52,8 @@ $assets = RENDER_ASSETS("module");
         <script src="../../js/datatables-index-time/jszip.min.js"></script>
         <script src="../../js/datatables-index-time/buttons.dataTables.js"></script>
         <script src="../../js/datatables-index-time/dataTables.buttons.js"></script>
+        <!-- 2026-01-12 RM must be before index-time-fixed.js -->
+        <script src="../../js/chart.umd.min.js"></script>
         <script src="../../js/index-time-fixed.js"></script>
         <style>
             #dt-length-0{
@@ -194,6 +196,8 @@ $assets = RENDER_ASSETS("module");
                                                                 UTPI,
                                                                 INDEX_VALUE,
                                                                 TTPI_THRESHOLD,
+                                                                COEFFICIENT,
+                                                                CONSTANT,
                                                                 THRESHOLD_FORMULA
                                                                 #FINAL_FORMULA
                                                                 FROM BRAIN.V_INDEX_OVERRIDE
@@ -259,6 +263,8 @@ $assets = RENDER_ASSETS("module");
                                                                             "TEMP_CLASS"=>$aryFITTemp["TEMP_CLASS"],
                                                                             "UTPI"=>$aryFITTemp["UTPI"],
                                                                             "FIXED_ITPU"=>$aryFITTemp["INDEX_VALUE"],
+                                                                            "COEFFICIENT"=>$aryFITTemp["COEFFICIENT"],
+                                                                            "CONSTANT"=>$aryFITTemp["CONSTANT"],
                                                                             "TTPI_THRESHOLD"=>$aryFITTemp["TTPI_THRESHOLD"],
                                                                             "THRESHOLD_FORMULA"=>$aryFITTemp["THRESHOLD_FORMULA"]
                                                                         );
@@ -397,6 +403,11 @@ $assets = RENDER_ASSETS("module");
                         </div>
 
                     </div>
+                    
+                    <div class="modal-body pt-4 pb-4 pr-2 pl-2">
+                        <canvas id="VarIndex" style="max-width:100%;"></canvas>
+                    </div>
+                    
                 </div>
             </div>
         </div>
