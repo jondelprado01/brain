@@ -115,12 +115,12 @@
                 <?php
                     if ($_SESSION["EMP_ROLE"] == "Administrator" || $_SESSION['EMP_ROLE'] == "Master") {
                     ?>
-                        <li class="nav-item me-4">
+                        <!-- <li class="nav-item me-4">
                             <a class="nav-link <?php echo $am; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/account-management/INDEX.PHP">
                                 <i class="fa-solid fa-users"></i>
                                 ACCOUNT MANAGEMENT
                             </a>
-                        </li>
+                        </li> -->
                     <?php
                     }
                 ?>
