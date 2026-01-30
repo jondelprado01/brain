@@ -319,8 +319,17 @@ $(document).ready(function(){
                 }
 
                 //DISABLE SETUPS WITH MISSING HW_SET_ID
+                let is_invalid_row = 0;
                 let hw_set_arr = JSON.parse(data[14]);
-                if (Object.keys(hw_set_arr[data[19]]).length == 0) {
+                let split_hw_set_id = data[19].split(",");
+
+                $.each(split_hw_set_id, function(index, item){
+                    if (Object.keys(hw_set_arr[item]).length == 0) {
+                        is_invalid_row++;
+                    }
+                });
+
+                if (is_invalid_row > 0) {
                     $(row).addClass('table-disabled');
                     $(row).find('td').removeClass('draggable_tr');
                 }
@@ -2815,6 +2824,7 @@ function setPrimarySetup(payload){
                 if (data) {
                     showSuccess("Record Saved Succesfully!");
                     resetDataContainers("set-primary");
+                    addChangeLog(payload, user_details, "PLANNING-ASSUMPTIONS");
                     location.reload();
                     // $.each($(".table_primary").DataTable().data(), function(index, item){
                     //     $("td").removeClass("bg-part-primary-changes bg-part-changes");
@@ -2827,6 +2837,20 @@ function setPrimarySetup(payload){
                     resetElements("all-steps", "apply-check-primary");
                 }
             }, 1500);
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function addChangeLog(payload, user_details, module){
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
+        data: {payload: payload, user_details: user_details, module: module},
+        success: function(data){
+            console.log(data);
         },
         error: function(xhr, status, error) {
             console.log(xhr);
