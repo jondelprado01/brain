@@ -119,7 +119,8 @@
                                             <li type="button" class="dropdown-item btn-delete-instance text-danger"
                                                 data-week="<?php echo $fyww;?>"
                                                 data-id="<?php echo $tp['TPI_ID']; ?>" 
-                                                data-route="<?php echo $tp['SAP_RTE_ID']; ?>" 
+                                                data-route="<?php echo $tp['SAP_RTE_ID']; ?>"
+                                                data-part="<?php echo $tp['MFG_PART_NUM']; ?>"
                                                 data-num="<?php echo $tp['INSTANCE']; ?>"><i class="fa-solid fa-trash"></i> Delete</li>
                                         </ul>
                                     </div>

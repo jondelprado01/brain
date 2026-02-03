@@ -65,7 +65,8 @@
                             'FYWW'          => $tpdata['FYWW'],
                             'INSTANCE'      => $tpdata['INSTANCE'],
                             'PROCESS_TYPE'  => implode("<br>", $tpdata['PROCESS_TYPE']), //CHANGE TO DYNAMIC IF MULTIPLE OPTION IS DONE;
-                            'NOTES'         => $tpdata['NOTES']
+                            'NOTES'         => $tpdata['NOTES'],
+                            'MFG_PART_NUM'  => $tpdata['DATA']['MFG_PART_NUM']
                         ]);
                     }
                 }

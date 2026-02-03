@@ -2531,6 +2531,8 @@ $(document).ready(function(){
             $.each(process, function(){
                 process_arr.push($(this).val());
             });
+            console.log({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id}, user_details, crud);
+            return;
             setTimephase({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id}, user_details, crud);
         }
         else{
@@ -2544,8 +2546,9 @@ $(document).ready(function(){
         let num = $(this).attr("data-num");
         let week = $(this).attr("data-week");
         let route = $(this).attr("data-route");
+        let partnum = $(this).attr("data-part");
         let details = "<strong>"+route+"</strong><br><strong>Instance #"+num+" - "+week+"</strong>";
-        showConfirm('Remove Instance', 'Are you sure you want to remove this instance:<br>'+details, 'remove-timephase', {id: id, num: num, route: route, user_details: user_details});
+        showConfirm('Remove Instance', 'Are you sure you want to remove this instance:<br>'+details, 'remove-timephase', {id: id, num: num, route: route, partnum: partnum, user_details: user_details});
     });
 
     //----------------------------------------------------------------------------------------END TIMEPHASING---------------------------------------------------------------------------------------------
@@ -3438,6 +3441,8 @@ function setTimephase(data, user_details, crud){
 
 function removeTimephase(data){
     let instance_id = data['id'];
+    let partnum_data = data['partnum'];
+    let route_data = data['route'];
     let delete_payload = [{
         "TPI_ID": instance_id,
         "CHANGE_USER": user_details['emp_id'],
@@ -3467,6 +3472,12 @@ function removeTimephase(data){
                     }
 
                     showSuccess("Instance Removed Succesfully!");
+                    
+                    //ADD CHANGE LOG - DELETE TIMEPHASE
+                    delete_payload[0].MFG_PART_NUM = partnum_data;
+                    delete_payload[0].SAP_RTE_ID = route_data;
+                    addChangeLog(delete_payload, user_details, "deleted time-phased instance");
+
                     location.reload();
                 }
             }, 1500);            
