@@ -2524,11 +2524,11 @@ $(document).ready(function(){
         let crud = $(".tp-crud").val();
 
         let old_data = {
-            old_date: $(".old-tp-date").val(),
-            old_week: $(".old-tp-week").val(),
-            old_process: $(".old-tp-process").val(),
-            old_notes: $(".old-tp-notes").val(),
-            old_num: $(".old-tp-num").val()
+            old_date: ($(".old-tp-date").val() != '') ? $(".old-tp-date").val() : null,
+            old_week: ($(".old-tp-week").val() != '') ? $(".old-tp-week").val() : null,
+            old_process: ($(".old-tp-process").val() != '') ? $(".old-tp-process").val() : null,
+            old_notes: ($(".old-tp-notes").val() != '') ? $(".old-tp-notes").val() : null,
+            old_num: ($(".old-tp-num").val() != '') ? $(".old-tp-num").val() : null
         }
         // let overlap = 0;
         // let new_fyw = parseInt(week.substring(2, 4)+''+week.slice(-2));

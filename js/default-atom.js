@@ -53,7 +53,21 @@ $(document).ready(function(){
 
         if (atom_name != '' && atom_name != null && res_area != '--') {
             if (default_atom_name != atom_name || res_area != default_res_area) {
-                assignAtom(atom_data, atom_name, res_area, user_details, table_default_atom);
+                let change_log_payload = {
+                    data: {
+                        atom_id: atom_data,
+                        atom_name: (atom_name != '--') ? atom_name : null,
+                        res_area: (res_area != '--') ? res_area : null,
+                        type: ($(".li-type").text() != '--') ? $(".li-type").text() : null, 
+                        site: ($(".li-site").text() != '--') ? $(".li-site").text() : null, 
+                        eng_name: ($(".li-eth").text() != '--') ? $(".li-eth").text() : null
+                    },
+                    old_data: {
+                        old_atom_name: (default_atom_name != '--') ? default_atom_name : null,
+                        old_res_area: (default_res_area != '--') ? default_res_area : null
+                    }
+                }
+                assignAtom(atom_data, atom_name, res_area, user_details, table_default_atom, change_log_payload);
             }
             else{
                 showGenericAlert("info", "No Changes Detected!");
@@ -169,7 +183,7 @@ function getAtom(type, site, atom){
     });
 }
 
-function assignAtom(id, atom, res_area, user_details, table_default_atom){
+function assignAtom(id, atom, res_area, user_details, table_default_atom, change_log_payload){
     $.ajax({
         type: 'post',
         url: 'http://mxhdafot01l.maxim-ic.com/API/DEFAULT_ATOM.PHP?PROCESS_TYPE=ASSIGN_ATOM',
@@ -183,8 +197,23 @@ function assignAtom(id, atom, res_area, user_details, table_default_atom){
                     showSuccess("Record Saved Succesfully!");
                     table_default_atom.clear();
                     getDefaultAtom(table_default_atom);
+                    addChangeLog(change_log_payload, user_details, "assign default atom");
                 }
             }, 1500);
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function addChangeLog(payload, user_details, module){
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
+        data: {payload: payload, user_details: user_details, module: module},
+        success: function(data){
+            console.log(data);
         },
         error: function(xhr, status, error) {
             console.log(xhr);
