@@ -2415,6 +2415,7 @@ $(document).ready(function(){
         let process = $(this).attr("process");
         let iprocess = $(this).attr("instance-process");
         let route = $(this).attr("instance-route");
+        let part = $(this).attr("instance-part");
         let type = $(this).attr("instance-type");
         let date = $(this).attr("instance-date");
         let week = $(this).attr("instance-week");
@@ -2422,13 +2423,19 @@ $(document).ready(function(){
         let num = $(this).attr("instance-num");
         let id = $(this).attr("instance-id");
 
+        $('.tp-process:checked').prop("checked", false);
+        $(".tp-notes").val('');
+
         if (process == "new") {
+            $(".old-data-fields").each(function(){
+                $(this).val('');
+            });
             $(this).addClass("visually-hidden");
             $(".footer-"+id).append(showLoaderButton());
-            getCalendar(route, date, week, num, id, type, "new");
+            getCalendar(route, date, week, num, id, type, "new", part);
         }
         else{
-            getCalendar(route, date, week, num, id, type, "edit");
+            getCalendar(route, date, week, num, id, type, "edit", part);
             $('.tp-process').each(function(){
                 let split_process = iprocess.split("<br>");
                 if ($.inArray($(this).val(), split_process) !== -1) {
@@ -2436,6 +2443,12 @@ $(document).ready(function(){
                 }
             });
             $(".tp-notes").val((note != 'null' && note != '') ? note : '');
+
+            $(".old-tp-date").val(date);
+            $(".old-tp-num").val(num);
+            $(".old-tp-week").val(week);
+            $(".old-tp-process").val(iprocess.split("<br>").join(","));
+            $(".old-tp-notes").val((note != 'null' && note != '') ? note : '');
         }
 
         $(".ext-tp-id").val(id);
@@ -2448,6 +2461,7 @@ $(document).ready(function(){
     $(".page-link").on("click", function(){
         let page_type = $(this).attr("page-type");
         let default_data = JSON.parse($(".tp-default-data").val());
+        let part_data = JSON.parse($(".tp-part").val());
         let temp_container = [];
         let target_date = "";
         let current_date = $(".ext-tp-date").val();
@@ -2472,7 +2486,7 @@ $(document).ready(function(){
             target_date = temp_container[temp_container.length - 1];
         }
         
-        getCalendar(default_data['route'], target_date, default_data['week'], default_data['num'], default_data['id'], "paginate", page_type);
+        getCalendar(default_data['route'], target_date, default_data['week'], default_data['num'], default_data['id'], "paginate", page_type, part_data);
     });
 
     //SELECT WEEK NUMBER
@@ -2501,12 +2515,21 @@ $(document).ready(function(){
         let count = 0;
         let date = $(".tp-date").val();
         let route = $(".tp-route").val();
+        let part = $(".tp-part").val();
         let week = $(".tp-week").val();
         let process = $('.tp-process:checked');
         let notes = $(".tp-notes").val();
         let num = $(".tp-num").val();
         let id = $(".tp-id").val();
         let crud = $(".tp-crud").val();
+
+        let old_data = {
+            old_date: $(".old-tp-date").val(),
+            old_week: $(".old-tp-week").val(),
+            old_process: $(".old-tp-process").val(),
+            old_notes: $(".old-tp-notes").val(),
+            old_num: $(".old-tp-num").val()
+        }
         // let overlap = 0;
         // let new_fyw = parseInt(week.substring(2, 4)+''+week.slice(-2));
         // let existing_instance = JSON.parse($(".tp-existing-"+route.replace(/\./g, "_").replace(/\#/g, "_").replace(/\//g, "_").replace(/\-/g, "_").replace(/\^/g, "_")).val());
@@ -2531,9 +2554,7 @@ $(document).ready(function(){
             $.each(process, function(){
                 process_arr.push($(this).val());
             });
-            console.log({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id}, user_details, crud);
-            return;
-            setTimephase({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id}, user_details, crud);
+            setTimephase({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id, part: part}, user_details, crud, old_data);
         }
         else{
             showGenericAlert("error", "FYWW & Process Type fields are required!");
@@ -2827,7 +2848,7 @@ function setPrimarySetup(payload){
                 if (data) {
                     showSuccess("Record Saved Succesfully!");
                     resetDataContainers("set-primary");
-                    addChangeLog(payload, user_details, "PLANNING-ASSUMPTIONS");
+                    // addChangeLog(payload, user_details, "PLANNING-ASSUMPTIONS");
                     location.reload();
                     // $.each($(".table_primary").DataTable().data(), function(index, item){
                     //     $("td").removeClass("bg-part-primary-changes bg-part-changes");
@@ -3274,13 +3295,13 @@ function removeDedication(payload, type = null){
 
 
 //--------------------------------------------------------------------------TIMEPHASING API--------------------------------------------------------------------------------
-function getCalendar(route, date, week, num, id, type, crud) {
+function getCalendar(route, date, week, num, id, type, crud, part) {
     $.ajax({
         type: 'post',
         url: 'http://MXHTAFOT01L.maxim-ic.com/TEST/TIMEPHASING.PHP?PROCESS_TYPE=GET_CALENDAR',
         data: {date: date, week: week, type: type, crud: crud},
         success: function(data){
-            renderTimephasingCalendar(route, date, week, JSON.parse(data), num, id, crud);
+            renderTimephasingCalendar(route, date, week, JSON.parse(data), num, id, crud, part);
         },
         complete: function(){
             $(".btn-instance").removeClass("visually-hidden");
@@ -3361,7 +3382,10 @@ function setTimephaseInstance(data, type = null){
     });
 }
 
-function setTimephase(data, user_details, crud){
+function setTimephase(data, user_details, crud, old_data){
+    let tpi_data = data.id;
+    let change_log_payload = {data: data, old_data: old_data};
+
     let endpoint = "";
     let param;
     let payload = {
@@ -3402,6 +3426,9 @@ function setTimephase(data, user_details, crud){
         },
         success: function(data){
             setTimeout(function(){
+
+                let module_name = (crud != "edit") ? (tpi_data == "current") ? "created new" : "cloned" : "edited";
+
                 if (crud == "new") {
                     if (JSON.parse(data)['STATUS'] == "SUCCESS") {
                         showSuccess("Instance Created Succesfully!");
@@ -3412,6 +3439,9 @@ function setTimephase(data, user_details, crud){
                         for(i in aryTPIIDNew) {
                             intTPIIDNew = aryTPIIDNew;
                         }
+
+                        change_log_payload.data.id = (intTPIIDNew !== null) ? intTPIIDNew[0] : "current";
+                        addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
 
                         if(intTPIIDNew !== null) {
                             const url = new URL(window.location.href);
@@ -3427,6 +3457,7 @@ function setTimephase(data, user_details, crud){
                 }
                 else{
                     if (JSON.parse(data)) {
+                        addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
                         showSuccess("Instance Edited Succesfully!");
                         location.reload();
                     }
@@ -4105,13 +4136,9 @@ function renderDedications(result, table_row, table_dedication){
     $(".selected-setup").val(JSON.stringify(table_row));
 }
 
-function renderTimephasingCalendar(route, date, week, data, num, id, crud){
+function renderTimephasingCalendar(route, date, week, data, num, id, crud, part){
     //CLEAR MODAL CONTENTS FIRST
     $(".table-calendar tbody").empty();
-    if (crud != "edit") {
-        $('.tp-process:checked').prop("checked", false);
-        $(".tp-notes").val('');
-    }
     
     //COLOR CODING
     let criteria_arr = [];
@@ -4236,6 +4263,7 @@ function renderTimephasingCalendar(route, date, week, data, num, id, crud){
     $(".cw-container").text(week);
     $(".tp-num").val(parseInt(num));
     $(".tp-crud").val(crud);
+    $(".tp-part").val(part);
     $("#timephasingModalLabel").text((crud == "edit") ? "Edit Instance" : "New Instance");
     $("#timephasingModal").modal('show');
 }

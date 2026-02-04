@@ -57,6 +57,17 @@
                     <small>Aggr.UTPH: <?php echo $current_summary[2]['UTPH'];?></small>
                 </p>
             </div>
+            
+            <!-- NO EXISTING INSTANCE CLONES -->
+            <?php
+                $default_partnum = "";
+                foreach ($part_num as $ptn) {
+                    if (strpos($route_id, $ptn) !== false) {
+                        $default_partnum = $ptn;
+                        break;
+                    }
+                }
+            ?>
             <div class="card-footer text-body-secondary footer-current d-flex justify-content-between">
                 <button type="button" class="btn btn-outline-info btn-sm"
                    data-bs-placement="right"
@@ -67,13 +78,14 @@
                     Details <i class="fa-solid fa-circle-info"></i>
                 </button>
                 <button type="button" class="btn btn-outline-success btn-sm btn-instance"
-                    process="new"
-                    instance-type="current"
-                    instance-route="<?php echo $route_id?>"
-                    instance-id="current"
-                    instance-date="<?php echo $timephases['CURRENT_WEEK']['DATE']?>"
-                    instance-week="<?php echo $timephases['CURRENT_WEEK']['WEEK']?>"
-                    instance-num="0">New <i class="fa-solid fa-plus"></i>
+                        process="new"
+                        instance-type="current"
+                        instance-route="<?php echo $route_id?>"
+                        instance-part="<?php echo $default_partnum?>"
+                        instance-id="current"
+                        instance-date="<?php echo $timephases['CURRENT_WEEK']['DATE']?>"
+                        instance-week="<?php echo $timephases['CURRENT_WEEK']['WEEK']?>"
+                        instance-num="0">New <i class="fa-solid fa-plus"></i>
                 </button>
             </div>
         </div>
@@ -107,15 +119,16 @@
                                         <i type="button" class="fa-solid fa-ellipsis-vertical" data-bs-toggle="dropdown" aria-expanded="false"></i>
                                         <ul class="dropdown-menu">
                                             <li type="button" class="dropdown-item btn-edit-instance text-primary"
-                                            process="edit"
-                                            instance-type="clone"
-                                            instance-route="<?php echo $route_id?>"
-                                            instance-id="<?php echo $tp['TPI_ID']; ?>" 
-                                            instance-date="<?php echo $tp['EFF_START_DT']; ?>" 
-                                            instance-week="<?php echo $fyww; ?>"
-                                            instance-note=<?php echo json_encode($tp['NOTES']); ?>
-                                            instance-process="<?php echo $tp['PROCESS_TYPE']; ?>"
-                                            instance-num="<?php echo $tp['INSTANCE']; ?>"><i class="fa-solid fa-pen-to-square"></i> Edit</li>
+                                                process="edit"
+                                                instance-type="clone"
+                                                instance-route="<?php echo $route_id?>"
+                                                instance-part="<?php echo $tp['MFG_PART_NUM']?>"
+                                                instance-id="<?php echo $tp['TPI_ID']; ?>" 
+                                                instance-date="<?php echo $tp['EFF_START_DT']; ?>" 
+                                                instance-week="<?php echo $fyww; ?>"
+                                                instance-note=<?php echo json_encode($tp['NOTES']); ?>
+                                                instance-process="<?php echo $tp['PROCESS_TYPE']; ?>"
+                                                instance-num="<?php echo $tp['INSTANCE']; ?>"><i class="fa-solid fa-pen-to-square"></i> Edit</li>
                                             <li type="button" class="dropdown-item btn-delete-instance text-danger"
                                                 data-week="<?php echo $fyww;?>"
                                                 data-id="<?php echo $tp['TPI_ID']; ?>" 
@@ -210,25 +223,26 @@
                                 </p>
                             </div>
                             <div class="card-footer text-body-secondary d-flex justify-content-between footer-<?php echo $tp['TPI_ID'];?>">
-                                <button  type="button" class="btn btn-outline-info btn-sm"
-                                    data-bs-placement="right"
-                                    data-bs-toggle="popover"
-                                    data-bs-custom-class="instance-popover"
-                                    data-bs-title="Instance #<?php echo $tp['INSTANCE']?>"
-                                    data-bs-content='<?php echo $tp_ext_content;?>' href="#">
-                                        Details <i class="fa-solid fa-circle-info"></i>
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                        data-bs-placement="right"
+                                        data-bs-toggle="popover"
+                                        data-bs-custom-class="instance-popover"
+                                        data-bs-title="Instance #<?php echo $tp['INSTANCE']?>"
+                                        data-bs-content='<?php echo $tp_ext_content;?>' href="#">
+                                            Details <i class="fa-solid fa-circle-info"></i>
                                 </button>
                                 <button type="button" instance-id="<?php echo $tp['TPI_ID']; ?>" class="btn btn-outline-primary btn-sm btn-load-instance">Load <i class="fa-solid fa-right-to-bracket"></i></button>
                                 <button type="button" class="btn btn-outline-success btn-sm btn-instance"
-                                    process="new"
-                                    instance-type="clone"
-                                    instance-route="<?php echo $route_id?>"
-                                    instance-id="<?php echo $tp['TPI_ID']; ?>" 
-                                    instance-date="<?php echo $tp['EFF_START_DT']; ?>" 
-                                    instance-week="<?php echo $fyww; ?>"
-                                    instance-note=<?php echo json_encode($tp['NOTES']); ?>
-                                    instance-process="<?php echo $tp['PROCESS_TYPE']; ?>"
-                                    instance-num="<?php echo $tp['INSTANCE']; ?>">New <i class="fa-solid fa-plus"></i>
+                                        process="new"
+                                        instance-type="clone"
+                                        instance-route="<?php echo $route_id?>"
+                                        instance-part="<?php echo $tp['MFG_PART_NUM']?>"
+                                        instance-id="<?php echo $tp['TPI_ID']; ?>" 
+                                        instance-date="<?php echo $tp['EFF_START_DT']; ?>" 
+                                        instance-week="<?php echo $fyww; ?>"
+                                        instance-note=<?php echo json_encode($tp['NOTES']); ?>
+                                        instance-process="<?php echo $tp['PROCESS_TYPE']; ?>"
+                                        instance-num="<?php echo $tp['INSTANCE']; ?>">New <i class="fa-solid fa-plus"></i>
                                 </button>
                             </div>
                         </div>
@@ -252,6 +266,13 @@
                 <div class="modal-body">
                     <div class="row">
                         <div class="col-lg-6">
+
+                            <input type="hidden" class="old-data-fields old-tp-date">
+                            <input type="hidden" class="old-data-fields old-tp-notes">
+                            <input type="hidden" class="old-data-fields old-tp-num">
+                            <input type="hidden" class="old-data-fields old-tp-process">
+                            <input type="hidden" class="old-data-fields old-tp-week">
+
                             <input type="hidden" class="tp-default-data">
                             <input type="hidden" class="tp-crud">
                             <input type="hidden" class="tp-route" value="<?php echo $route_id; ?>">
@@ -259,6 +280,7 @@
                             <input type="hidden" class="tp-date">
                             <input type="hidden" class="tp-week">
                             <input type="hidden" class="tp-num">
+                            <input type="hidden" class="tp-part">
 
                             <input type="hidden" class="ext-tp-id">
                             <input type="hidden" class="ext-tp-date">
