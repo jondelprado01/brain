@@ -163,6 +163,7 @@ function crudProcessType3(process, payload){
                         alert_msg = 'Saved';
                     }
                     showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
+                    addChangeLog(payload, user_details, "hw-override plan non-board");
                     location.reload();
                 }
             }, 1500);
@@ -202,6 +203,20 @@ function searchDataType3(payload, limit, table_nonboard){
                 table_nonboard.draw();
             }
             
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function addChangeLog(payload, user_details, module){
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
+        data: {payload: payload, user_details: user_details, module: module},
+        success: function(data){
+            console.log(data);
         },
         error: function(xhr, status, error) {
             console.log(xhr);
