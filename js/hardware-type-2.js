@@ -575,6 +575,8 @@ $(document).ready(function(){
                     showGenericAlertType2("error", "Hardware Capacity is Required!");
                     return;
                 }
+                console.log(data);
+                // return;
                 crudProcessType2("ADD_HW_CAPACITY", data, user_details, false);
             }
             else{
@@ -1621,7 +1623,9 @@ function validateCSVrowDataPromiseType2(src_data){
 }
 
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
+
     
+
     if (is_csv) {
         showLoaderType2();
         csvMassDeleteType2(csv_delete_id_arr_type2);
@@ -1640,20 +1644,26 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
             },
             success: function(data){
                 setTimeout(function(){
-                    if (data) {
-                        let alert_msg;
-                        if (process.indexOf('DELETE') != -1) {
-                            alert_msg = 'Deleted';
+                    let alert_msg;
+
+                    if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                        if (JSON.parse(data)['STATUS']) {
+                            if (process.indexOf('DELETE') === -1) {
+                                alert_msg = 'Saved';
+                                console.log(JSON.parse(data)['CHANGE_LOG_DATA']);
+                                addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "hw-override add capacity override");
+                            }
                         }
-                        else{
-                            alert_msg = 'Saved';
-                        }
-                        showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
-                        if (csv_delete_id_arr_type2.length > 0) {
-                            csvMassDeleteType2(csv_delete_id_arr_type2);
-                        }
-                        location.reload();
                     }
+                    else{
+                        alert_msg = 'Deleted';
+                    }
+
+                    showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
+                    if (csv_delete_id_arr_type2.length > 0) {
+                        csvMassDeleteType2(csv_delete_id_arr_type2);
+                    }
+                    location.reload();
                 }, 1500);
             },
             error: function(xhr, status, error) {
@@ -1669,6 +1679,20 @@ function csvMassDeleteType2(data){
         type: 'post',
         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=DELETE_HW_CAPACITY_CSV&OUTPUT_TYPE=BODS_JDA_ADI',
         data: {payload: data, user_details: user_details},
+        success: function(data){
+            console.log(data);
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function addChangeLog(payload, user_details, module){
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
+        data: {payload: payload, user_details: user_details, module: module},
         success: function(data){
             console.log(data);
         },
