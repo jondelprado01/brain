@@ -214,7 +214,7 @@ $(document).ready(function(){
                             $.each(text, function(index2, item2){
                                 if(index >= index2) return;
                                 let uf_target_id_2 = item2.split(",")[9];
-                                if (target_id == uf_target_id_2 && target_id != '' && uf_target_id_2 != '') {
+                                if (target_id == uf_target_id_2 && target_id != '' && uf_target_id_2 != '' && action != 'ADD') {
                                     invalid_target_id.push(target_id);
                                     invalid_target_id.push(uf_target_id_2);
                                 }
@@ -1459,10 +1459,11 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                         item['REQUIRED_QTY'],
                                         item['GENPOOL_QTY'],
                                         item['HW_TYPE'],
+                                        item['GP_HW'],
                                         item['SITE_NUM'],
                                         item['RES_AREA'],
+                                        item['ACTION'],
                                         (item['TARGET_ID'] != '') ? item['TARGET_ID'] : 'null',
-                                        item['ACTION']
                                     ]);
                                 });
                                 crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, false, csv_delete_id_arr_type2);
@@ -1525,10 +1526,11 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                     item['REQUIRED_QTY'],
                                     item['GENPOOL_QTY'],
                                     item['HW_TYPE'],
+                                    item['GP_HW'],
                                     item['SITE_NUM'],
                                     item['RES_AREA'],
+                                    item['ACTION'],
                                     (item['TARGET_ID'] != '') ? item['TARGET_ID'] : 'null',
-                                    item['ACTION']
                                 ]);
                             });
                             crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, false, csv_delete_id_arr_type2);
@@ -1624,8 +1626,6 @@ function validateCSVrowDataPromiseType2(src_data){
 
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
 
-    
-
     if (is_csv) {
         showLoaderType2();
         csvMassDeleteType2(csv_delete_id_arr_type2);
@@ -1650,8 +1650,9 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                         if (JSON.parse(data)['STATUS']) {
                             if (process.indexOf('DELETE') === -1) {
                                 alert_msg = 'Saved';
-                                console.log(JSON.parse(data)['CHANGE_LOG_DATA']);
-                                addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "hw-override add capacity override");
+                                let module_type = (payload[0].length >= 10) ? " csv" : "";
+                                let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                                addChangeLog(return_data, user_details, "hw-override add capacity override"+module_type);
                             }
                         }
                     }
