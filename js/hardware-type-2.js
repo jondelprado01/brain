@@ -604,23 +604,31 @@ $(document).ready(function(){
     $(".btn-edit-data-type2").on("click", function(){
         let data = [];
         let empty = 0;
-        let type = $(this).attr("process-type");
-        $(".edit-data-type2").each(function(){
-            data.push($(this).val());
-        });
 
-        if (data[2] == '' || data[3] == '' || data[4] == '') {
+        let hw_name      = $(".edit-hw-nm-type2").val();
+        let eff_start    = $(".edit-start-type2").val();
+        let eff_end      = $(".edit-end-type2").val();
+        let override_cap = $(".edit-override-type2").val();
+        let current_cap  = $(".edit-current-type2").val();
+        let hw_type      = $(".edit-hw-type-type2").val();
+        let site_num     = $(".edit-site-num-type2").val();
+        let res_area     = $(".edit-res-area-type2").val();
+        let id           = $(".edit-id-type2").val();
+
+        data.push([hw_name, eff_start, eff_end, override_cap, current_cap, hw_type, hw_name, site_num, res_area, "UPDATE", id]);
+
+        if (data[1] == '' || data[2] == '' || data[3] == '') {
             empty++;
         }
         else{
-            if (data[2] == 0) {
+            if (data[3] == 0) {
                 showGenericAlertType2("error", "Override Capacity Must Be Greater Than Zero.");
                 return;
             }
         }
 
-        if (empty == 0 && data[2] != 0) {
-            crudProcessType2(type, data, user_details, false);
+        if (empty == 0 && data[3] != 0) {
+            crudProcessType2("ADD_HW_CAPACITY", data, user_details, false);
         }
         else{
             showGenericAlertType2("error", "Please Fill All Required Fields.");
@@ -1464,7 +1472,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                         (item['TARGET_ID'] != '') ? item['TARGET_ID'] : 'null',
                                     ]);
                                 });
-                                crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, false, csv_delete_id_arr_type2);
+                                crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, true, csv_delete_id_arr_type2);
                             }
                         });
                     }
@@ -1531,7 +1539,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                     (item['TARGET_ID'] != '') ? item['TARGET_ID'] : 'null',
                                 ]);
                             });
-                            crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, false, csv_delete_id_arr_type2);
+                            crudProcessType2("ADD_HW_CAPACITY", current_list_csv, user_details, true, csv_delete_id_arr_type2);
                         }
                     }
     
@@ -1624,7 +1632,7 @@ function validateCSVrowDataPromiseType2(src_data){
 
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
 
-    if (is_csv) {
+    if (is_csv && csv_delete_id_arr_type2.length > 0) {
         showLoaderType2();
         csvMassDeleteType2(csv_delete_id_arr_type2);
         setTimeout(function(){
@@ -1650,7 +1658,7 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                                 alert_msg = 'Saved';
                                 let add_log_data = [];
                                 let update_log_data = [];
-                                let module_type = (payload[0].length >= 10) ? " csv" : "";
+                                let module_type = (is_csv) ? " csv" : "";
                                 let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
                                 let old_data = JSON.parse(data)['OLD_DATA'];
 
@@ -1662,7 +1670,7 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                                         update_log_data.push(item);
                                     }
                                 });
-                                
+
                                 if (add_log_data.length > 0) {
                                     addChangeLog(add_log_data, user_details, "hw-override add capacity override"+module_type);
                                 }
