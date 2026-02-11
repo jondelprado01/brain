@@ -1238,16 +1238,14 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                 $(".error-container-type2").removeClass("d-none");
                 $(".csv-error-tbody-type2").append(row);
                 $(".csv-error-count-type2").text(invalid.length);
-                return;
             }
             else{
                 if (csv_delete_id_arr_type2.length > 0) {
                     crudProcessType2("DELETE_HW_CAPACITY_CSV", [], user_details, true, csv_delete_id_arr_type2);
                 }
-                return;
             }
         }, 1500);
-
+        return;
     }
 
     $.ajax({
@@ -1650,9 +1648,28 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                         if (JSON.parse(data)['STATUS']) {
                             if (process.indexOf('DELETE') === -1) {
                                 alert_msg = 'Saved';
+                                let add_log_data = [];
+                                let update_log_data = [];
                                 let module_type = (payload[0].length >= 10) ? " csv" : "";
                                 let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
-                                addChangeLog(return_data, user_details, "hw-override add capacity override"+module_type);
+                                let old_data = JSON.parse(data)['OLD_DATA'];
+
+                                $.each(return_data, function(index, item){
+                                    if (item[6] != "UPDATE") {
+                                        add_log_data.push(item);
+                                    }
+                                    else{
+                                        update_log_data.push(item);
+                                    }
+                                });
+                                
+                                if (add_log_data.length > 0) {
+                                    addChangeLog(add_log_data, user_details, "hw-override add capacity override"+module_type);
+                                }
+                                
+                                if (update_log_data.length > 0) {
+                                    addChangeLog(update_log_data, user_details, "hw-override update capacity override"+module_type, old_data);
+                                }
                             }
                         }
                     }
@@ -1664,7 +1681,7 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                     if (csv_delete_id_arr_type2.length > 0) {
                         csvMassDeleteType2(csv_delete_id_arr_type2);
                     }
-                    location.reload();
+                    // location.reload();
                 }, 1500);
             },
             error: function(xhr, status, error) {
@@ -1680,20 +1697,6 @@ function csvMassDeleteType2(data){
         type: 'post',
         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=DELETE_HW_CAPACITY_CSV&OUTPUT_TYPE=BODS_JDA_ADI',
         data: {payload: data, user_details: user_details},
-        success: function(data){
-            console.log(data);
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
-function addChangeLog(payload, user_details, module){
-    $.ajax({
-        type: 'post',
-        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
-        data: {payload: payload, user_details: user_details, module: module},
         success: function(data){
             console.log(data);
         },

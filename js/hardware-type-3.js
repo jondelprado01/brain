@@ -210,20 +210,6 @@ function searchDataType3(payload, limit, table_nonboard){
     });
 }
 
-function addChangeLog(payload, user_details, module){
-    $.ajax({
-        type: 'post',
-        url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
-        data: {payload: payload, user_details: user_details, module: module},
-        success: function(data){
-            console.log(data);
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
 //-------------------------------------------------------------------------------------DYNAMIC DATA RENDERING-----------------------------------------------------------------------------
 function preFillElementsType3(data){
     $(".view-name-type3").text(data['HW_NAME']);

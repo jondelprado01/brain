@@ -60,6 +60,23 @@ $weeks = $response['WEEKS'];
         <script src="../../js/hardware-type-1.js"></script>
         <script src="../../js/hardware-type-2.js"></script>
         <script src="../../js/hardware-type-3.js"></script>
+
+        <!-- FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES) -->
+        <script>
+            function addChangeLog(payload, user_details, module, old_data = []){
+                $.ajax({
+                    type: 'post',
+                    url: 'http://mxhtafot01l.maxim-ic.com/TEST/BRAIN_CHANGE_LOG.PHP',
+                    data: {payload: payload, user_details: user_details, module: module, old_data: old_data},
+                    success: function(data){
+                        console.log(data);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
+            }
+        </script>
         <style>
             .row-disabled{
                 pointer-events: none!important;
