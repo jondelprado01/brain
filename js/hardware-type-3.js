@@ -153,17 +153,36 @@ function crudProcessType3(process, payload){
             showLoaderType2();
         },
         success: function(data){
+            let status = JSON.parse(data)['STATUS'];
+            let return_data = [];
+            let crud_type;
+            let alert_msg;
+
+            if (process == "ADD_NON_BOARD") {
+                return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                alert_msg = 'Saved';
+                crud_type = 'add';
+            }
+            else{
+                $.each(payload, function(index, item){
+                    return_data.push([
+                        item['SITE_NUM'],
+                        item['RES_AREA'],
+                        item['HW_TYPE_HMS'],
+                        item['HW_TYPE_SUS'],
+                        item['HW_NAME'],
+                        item['CAPACITY'],
+                        item['ID']
+                    ]);
+                });
+                alert_msg = 'Deleted';
+                crud_type = 'delete';
+            }
+
             setTimeout(function(){
-                if (data) {
-                    let alert_msg;
-                    if (process.indexOf('DELETE') != -1) {
-                        alert_msg = 'Deleted';
-                    }
-                    else{
-                        alert_msg = 'Saved';
-                    }
-                    showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
-                    addChangeLog(payload, user_details, "hw-override plan non-board");
+                if (status) {
+                    showGenericAlertType3("success", "Record "+alert_msg+" Successfully!");
+                    addChangeLog(return_data, user_details, "hw-override "+crud_type+" plan non-board");
                     location.reload();
                 }
             }, 1500);
