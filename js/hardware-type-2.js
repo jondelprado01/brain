@@ -1654,14 +1654,15 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
 
                     if (JSON.parse(data).hasOwnProperty('STATUS')) {
                         if (JSON.parse(data)['STATUS']) {
+
+                            let add_log_data = [];
+                            let update_log_data = [];
+                            let module_type = (is_csv) ? " csv" : "";
+                            let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                            let old_data = JSON.parse(data)['OLD_DATA'];
+
                             if (process.indexOf('DELETE') === -1) {
                                 alert_msg = 'Saved';
-                                let add_log_data = [];
-                                let update_log_data = [];
-                                let module_type = (is_csv) ? " csv" : "";
-                                let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
-                                let old_data = JSON.parse(data)['OLD_DATA'];
-
                                 $.each(return_data, function(index, item){
                                     if (item[6] != "UPDATE") {
                                         add_log_data.push(item);
@@ -1679,17 +1680,18 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                                     addChangeLog(update_log_data, user_details, "hw-override update capacity override"+module_type, old_data);
                                 }
                             }
+                            else{
+                                alert_msg = 'Deleted';
+                                addChangeLog(return_data, user_details, "hw-override deleted capacity override"+module_type, old_data);
+                            }
+
+                            showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
+                            location.reload();
                         }
                     }
                     else{
-                        alert_msg = 'Deleted';
+                        showGenericAlertType2("error", "Something Went Wrong!");
                     }
-
-                    showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
-                    if (csv_delete_id_arr_type2.length > 0) {
-                        csvMassDeleteType2(csv_delete_id_arr_type2);
-                    }
-                    // location.reload();
                 }, 1500);
             },
             error: function(xhr, status, error) {
@@ -1706,7 +1708,11 @@ function csvMassDeleteType2(data){
         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=DELETE_HW_CAPACITY_CSV&OUTPUT_TYPE=BODS_JDA_ADI',
         data: {payload: data, user_details: user_details},
         success: function(data){
-            console.log(data);
+
+            let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+            let old_data = JSON.parse(data)['OLD_DATA'];
+
+            addChangeLog(return_data, user_details, "hw-override deleted capacity override csv", old_data);
         },
         error: function(xhr, status, error) {
             console.log(xhr);
