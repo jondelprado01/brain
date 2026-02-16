@@ -70,11 +70,11 @@ $(document).ready(function(){
         let cell_id = $(this).attr("cell-id-type2");
         let cell_val = $(this).text();
         let default_val = parseFloat($(this).attr("default-se"));
-
-        if ($.isNumeric(cell_val)) {
+        
+        if ($.isNumeric(cell_val) || cell_val == '') {
             if (parseFloat(cell_val) <= 0) {
                 showGenericAlertType1("error", "Socket Efficiency must be greater than Zero.");
-                $(this).text("95%");
+                $(this).text(default_val+"%");
                 $('td[cell-id-type2="'+cell_id+'"]').each(function(){
                     if ($(this).hasClass("socket-efficiency")) {
                         $(this).addClass('bg-info-subtle');
@@ -84,7 +84,7 @@ $(document).ready(function(){
             }
             else if (parseFloat(cell_val) > 100) {
                 showGenericAlertType1("error", "Socket Efficiency must not exceed 100%.");
-                $(this).text("95%");
+                $(this).text(default_val+"%");
                 $('td[cell-id-type2="'+cell_id+'"]').each(function(){
                     if ($(this).hasClass("socket-efficiency")) {
                         $(this).addClass('bg-info-subtle');
@@ -113,7 +113,7 @@ $(document).ready(function(){
         }
         else{
             showGenericAlertType1("error", "Input a Numeric Value!");
-            $(this).text("95%");
+            $(this).text(default_val+"%");
             $('td[cell-id-type2="'+cell_id+'"]').each(function(){
                 if ($(this).hasClass("socket-efficiency")) {
                     $(this).addClass('bg-info-subtle');
@@ -135,6 +135,7 @@ $(document).ready(function(){
     $(".btn-save-socket").on("click", function(){
         let cell_ids = [];
         let data = [];
+        let error = 0;
 
         if ($("td.bg-success-subtle").length > 0) {
             $("td.bg-success-subtle").each(function(){
@@ -151,10 +152,22 @@ $(document).ready(function(){
                     temp.push($(this).text());
                 });
                 temp.push(item);
+                let socef = temp[1].replace("%", "");
+                
+                if (socef == '') {
+                    error++;
+                }
+                
+                temp[1] = parseFloat((socef / 100).toFixed(3));
                 data.push(temp);
             });
-            
-            addSocketEfficiency(data, user_details);
+
+            if (error == 0) {
+                addSocketEfficiency(data, user_details);
+            }
+            else{
+                showGenericAlertType1("error", "Error: Please review the entered data.");
+            }
         }
     });
 
@@ -188,17 +201,19 @@ function getBoardsSocket(board, table_type_2){
                     $.each(se_boards, function(index, item){
                         let socket_efficiency = 95;
                         let id = "UNCHANGED";
-        
+                        
                         if ($.inArray(item['SEID'], existing_cell_id) !== -1) {
                             $.each(JSON.parse(existing_socket), function(idx, itm){
                                 id = itm['ID'];
-                                socket_efficiency = itm['SOCKET_EFFICIENCY']+'%';
+                                if (item['SEID'] == itm['HASH']) {
+                                    socket_efficiency = parseFloat((itm['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%';
+                                }
                             });
                         }
                         else{
                             socket_efficiency = item['SOCKET_EFFICIENCY']+'%';
                         }
-        
+
                         rows.push([
                             item['BURNIN_BOARD'],
                             socket_efficiency,
@@ -235,12 +250,26 @@ function addSocketEfficiency(payload, user_details){
             showLoaderType1();
         },
         success: function(data){
+            updateExistingData();
             setTimeout(function(){
                 if (data) {
                     showGenericAlertType1("success", "Record Saved Successfully!");
-                    location.reload();
+                    $('#search-board-field-type2').trigger($.Event('keypress', { which: 13 }));
                 }
             }, 1500);
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function updateExistingData(){
+    $.ajax({
+        type: 'get',
+        url: 'http://MXHDAFOT01L.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=GET_SOCKET&OUTPUT_TYPE=BODS_JDA_ADI',
+        success: function(data){
+            existing_socket = data;
         },
         error: function(xhr, status, error) {
             console.log(xhr);

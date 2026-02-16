@@ -1484,8 +1484,6 @@ $(document).ready(function(){
 
     //TYPE 1 - ADD, EDIT, DELETE DUMMY HW MAPPING
     function crudProcess(process, payload, user_details, is_csv = false){
-        console.log(payload);
-        return;
         if (is_csv) {
             showLoader();
             csvMassDelete(csv_delete_id_arr);
