@@ -980,6 +980,7 @@ $weeks = $response['WEEKS'];
                             <input type="hidden" class="edit-data edit-genpool-cap">
                         </div>
                     </div>
+                    <input type="hidden" class="edit-data edit-gp-hw-type">
                     <div class="modal-footer bg-primary-subtle">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                         <button type="button" class="btn btn-success btn-edit-data">Save <i class="fa-regular fa-floppy-disk"></i></button>

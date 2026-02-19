@@ -1631,16 +1631,23 @@ function validateCSVrowDataPromiseType2(src_data){
 }
 
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
+    
+    var exists = ['ADD', 'UPDATE'].some(function(val) {
+        return payload.flat().includes(val);
+    });
 
     if (is_csv && csv_delete_id_arr_type2.length > 0) {
         showLoaderType2();
         csvMassDeleteType2(csv_delete_id_arr_type2);
         setTimeout(function(){
-            showGenericAlertType2("success", "Record Deleted Successfully!");
-            location.reload();
+            if (!exists) {
+                showGenericAlertType2("success", "Record Deleted Successfully!");
+                location.reload();
+            }
         }, 1500);
     }
-    else{
+
+    if (exists || is_csv == false){
         $.ajax({
             type: 'post',
             url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
@@ -1682,7 +1689,7 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                             }
                             else{
                                 alert_msg = 'Deleted';
-                                addChangeLog(return_data, user_details, "hw-override deleted capacity override"+module_type, old_data);
+                                addChangeLog(return_data, user_details, "hw-override delete capacity override"+module_type, old_data);
                             }
 
                             showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
@@ -1712,7 +1719,7 @@ function csvMassDeleteType2(data){
             let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
             let old_data = JSON.parse(data)['OLD_DATA'];
 
-            addChangeLog(return_data, user_details, "hw-override deleted capacity override csv", old_data);
+            addChangeLog(return_data, user_details, "hw-override delete capacity override csv", old_data);
         },
         error: function(xhr, status, error) {
             console.log(xhr);

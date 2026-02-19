@@ -666,7 +666,7 @@ $(document).ready(function(){
         });
 
         data.push(compile_data);
-
+    
         let gp_cap_arr = [];
         let total_gp_cap_rem = 0;
         if (JSON.parse(existing_mapping).length > 0) {
@@ -684,7 +684,8 @@ $(document).ready(function(){
                         "","",
                         item['HW_TYPE'],
                         item['GENPOOL_CAPACITY'],
-                        "EXISTING_DATA"
+                        "EXISTING_DATA",
+                        item['GP_HW_TYPE']
                     ]);
                 }
             });
@@ -736,7 +737,10 @@ $(document).ready(function(){
         }
 
         data = data.filter(item => !item.includes("EXISTING_DATA"));
-        crudProcess(process_type, data[0], user_details);
+
+        payload = [[data[0][2], data[0][3], data[0][4], data[0][5], data[0][6], data[0][9], data[0][0], data[0][1], data[0][10], data[0][11], "UPDATE",]];
+
+        crudProcess("ADD_DUMMY_HW", payload, user_details);
     });
 
     //DELETE DUMMY - ALERT
@@ -1010,7 +1014,6 @@ $(document).ready(function(){
                     if (csv_delete_id_arr.length > 0) {
                         crudProcess("DELETE_DUMMY_HW_CSV", [], user_details, true);
                     }
-                    return;
                 }
             }, 1500);
         }
@@ -1274,7 +1277,7 @@ $(document).ready(function(){
                                             item['ACTION']
                                         ]);
                                     });
-                                    crudProcess("ADD_DUMMY_HW", current_list_csv, user_details);
+                                    crudProcess("ADD_DUMMY_HW", current_list_csv, user_details, true);
                                 }
                             });
                         }
@@ -1341,7 +1344,7 @@ $(document).ready(function(){
                                         item['ACTION']
                                     ]);
                                 });
-                                crudProcess("ADD_DUMMY_HW", current_list_csv, user_details);
+                                crudProcess("ADD_DUMMY_HW", current_list_csv, user_details, true);
                             }
                         }
     
@@ -1484,15 +1487,23 @@ $(document).ready(function(){
 
     //TYPE 1 - ADD, EDIT, DELETE DUMMY HW MAPPING
     function crudProcess(process, payload, user_details, is_csv = false){
-        if (is_csv) {
+
+        var exists = ['ADD', 'UPDATE'].some(function(val) {
+            return payload.flat().includes(val);
+        });
+        
+        if (is_csv && csv_delete_id_arr.length > 0) {
             showLoader();
             csvMassDelete(csv_delete_id_arr);
             setTimeout(function(){
-                showGenericAlert("success", "Record Deleted Successfully!");
-                location.reload();
+                if (!exists) {
+                    showGenericAlert("success", "Record Deleted Successfully!");
+                    location.reload();
+                }
             }, 1500);
         }
-        else{
+
+        if (exists || is_csv == false) {
             $.ajax({
                 type: 'post',
                 url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
@@ -1502,18 +1513,67 @@ $(document).ready(function(){
                 },
                 success: function(data){
                     setTimeout(function(){
-                        if (data) {
-                            let alert_msg;
-                            if (process.indexOf('DELETE') != -1) {
-                                alert_msg = 'Deleted';
+
+                        if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                            if (JSON.parse(data)['STATUS']) {
+
+                                let add_log_data = [];
+                                let update_log_data = [];
+                                let module_type = (is_csv) ? " csv" : "";
+                                let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                                let old_data = JSON.parse(data)['OLD_DATA'];
+
+                                if (process.indexOf('DELETE') === -1) {
+                                    alert_msg = 'Saved';
+
+                                    $.each(return_data, function(index, item){
+                                        if (typeof item[10] === 'undefined') {
+                                            add_log_data.push(item);
+                                        }
+                                        else{
+                                            if (item[10] == "ADD") {
+                                                add_log_data.push(item);
+                                            }
+                                            else if(item[10] == "UPDATE"){
+                                                update_log_data.push(item);
+                                            }
+                                        }
+                                    });
+
+                                    if (add_log_data.length > 0) {
+                                        addChangeLog(add_log_data, user_details, "hw-override add mapping"+module_type);
+                                    }
+                                    
+                                    if (update_log_data.length > 0) {
+                                        addChangeLog(update_log_data, user_details, "hw-override update mapping"+module_type, old_data);
+                                    }
+
+                                }
+                                else{
+                                    alert_msg = 'Deleted';
+                                    addChangeLog(return_data, user_details, "hw-override delete mapping"+module_type, old_data);
+                                }
+
+                                showGenericAlert("success", "Record "+alert_msg+" Successfully!");
+                                location.reload();
                             }
-                            else{
-                                alert_msg = 'Saved';
-                            }
-                            showGenericAlert("success", "Record "+alert_msg+" Successfully!");
-                            csvMassDelete(csv_delete_id_arr);
-                            location.reload();  // DON'T ALLOW UPDATE AND DELETE RECORD TO HAVE THE SAME ID, WILL RESULT TO CONFLICTING PROCESS.
                         }
+                        else{
+                            showGenericAlert("error", "Something Went Wrong!");
+                        }
+
+                        // if (data) {
+                        //     let alert_msg;
+                        //     if (process.indexOf('DELETE') != -1) {
+                        //         alert_msg = 'Deleted';
+                        //     }
+                        //     else{
+                        //         alert_msg = 'Saved';
+                        //     }
+                        //     showGenericAlert("success", "Record "+alert_msg+" Successfully!");
+                        //     csvMassDelete(csv_delete_id_arr);
+                        //     location.reload();  // DON'T ALLOW UPDATE AND DELETE RECORD TO HAVE THE SAME ID, WILL RESULT TO CONFLICTING PROCESS.
+                        // }
                     }, 1500);
                 },
                 error: function(xhr, status, error) {
@@ -1530,7 +1590,10 @@ $(document).ready(function(){
             url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=DELETE_DUMMY_HW_CSV&OUTPUT_TYPE=BODS_JDA_ADI',
             data: {payload: data, user_details: user_details},
             success: function(data){
-                console.log(data);
+                let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                let old_data = JSON.parse(data)['OLD_DATA'];
+
+                addChangeLog(return_data, user_details, "hw-override delete mapping csv", old_data);
             },
             error: function(xhr, status, error) {
                 console.log(xhr);
@@ -1716,6 +1779,7 @@ $(document).ready(function(){
             updated_at = val_arr[11];
             genpool_hw = val_arr[5];
             genpool_hw_cap = val_arr[6];
+            gp_hw_type = val_arr[12];
             $(".edit-part-container, .edit-capacity-container").show();
             $(".edit-part").val(val_arr[1]);
             $(".edit-capacity").val(val_arr[7]);
@@ -1727,6 +1791,7 @@ $(document).ready(function(){
         $(".edit-record-h1").html(h1_record);
         $(".edit-id").val(val_arr[0]);
         $(".edit-genpool").val(genpool_hw);
+        $(".edit-gp-hw-type").val(gp_hw_type);
         $(".edit-genpool-cap").val(genpool_hw_cap);
         $(".edit-hw-nm").val(hw_name);
         $(".edit-start").html(start);
@@ -2135,11 +2200,6 @@ $(document).ready(function(){
                 }
             });
         }
-
-        console.log(data);
-        console.log(error_str);
-        
-        
         
         //FILTER OUT IDENTICAL MAPPINGS
         let uniqueIndexes = [1, 2, 3, 4, 5, 7]; // specify which indexes to check for uniqueness
@@ -2292,9 +2352,6 @@ $(document).ready(function(){
         let genpool_hw = target_gp;
         let total_gp_cap = gp_cap_arr[genpool_hw];
         let capacityByWeek = {};
-        
-        console.log(data);
-        
         
         $.each(data, function(index, item){
             if (item[1] == genpool_hw) {
