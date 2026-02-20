@@ -41,6 +41,9 @@ $(document).ready(function(){
             if (data[7] !== 'UNCHANGED') {
                 $(row).addClass('border border-info-subtle');
             }
+            $(row).attr('default-state', JSON.stringify(data));
+            $(row).attr('db-id', data[7]);
+            $(row).attr('row-id', data[6]);
         },
     });
 
@@ -88,6 +91,12 @@ $(document).ready(function(){
                     temp.push($(this).text());
                 });
                 temp.push(item);
+
+                $('[row-id="'+item+'"]').each(function(){
+                    temp.push($(this).attr('default-state'));
+                    temp.push($(this).attr('db-id'));
+                });
+                
                 data.push(temp);
             });
 
@@ -366,35 +375,43 @@ function addBoardsBurnin(payload, user_details){
         },
         success: function(data){
             setTimeout(function(){
-                if (data) {
 
-                    let new_existing_burnin = JSON.parse(existing_burnin);
-                    $.each(payload, function(index, item){
-                        let part  = item[0];
-                        let board = item[1];
-                        let hash  = item[6];
-                        let load  = item[3];
-                        let uload = item[4];
-
-                        let get_index = new_existing_burnin.findIndex(item => item.MFG_PART_NUM === part && item.HASH === hash && item.BOARD === board);
+                if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                    if (JSON.parse(data)['STATUS']) {
                         
-                        if (get_index >= 0) {
-                            new_existing_burnin[get_index]['LOAD_HOURS'] = load;
-                            new_existing_burnin[get_index]['LOAD_UNLOAD'] = uload;
-                        }
-                        else{
-                            getExistingBurnin(existing_burnin);
-                        }
+                        addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "non-ate update burn-in load/unload hours");
 
-                        $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
-                    });
+                        let new_existing_burnin = JSON.parse(existing_burnin);
+                        $.each(payload, function(index, item){
+                            let part  = item[0];
+                            let board = item[1];
+                            let hash  = item[6];
+                            let load  = item[3];
+                            let uload = item[4];
 
-                    existing_burnin = JSON.stringify(new_existing_burnin);
+                            let get_index = new_existing_burnin.findIndex(item => item.MFG_PART_NUM === part && item.HASH === hash && item.BOARD === board);
+                            
+                            if (get_index >= 0) {
+                                new_existing_burnin[get_index]['LOAD_HOURS'] = load;
+                                new_existing_burnin[get_index]['LOAD_UNLOAD'] = uload;
+                            }
+                            else{
+                                getExistingBurnin(existing_burnin);
+                            }
 
-                    showGenericAlertType1("success", "Record Saved Successfully!");
-                    // location.reload();
-                    $("td").removeClass("bg-success-subtle");
-                    $(".load-hours").addClass("bg-info-subtle");
+                            $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
+                        });
+
+                        existing_burnin = JSON.stringify(new_existing_burnin);
+
+                        showGenericAlertType1("success", "Record Saved Successfully!");
+                        // location.reload();
+                        $("td").removeClass("bg-success-subtle");
+                        $(".load-hours").addClass("bg-info-subtle");
+                    }
+                }
+                else{
+                    showGenericAlertType1("error", "Something Went Wrong!");
                 }
             }, 1500);
         },
