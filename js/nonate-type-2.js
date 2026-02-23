@@ -27,7 +27,13 @@ $(document).ready(function(){
                     $(td).attr("cell-id-type2", rowData[2]);
                 }
             },
-        ]
+        ],
+        createdRow: function (row, data, index) {
+            data[1] = parseFloat((data[1].replace("%", "") / 100).toFixed(3));
+            $(row).attr('default-state-type2', JSON.stringify(data));
+            $(row).attr('db-id-type2', data[3]);
+            $(row).attr('row-id-type2', data[2]);
+        }
     });
 
     $('.nonate-link').on('shown.bs.tab', function (e) {
@@ -148,10 +154,13 @@ $(document).ready(function(){
     
             $.each(cell_ids, function(index, item){
                 let temp = [];
+
                 $('[cell-id-type2="'+item+'"]').each(function(){
                     temp.push($(this).text());
                 });
+
                 temp.push(item);
+
                 let socef = temp[1].replace("%", "");
                 
                 if (socef == '') {
@@ -159,6 +168,12 @@ $(document).ready(function(){
                 }
                 
                 temp[1] = parseFloat((socef / 100).toFixed(3));
+
+                $('[row-id-type2="'+item+'"]').each(function(){
+                    temp.push($(this).attr('db-id-type2'));
+                    temp.push($(this).attr('default-state-type2'));
+                });
+
                 data.push(temp);
             });
 
@@ -204,8 +219,8 @@ function getBoardsSocket(board, table_type_2){
                         
                         if ($.inArray(item['SEID'], existing_cell_id) !== -1) {
                             $.each(JSON.parse(existing_socket), function(idx, itm){
-                                id = itm['ID'];
                                 if (item['SEID'] == itm['HASH']) {
+                                    id = itm['ID'];
                                     socket_efficiency = parseFloat((itm['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%';
                                 }
                             });
@@ -252,9 +267,15 @@ function addSocketEfficiency(payload, user_details){
         success: function(data){
             updateExistingData();
             setTimeout(function(){
-                if (data) {
-                    showGenericAlertType1("success", "Record Saved Successfully!");
-                    $('#search-board-field-type2').trigger($.Event('keypress', { which: 13 }));
+                if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                    if (JSON.parse(data)['STATUS']) {
+                        addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "non-ate update socket efficiency");
+                        showGenericAlertType1("success", "Record Saved Successfully!");
+                        $('#search-board-field-type2').trigger($.Event('keypress', { which: 13 }));
+                    }
+                }
+                else{
+                    showGenericAlertType1("error", "Something Went Wrong!");
                 }
             }, 1500);
         },
