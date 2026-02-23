@@ -400,6 +400,9 @@ function addBoardsBurnin(payload, user_details){
                             }
 
                             $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
+
+                            item.splice(7, 1);
+                            $('[row-id="'+hash+'"]').attr('default-state', JSON.stringify(item));
                         });
 
                         existing_burnin = JSON.stringify(new_existing_burnin);
