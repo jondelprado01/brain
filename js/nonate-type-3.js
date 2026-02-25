@@ -230,9 +230,23 @@ $(document).ready(function(){
     $(".btn-edit-data-type3").on("click", function(){
         let data = [];
         let type = $(this).attr("process-type");
-        $(".edit-data-type3").each(function(){
-            data.push($(this).val());
-        });
+        // $(".edit-data-type3").each(function(){
+        //     data.push($(this).val());
+        // });
+
+        data.push([
+            $(".edit-hw-nm-type3").val(),
+            $(".edit-start-type3").val(),
+            $(".edit-end-type3").val(),
+            $(".edit-override-type3").val(),
+            $(".edit-current-type3").val(),
+            $(".edit-hw-type-type3").val(),
+            $(".edit-id-type3").val(),
+            $(".edit-site-num-type3").val(),
+            $(".edit-res-area-type3").val(),
+            $(".default-state-type3").attr("default-state-type3")
+        ]);
+
         crudProcessType3(type, data, user_details);
     });
 
@@ -354,17 +368,32 @@ function crudProcessType3(process, payload, user_details){
         },
         success: function(data){
             setTimeout(function(){
-                if (data) {
-                    let alert_msg;
-                    if (process.indexOf('DELETE') != -1) {
-                        alert_msg = 'Deleted';
+
+                if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                    if (JSON.parse(data)['STATUS']) {
+
+                        let alert_msg;
+                        let return_data = (process.indexOf('EDIT') !== -1) ? payload : JSON.parse(data)['CHANGE_LOG_DATA'];
+                        
+                        if (process.indexOf('DELETE') != -1) {
+                            alert_msg = 'Deleted';
+                            addChangeLog(return_data, user_details, "non-ate delete capacity override", JSON.parse(data)['OLD_DATA']);
+                        }
+                        else{
+                            let crud_type = (process.indexOf('ADD') !== -1) ? "add" : "update";
+                            let old_data = (process.indexOf('ADD') !== -1) ? [] : JSON.parse(payload[0][9]);
+                            alert_msg = 'Saved';
+                            addChangeLog(return_data, user_details, "non-ate "+crud_type+" capacity override", (old_data.length > 0) ? [old_data] : old_data);
+                        }
+
+                        showGenericAlertType3("success", "Record "+alert_msg+" Successfully!");
+                        location.reload();
                     }
-                    else{
-                        alert_msg = 'Saved';
-                    }
-                    showGenericAlertType3("success", "Record "+alert_msg+" Successfully!");
-                    location.reload();
                 }
+                else{
+                    showGenericAlertType3("error", "Something Went Wrong!");
+                }
+
             }, 1500);
         },
         error: function(xhr, status, error) {
@@ -542,6 +571,11 @@ function preFillInputsType3(data){
     let created_at;
     let created_by;
     $(".edit-override-container-type3, .edit-current-container-type3").hide();
+
+    $(".default-state-type3").attr("default-state-type3", JSON.stringify(
+        [data['EFF_START'], data['EFF_END'], data['OVERRIDE_CAP'], data['CURRENT_CAP'], data['ID']]
+    ));
+
     $.each(data, function(index, item){
         let eff_start; 
         let eff_end;
@@ -557,7 +591,7 @@ function preFillInputsType3(data){
         }
         val_arr.push(item);
     });
-    
+
     h1_type = 'HW Capacity Override';
     h1_record = val_arr[1];
     hw_name = val_arr[1];

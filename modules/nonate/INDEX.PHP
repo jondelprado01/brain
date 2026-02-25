@@ -380,6 +380,7 @@ $weeks = $response['WEEKS'];
                         </div>
                         <div class="modal-body">
                             <div class="row g-2">
+                                <input type="hidden" class="edit-data-type3 default-state-type3">
                                 <input type="hidden" class="edit-data-type3 edit-id-type3">
                                 <div class="col-lg-6">
                                     <div class="form-floating mb-3">
