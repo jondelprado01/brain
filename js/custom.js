@@ -2363,9 +2363,6 @@ $(document).ready(function(){
         if (instance[tp_id]['NOTES'] == null) {
             instance[tp_id]['NOTES'] = '';
         }
-        
-        instance[tp_id]['CHANGE_USER'] = user_details['emp_id'];
-
         delete instance[tp_id]['DATA']['RTE_SEQ_NUM'][rte_seq];
         showConfirm("Flow Removal", "Are You Sure You Want To Delete Step:<br><b>"+step+"</b>?", "set-timephase-instance", instance);
     });

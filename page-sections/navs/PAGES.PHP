@@ -18,6 +18,7 @@
     $na = '';
     $it = '';
     $am = '';
+    $cl = '';
     $url = explode("/", $_SERVER['REQUEST_URI']);
     if (strpos($_SERVER['REQUEST_URI'], 'modules') !== false) {
         switch ($url[$index]) {
@@ -38,6 +39,10 @@
                 break;
 
             case 'account-management':
+                $am = 'active';
+                break;
+
+            case 'change-log':
                 $am = 'active';
                 break;
         }
@@ -119,6 +124,20 @@
                             <a class="nav-link <?php echo $am; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/account-management/INDEX.PHP">
                                 <i class="fa-solid fa-users"></i>
                                 ACCOUNT MANAGEMENT
+                            </a>
+                        </li> -->
+                    <?php
+                    }
+                ?>
+
+                <?php
+                    if($_SESSION["EMP_ROLE"] == "Administrator" || $_SESSION['EMP_ROLE'] == "Master"){
+                    ?>
+                        <!-- TURNED OFF FOR NOW -->
+                        <!-- <li class="nav-item me-4">
+                            <a class="nav-link <?php echo $cl." ".$cl_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/change-log/INDEX.PHP">
+                                <i class="fa-solid fa-list"></i>
+                                CHANGE LOG
                             </a>
                         </li> -->
                     <?php
