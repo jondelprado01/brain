@@ -1630,6 +1630,16 @@ function validateCSVrowDataPromiseType2(src_data){
     });
 }
 
+function chunkArray(arr, size) {
+    var result = [];
+
+    for (var i = 0; i < arr.length; i += size) {
+        result.push(arr.slice(i, i + size));
+    }
+
+    return result;
+}
+
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
     
     var exists = ['ADD', 'UPDATE'].some(function(val) {
@@ -1648,63 +1658,138 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
     }
 
     if (exists || is_csv == false){
-        $.ajax({
-            type: 'post',
-            url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
-            data: {payload: payload, user_details: user_details},
-            beforeSend: function(){
-                showLoaderType2();
-            },
-            success: function(data){
+        showLoaderType2();
+        function sendBatch(chunks, index){
+            if (index >= chunks.length){
                 setTimeout(function(){
-                    let alert_msg;
-
-                    if (JSON.parse(data).hasOwnProperty('STATUS')) {
-                        if (JSON.parse(data)['STATUS']) {
-
-                            let add_log_data = [];
-                            let update_log_data = [];
-                            let module_type = (is_csv) ? " csv" : "";
-                            let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
-                            let old_data = JSON.parse(data)['OLD_DATA'];
-
-                            if (process.indexOf('DELETE') === -1) {
-                                alert_msg = 'Saved';
-                                $.each(return_data, function(index, item){
-                                    if (item[6] != "UPDATE") {
-                                        add_log_data.push(item);
-                                    }
-                                    else{
-                                        update_log_data.push(item);
-                                    }
-                                });
-
-                                if (add_log_data.length > 0) {
-                                    addChangeLog(add_log_data, user_details, "hw-override add capacity override"+module_type);
-                                }
-                                
-                                if (update_log_data.length > 0) {
-                                    addChangeLog(update_log_data, user_details, "hw-override update capacity override"+module_type, old_data);
-                                }
-                            }
-                            else{
-                                alert_msg = 'Deleted';
-                                addChangeLog(return_data, user_details, "hw-override delete capacity override"+module_type, old_data);
-                            }
-
-                            showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
-                            location.reload();
-                        }
-                    }
-                    else{
-                        showGenericAlertType2("error", "Something Went Wrong!");
-                    }
+                    showGenericAlertType2("success", "Record Saved Successfully!");
+                    location.reload();
                 }, 1500);
-            },
-            error: function(xhr, status, error) {
-                console.log(xhr);
-            }
-        });
+            };
+
+            $.ajax({
+                type: 'post',
+                url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
+                data: {payload: chunks[index], user_details: user_details},
+                // beforeSend: function(){
+                //     showLoaderType2();
+                // },
+                success: function(data){
+                    // setTimeout(function(){
+                        // let alert_msg;
+                        if (JSON.parse(data).hasOwnProperty('STATUS')) {
+                            if (JSON.parse(data)['STATUS']) {
+    
+                                let add_log_data = [];
+                                let update_log_data = [];
+                                let module_type = (is_csv) ? " csv" : "";
+                                let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+                                let old_data = JSON.parse(data)['OLD_DATA'];
+    
+                                if (process.indexOf('DELETE') === -1) {
+                                    // alert_msg = 'Saved';
+                                    $.each(return_data, function(index, item){
+                                        if (item[6] != "UPDATE") {
+                                            add_log_data.push(item);
+                                        }
+                                        else{
+                                            update_log_data.push(item);
+                                        }
+                                    });
+    
+                                    if (add_log_data.length > 0) {
+                                        addChangeLog(add_log_data, user_details, "hw-override add capacity override"+module_type);
+                                    }
+                                    
+                                    if (update_log_data.length > 0) {
+                                        addChangeLog(update_log_data, user_details, "hw-override update capacity override"+module_type, old_data);
+                                    }
+                                }
+                                else{
+                                    // alert_msg = 'Deleted';
+                                    addChangeLog(return_data, user_details, "hw-override delete capacity override"+module_type, old_data);
+                                }
+    
+                                // showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
+                                // location.reload();
+                            }
+                        }
+                        else{
+                            // showGenericAlertType2("error", "Something Went Wrong!");
+                            console.log("Something Went Wrong!");
+                        }
+                        sendBatch(chunks, index + 1);
+                    // }, 1500);
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr);
+                }
+            });
+        }
+
+        var chunks = chunkArray(payload, 50);
+        sendBatch(chunks, 0);
+
+        // $.each(chunkArray(payload, 50), function(c_index, c_item){
+            // $.ajax({
+            //     type: 'post',
+            //     url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
+            //     data: {payload: c_item, user_details: user_details},
+            //     // beforeSend: function(){
+            //     //     showLoaderType2();
+            //     // },
+            //     success: function(data){
+            //         setTimeout(function(){
+            //             // let alert_msg;
+            //             if (JSON.parse(data).hasOwnProperty('STATUS')) {
+            //                 if (JSON.parse(data)['STATUS']) {
+    
+            //                     let add_log_data = [];
+            //                     let update_log_data = [];
+            //                     let module_type = (is_csv) ? " csv" : "";
+            //                     let return_data = JSON.parse(data)['CHANGE_LOG_DATA'];
+            //                     let old_data = JSON.parse(data)['OLD_DATA'];
+    
+            //                     if (process.indexOf('DELETE') === -1) {
+            //                         // alert_msg = 'Saved';
+            //                         $.each(return_data, function(index, item){
+            //                             if (item[6] != "UPDATE") {
+            //                                 add_log_data.push(item);
+            //                             }
+            //                             else{
+            //                                 update_log_data.push(item);
+            //                             }
+            //                         });
+    
+            //                         if (add_log_data.length > 0) {
+            //                             addChangeLog(add_log_data, user_details, "hw-override add capacity override"+module_type);
+            //                         }
+                                    
+            //                         if (update_log_data.length > 0) {
+            //                             addChangeLog(update_log_data, user_details, "hw-override update capacity override"+module_type, old_data);
+            //                         }
+            //                     }
+            //                     else{
+            //                         // alert_msg = 'Deleted';
+            //                         addChangeLog(return_data, user_details, "hw-override delete capacity override"+module_type, old_data);
+            //                     }
+    
+            //                     // showGenericAlertType2("success", "Record "+alert_msg+" Successfully!");
+            //                     // location.reload();
+            //                 }
+            //             }
+            //             else{
+            //                 // showGenericAlertType2("error", "Something Went Wrong!");
+            //                 console.log("Something Went Wrong!");
+            //             }
+            //         }, 1500);
+            //     },
+            //     error: function(xhr, status, error) {
+            //         console.log(xhr);
+            //     }
+            // });
+        // });
+
     }
 }
 
