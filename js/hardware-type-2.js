@@ -1665,6 +1665,7 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
                     showGenericAlertType2("success", "Record Saved Successfully!");
                     location.reload();
                 }, 1500);
+                return;
             };
 
             $.ajax({
