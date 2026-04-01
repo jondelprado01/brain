@@ -127,7 +127,7 @@ $(document).ready(function(){
     });
 
     //DELETE MULTIPLE NON-BOARDS - SELECTION
-    $(".type3-check").on("click", function(){
+    $(document).delegate(".type3-check", "click", function(){
         let is_checked = $(this).is(":checked");
         if (is_checked) {
             $(".btn-delete-type3-container").removeClass("d-none");

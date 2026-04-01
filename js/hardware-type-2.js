@@ -665,7 +665,7 @@ $(document).ready(function(){
     });
 
     //DELETE MULTIPLE HW CAPACITY OVERRIDES - SELECTION
-    $(".type2-check").on("click", function(){
+    $(document).delegate(".type2-check", "click", function(){
         let is_checked = $(this).is(":checked");
         if (is_checked) {
             $(".btn-delete-type2-container").removeClass("d-none");

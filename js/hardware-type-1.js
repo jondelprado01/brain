@@ -775,7 +775,7 @@ $(document).ready(function(){
     });
 
     //DELETE MULTIPLE HW MAPPING - SELECTION
-    $(".dummy-hw-check").on("click", function(){
+    $(document).delegate(".dummy-hw-check", "click", function(){
         let is_checked = $(this).is(":checked");
         if (is_checked) {
             $(".btn-delete-hw-container").removeClass("d-none");
