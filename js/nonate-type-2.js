@@ -40,6 +40,9 @@ $(document).ready(function(){
         table_type_2.columns.adjust().draw();
     });
 
+    //PRELOAD EXISTING OVERRIDE SOCKET EFFICIENCY
+    preloadSocket(existing_socket, table_type_2);
+
 
     //SEARCH BOARD
     $("#search-board-field-type2").on("keypress", function(e){
@@ -189,6 +192,28 @@ $(document).ready(function(){
 });
 
 //-------------------------------------------------------------------------------------API--------------------------------------------------------------------------------
+function preloadSocket(board, table_type_2){
+    let data = JSON.parse(board);
+
+    if (data.length > 0) {
+        let rows = [];
+        $.each(data, function(index, item){
+            if (parseFloat(item['SOCKET_EFFICIENCY']) != 0.95) {
+                rows.push([
+                    item['BOARD'],
+                    parseFloat((item['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%',
+                    item['HASH'],
+                    item['ID'],
+                ]);
+            }
+        });
+        table_type_2.clear();
+        table_type_2.rows.add(rows);
+        table_type_2.draw();
+        $("body").trigger("click");
+    }
+}
+
 function getBoardsSocket(board, table_type_2){
     $.ajax({
         type: 'post',
@@ -271,7 +296,12 @@ function addSocketEfficiency(payload, user_details){
                     if (JSON.parse(data)['STATUS']) {
                         addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "non-ate update socket efficiency");
                         showGenericAlertType1("success", "Record Saved Successfully!");
-                        $('#search-board-field-type2').trigger($.Event('keypress', { which: 13 }));
+                        if ($('#search-board-field-type2').val() != null && $('#search-board-field-type2').val() != "") {       
+                            $('#search-board-field-type2').trigger($.Event('keypress', { which: 13 }));
+                        }
+                        else{
+                            location.reload();
+                        }
                     }
                 }
                 else{

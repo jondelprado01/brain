@@ -51,7 +51,7 @@ $(document).ready(function(){
         table_type_1.columns.adjust().draw();
     });
 
-    // initialLoadBurnin(existing_burnin, table_type_1);
+    preloadBurnin(existing_burnin, table_type_1);
 
     //SEARCH BOARD
     $("#search-board-field-type1").on("keypress", function(e){
@@ -291,6 +291,31 @@ function MassAddBoardsBurnin(payload){
     });
 }
 
+function preloadBurnin(board, table_type_1){
+    let data = JSON.parse(board);
+    if (data.length > 0) {
+        let rows = [];
+        $.each(data, function(index, item){
+            if (item['LOAD_HOURS'] != 10) {
+                load_unload = parseFloat(item['BI_HOURS']) + parseFloat(item['LOAD_HOURS']);
+                rows.push([
+                    item['MFG_PART_NUM'],
+                    item['BOARD'],
+                    item['BI_HOURS'],
+                    item['LOAD_HOURS'],
+                    load_unload,
+                    parseFloat(168 / load_unload).toFixed(2),
+                    item['HASH'],
+                    item['ID']
+                ]);
+            }
+        });
+        table_type_1.clear();
+        table_type_1.rows.add(rows);
+        table_type_1.draw();
+    }
+}
+
 function getBoardsBurnin(board, table_type_1){
     getExistingBurnin();
     $.ajax({
@@ -306,7 +331,6 @@ function getBoardsBurnin(board, table_type_1){
                 let rows = [];
                 let existing_cell_id = [];
                 let bi_boards = JSON.parse(data);
-                console.log(bi_boards);
                 
                 if (bi_boards.length > 0) {
                     if (JSON.parse(existing_burnin).length > 0) {
@@ -423,27 +447,6 @@ function addBoardsBurnin(payload, user_details){
         }
     });
 }
-
-// function initialLoadBurnin(existing_burnin, table_type_1){
-//     let rows = [];
-//     if (JSON.parse(existing_burnin).length > 0) {
-//         $.each(JSON.parse(existing_burnin), function(index, item){
-//             rows.push([
-//                 item['MFG_PART_NUM'],
-//                 item['BOARD'],
-//                 item['BI_HOURS'],
-//                 item['LOAD_HOURS'],
-//                 item['LOAD_UNLOAD'],
-//                 item['HASH'],
-//                 item['ID']
-//             ]);
-//         });
-
-//         table_type_1.clear();
-//         table_type_1.rows.add(rows);
-//         table_type_1.draw();
-//     }
-// }
 
 function showGenericAlertType1(icon, title){
     Swal.fire({
