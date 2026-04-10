@@ -146,6 +146,9 @@ $(document).ready(function(){
                 { data: 'THRESHOLD_FORMULA' },
                 { data: 'ACTION' },
             );
+
+            //jon - new column 4/9/2026
+            columns.splice(2, 0, {data: 'SOAK_TIME'});
         }
 
         return columns;
@@ -212,6 +215,7 @@ $(document).ready(function(){
         
         $(".vit-handler").text(data['HANDLER']);
         $(".vit-ptype").text((data['PKG_TYPE'] != null && data['PKG_TYPE'] != "") ? data['PKG_TYPE'] : "--");
+        $(".vit-stime").text((data['SOAK_TIME'] != null && data['SOAK_TIME'] != "") ? data['SOAK_TIME'] : "--"); //jon - new column 4/9/2026
         $(".vit-bsize").text((data['BODY_SIZE'] != null && data['BODY_SIZE'] != "") ? data['BODY_SIZE'] : "--");
         $(".vit-lmin").text((data['LEAD_COUNT_MIN'] != null && data['LEAD_COUNT_MIN'] != "") ? data['LEAD_COUNT_MIN'] : "--");
         $(".vit-lmax").text((data['LEAD_COUNT_MAX'] != null && data['LEAD_COUNT_MAX'] != "") ? data['LEAD_COUNT_MAX'] : "--");
@@ -234,6 +238,9 @@ $(document).ready(function(){
         }
         if(data['BODY_SIZE'] != null) {
             aryPkg.push(data['BODY_SIZE'])
+        }
+        if(data['SOAK_TIME'] != null) {
+            aryPkg.push(data['SOAK_TIME'])
         }
         switch (true) {
             case data['LEAD_COUNT_MIN'] != null && data['LEAD_COUNT_MAX'] != null:
