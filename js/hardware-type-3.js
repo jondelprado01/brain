@@ -27,8 +27,7 @@ $(document).ready(function(){
                        data[1] == itm['RES_AREA'] &&
                        data[2] == itm['HW_TYPE_HMS'] &&
                        data[3] == itm['HW_TYPE_SUS'] &&
-                       data[4] == itm['HW_NAME'] &&
-                       data[5] == itm['CAPACITY']){
+                       data[4] == itm['HW_NAME']){
                         existing_count++;
                     }
                 });
