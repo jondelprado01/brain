@@ -26,7 +26,7 @@ $(document).ready(function(){
                     if(data[0] == itm['SITE_NUM'] &&
                        data[1] == itm['RES_AREA'] &&
                        data[2] == itm['HW_TYPE_HMS'] &&
-                       data[3] == itm['HW_TYPE_SUS'] &&
+                    //    data[3] == itm['HW_TYPE_SUS'] &&
                        data[4] == itm['HW_NAME']){
                         existing_count++;
                     }
