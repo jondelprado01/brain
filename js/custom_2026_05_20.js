@@ -3300,7 +3300,7 @@ function getCalendar(route, date, week, num, id, type, paginate_type, crud, part
     $.ajax({
         type: 'post',
         url: 'http://MXHTAFOT01L.maxim-ic.com/TEST/TIMEPHASING.PHP?PROCESS_TYPE=GET_CALENDAR',
-        data: {date: date, week: week, type: type, crud: crud},
+        data: {date: date, week: week, type: type, crud: paginate_type},
         success: function(data){
             renderTimephasingCalendar(route, date, week, JSON.parse(data), num, id, crud, part);
         },
