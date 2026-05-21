@@ -2219,7 +2219,7 @@ $(document).ready(function(){
             }
             else{
                 let session_instance = sessionStorage.getItem('instance-loaded');
-                let ded_payload = formatTimephaseDedication(payload, session_instance);
+                let ded_payload = formatTimephaseDedication(payload, session_instance, null, user_details);
                 setTimephaseInstance(ded_payload);
             }
 
@@ -3287,7 +3287,7 @@ function removeDedication(payload, type = null){
         });
     }
     else{
-        let ded_payload = formatTimephaseDedication(payload, sessionStorage.getItem("instance-loaded"), "remove-tp-ded");
+        let ded_payload = formatTimephaseDedication(payload, sessionStorage.getItem("instance-loaded"), "remove-tp-ded", user_details);
         setTimephaseInstance(ded_payload, "remove-tp-ded");      
     }
 }
@@ -4322,7 +4322,7 @@ function formatData(type = null, data, process){
     return data_result;
 }
 
-function formatTimephaseDedication(data, session_instance, type = null){
+function formatTimephaseDedication(data, session_instance, type = null, user_details){
     if (type == null) {
         const parameterValue = new URLSearchParams(window.location.search).get('timephase-instance');
         let si_data = JSON.parse(session_instance);
@@ -4392,6 +4392,7 @@ function formatTimephaseDedication(data, session_instance, type = null){
             if (si_data[parameterValue]['NOTES'] == null) {
                 si_data[parameterValue]['NOTES'] = '';
             }
+            si_data[parameterValue]['CHANGE_USER'] = user_details['emp_id'];
         });
         
         return si_data;
@@ -4435,6 +4436,7 @@ function formatTimephaseDedication(data, session_instance, type = null){
             if (si_data[instance_id]['NOTES'] == null) {
                 si_data[instance_id]['NOTES'] = '';
             }
+            si_data[instance_id]['CHANGE_USER'] = user_details['emp_id'];
         });
         return si_data;
     }
