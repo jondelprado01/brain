@@ -128,7 +128,6 @@ scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* thumb color track color */
 #sidebar {
     max-width: 550px;
     min-width: 550px;
-    transition: all 0.35s ease-in-out;
     background-color: #ffffff;
     display: flex;
     flex-direction: column;
@@ -137,6 +136,10 @@ scrollbar-color: rgba(0, 0, 0, 0.2) transparent; /* thumb color track color */
 
 #sidebar.collapsed {
     margin-left: -550px;
+}
+
+#sidebar.animate {
+   transition: all 0.35s ease-in-out;
 }
 
 .toggler-btn {
