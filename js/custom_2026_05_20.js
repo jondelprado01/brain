@@ -21,6 +21,15 @@ $(document).ready(function(){
         html: true
     }));
 
+    //TOGGLE STATUS FOR FULLSCREEN TOGGLE BTN
+    let is_collapsed = sessionStorage.getItem("is-collapsed");
+    if (is_collapsed == "true") {
+        $("#sidebar").addClass("collapsed");
+    }
+    else{
+        $("#sidebar").removeClass("collapsed").removeClass("animate");
+    }
+
     // ---------------------------------------------------------------------------------SESSION VARIABLES--------------------------------------------------------------------------
     var session_search =  sessionStorage.getItem('session_search');
     var session_filters = JSON.parse(sessionStorage.getItem('session_filters'));
