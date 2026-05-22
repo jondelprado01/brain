@@ -4,13 +4,15 @@
         <input type="hidden" class="instance-loaded">
     </div>
     <?php
-        $has_tp_status = 'pointer-events: none; opacity: 0.7;';
+        //all users have access to time-phasing - 8/01
+        // $has_tp_status = 'pointer-events: none; opacity: 0.7;';
 
-        if (in_array('SCM Cap Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP_USER_GROUP']) == 0) {
-            $has_tp_status = '';
-        }
+        // if (in_array('SCM Cap Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP_USER_GROUP']) == 0) {
+        //     $has_tp_status = '';
+        // }
+        // echo $has_tp_status;
     ?>
-    <div style="width: 100%; overflow-x: auto; white-space: nowrap; <?php echo $has_tp_status;?>" class="card-body d-flex justify-content-start">
+    <div style="width: 100%; overflow-x: auto; white-space: nowrap;" class="card-body d-flex justify-content-start">
     
         <div class="card text-center tp-card rounded-0 col-auto m-3">
             <div class="card-header">Current - <?php echo $timephases['CURRENT_WEEK']['WEEK'];?></div>
