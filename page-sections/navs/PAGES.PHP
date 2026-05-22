@@ -111,7 +111,7 @@
                 </li>
 
                 <li class="nav-item me-4">
-                    <a class="nav-link <?php echo $it." ".$it_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/index-time/INDEX.PHP">
+                    <a class="nav-link" aria-current="page" href="<?php echo $subdomain; ?>/modules/index-time/INDEX.PHP">
                         <i class="fa-solid fa-timeline"></i>
                         INDEX TIME
                     </a>
