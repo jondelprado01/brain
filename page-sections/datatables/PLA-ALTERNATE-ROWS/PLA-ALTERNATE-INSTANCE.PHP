@@ -39,7 +39,7 @@ if (count($result) > 0) {
             $pi_index           = $result['RES_PRIO_CD'][$skey]['INDX'];
             $pi_oee             = $result['RES_PRIO_CD'][$skey]['OEE'];
             $pi_qcf             = $result['TEST_PERC']; //no equivalent value from api
-            $pi_suph            = "--"; //no equivalent value from api
+            $pi_suph            = (double) $result['RES_PRIO_CD'][$skey]['UTPH'] / (double) $result['RES_PRIO_CD'][$skey]['OEE'];
             $pi_uph             = $result['RES_PRIO_CD'][$skey]['UTPH'];
             $pi_res_set         = $result['RES_PRIO_CD'][$skey]['REF_STEP_ID'];
             $pi_data            = $result['RES_PRIO_CD'][$skey];
@@ -124,7 +124,7 @@ if (count($result) > 0) {
                     <td class="'.$bg_cell.' instance-input" instance-default="'.round($pi_index, 2).'" '.$if_indx.' '.$instance_idtf.' '.$instance_attr.' '.$editable.'>'.round($pi_index, 2).'</td>
                     <td class="'.$bg_cell.' instance-input" instance-default="'.number_format((float)$pi_oee, 2, '.', '').'" '.$if_oee.' '.$instance_idtf.' '.$instance_attr.' '.$editable.'>'.number_format((float)$pi_oee, 2, '.', '').'</td>
                     <td class="'.$bg_cell.'">'.$pi_qcf.'</td>
-                    <td class="'.$bg_cell.'">'.$pi_suph.'</td>
+                    <td class="'.$bg_cell.'">'.round($pi_suph , 2).'</td>
                     <td class="'.$bg_cell.'">'.round($pi_uph, 2).'</td>
                     <td class="'.$bg_cell.'">
                         <input part-flag-data="'.$part_flag.'" class="form-check-input unplannable-flag" atom-group="'.$pi_atom_tester.'|'.$pi_atom_handler.'" 
