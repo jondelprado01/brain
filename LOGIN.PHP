@@ -113,16 +113,21 @@ else{
             echo "Error";
         }
     }else{
+        #2026-05-22 JDP implemented a redirect landing page for any encountered issues in sso login
+        header("Location: LANDING-REDIRECT.PHP");
+
         #2025-10-15 RM  default non-admin
-        $_SESSION["SYSTEM"]           = "BRAIN";
-        $_SESSION["EMP_NO"]           = "";
-        $_SESSION["EMP_NAME"]         = "Log In";
-        $_SESSION["EMP_EMAIL"]        = "noone@nowhere.com";
-        $_SESSION["FIRST_NAME"]         = "Log";
-        $_SESSION["LAST_NAME"]          = "In";
-        $_SESSION["EMP_ROLE"]         = "";
-        $_SESSION["EMP_USER_GROUP"]   = [];
-/*
+        // $_SESSION["SYSTEM"]           = "BRAIN";
+        // $_SESSION["EMP_NO"]           = "";
+        // $_SESSION["EMP_NAME"]         = "Log In";
+        // $_SESSION["EMP_EMAIL"]        = "noone@nowhere.com";
+        // $_SESSION["FIRST_NAME"]         = "Log";
+        // $_SESSION["LAST_NAME"]          = "In";
+        // $_SESSION["EMP_ROLE"]         = "";
+        // $_SESSION["EMP_USER_GROUP"]   = [];
+        // header("Location: INDEX.PHP");
+
+        /*
         $_SESSION["SYSTEM"]           = "BRAIN";
         $_SESSION["EMP_NO"]           = "2008473";
         $_SESSION["EMP_NAME"]         = "ADMIN TEST ACCOUNT";
@@ -131,9 +136,7 @@ else{
         $_SESSION["LAST_NAME"]          = "admin";
         $_SESSION["EMP_ROLE"]         = "Administrator";
         $_SESSION["EMP_USER_GROUP"]   = [];
-*/
-        header("Location: INDEX.PHP");
-
+        */
         // echo "<pre>", var_dump($data_sso), "</pre>";
         // echo "Employee No:".$data_sso['employeeno'];
     }
