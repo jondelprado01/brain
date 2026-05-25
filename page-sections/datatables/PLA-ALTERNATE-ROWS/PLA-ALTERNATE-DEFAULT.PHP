@@ -13,8 +13,9 @@ if (in_array('HW Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP
     $has_hw_set = '';
 }
 
+$row_disabled_pad = ($pd['ENGR_TESTER'] == null || $pd['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 
-echo '<tr>
+echo '<tr '.$row_disabled_pad.'>
         <td>
             <button class="btn btn-outline-warning btn-sm btn-dedication-table_source_'.$table_id.'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-ellipsis-vertical"></i>

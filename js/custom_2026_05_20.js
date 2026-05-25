@@ -185,7 +185,7 @@ $(document).ready(function(){
                                     break;
                             }
                             $(td).attr({
-                                'contenteditable': true,
+                                'contenteditable': (rowData[1] != "" && rowData[2]) ? true : false,
                                 'instance-data-id': parameterValue,
                                 'instance-field': field_val,
                                 'instance-default': cellData,
@@ -305,7 +305,7 @@ $(document).ready(function(){
                                         break;
                                 }
                                 $(td).attr({
-                                    'contenteditable': true,
+                                    'contenteditable': (rowData[1] != "" && rowData[2]) ? true : false,
                                     'instance-data-id': parameterValue,
                                     'instance-field': field_val,
                                     'instance-default': cellData,

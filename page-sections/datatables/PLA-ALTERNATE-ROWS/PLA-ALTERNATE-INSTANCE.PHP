@@ -99,7 +99,10 @@ if (count($result) > 0) {
                             </button></li>';
             }
 
-            echo '<tr>
+            $row_disabled_pai = ($pi_eng_tester == null || $pi_eng_handler == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+            $editable = ($row_disabled_pai == '') ? $editable : '';
+
+            echo '<tr '.$row_disabled_pai.'>
                     <td class="'.$bg_cell.'">
                         <button class="btn '.$bg_btn.' btn-sm btn-dedication-table_source_'.$table_id.'" 
                                 type="button" data-bs-toggle="dropdown" aria-expanded="false"

@@ -11,7 +11,9 @@ if (in_array('HW Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP
     $has_hw_set = '';
 }
 
-echo '<tr>
+$row_disabled_ppd = ($pd['ENGR_TESTER'] == null || $pd['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+
+echo '<tr '.$row_disabled_ppd.'>
         <td class="'.$cls.'">
             <button class="btn btn-success btn-sm btn-dedication-table_primary_'.$table_id.'" 
                     type="button" data-bs-toggle="dropdown" aria-expanded="false">

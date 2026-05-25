@@ -21,7 +21,9 @@ foreach ($test as $key => $t) {
 
 $new_orig_prio = (isset($ded_data['ORIG_PRIO']) && $ded_data['ORIG_PRIO'] != "" && $ded_data['ORIG_PRIO'] != "") ? $ded_data['ORIG_PRIO'] : max($orig_prio_arr) + 10;
 
-echo '<tr>
+$row_disabled_paded = ($ded_data['ENGR_TESTER'] == null || $ded_data['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+
+echo '<tr '.$row_disabled_paded.'>
         <td class="'.$cls.'">
             <button class="btn btn-primary btn-sm btn-dedication-table_source_'.$table_id.'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="fa-solid fa-ellipsis-vertical"></i>
