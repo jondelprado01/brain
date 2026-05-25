@@ -447,7 +447,7 @@ i[class*=fa-circle-info]{
     width: 400px!important;
 }
 
-.instance-input{
+.instance-input, .tpi-input{
     text-decoration: underline;
 }
 
