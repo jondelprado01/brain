@@ -59,11 +59,6 @@ if (count($result) > 0) {
     
             $cls = "td-hide";
             
-            if ($result['RES_PRIO_CD'][$skey]['IS_DED'] == "1") {
-                $bg_cell = " bg-part-dedication-alternate";
-                $bg_btn = "btn-primary";
-                $ded_btn = '';
-            }
             $hardware_set = json_encode($hardware_data);
             $part_id = $pi_partnum.'|'.$part_data[0]['SITE'].'|'.$pi_step_nm.'|'.$pi_hash.'|'.$pi_route.'|COMPLETED|0';
             $part_flag = preg_replace('/[^A-Za-z0-9\-]/', '_', $pi_partnum.'_'.$part_data[0]['SITE'].'_'.$pi_step_nm.'_'.$pi_route);
@@ -93,11 +88,17 @@ if (count($result) > 0) {
             $bg_btn = "btn-outline-warning";
             $ded_btn = '';
 
-            if ($pi_is_ded == null) {
-                $ded_btn = '<li><button type="button" class="dropdown-item text-secondary btn-sm dedication-config" table-id="table_source_'.$table_id.'" '.$has_dedication.'>
+            if ($result['RES_PRIO_CD'][$skey]['IS_DED'] == "1") {
+                $bg_cell = " bg-part-dedication-alternate";
+                $bg_btn = "btn-primary";
+            }
+
+            // if ($pi_is_ded == null) {
+                $from_ded = ($pi_is_ded != null) ? "from-dedication" : "";
+                $ded_btn = '<li><button type="button" class="dropdown-item text-secondary btn-sm dedication-config '.$from_ded.'" table-id="table_source_'.$table_id.'" '.$has_dedication.'>
                                 <i class="fa-solid fa-clone"></i> Dedications
                             </button></li>';
-            }
+            // }
 
             $row_disabled_pai = ($pi_eng_tester == null || $pi_eng_handler == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
             $editable = ($row_disabled_pai == '') ? $editable : '';

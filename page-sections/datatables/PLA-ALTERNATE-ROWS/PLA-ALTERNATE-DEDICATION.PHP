@@ -1,7 +1,11 @@
 <?php
-
+$has_ded_status = 'disabled';
 $unplannable_check = 'disabled';
 $has_hw_set = 'disabled';
+
+if (in_array('SCM Cap Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP_USER_GROUP']) == 0) {
+    $has_ded_status = '';
+}
 
 if (in_array('SCM Cap Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP_USER_GROUP']) == 0) {
     $unplannable_check = '';
@@ -29,6 +33,11 @@ echo '<tr '.$row_disabled_paded.'>
                 <i class="fa-solid fa-ellipsis-vertical"></i>
             </button>
             <ul class="dropdown-menu">
+                <li>
+                    <button type="button" class="dropdown-item text-secondary btn-sm dedication-config from-dedication" dedication-type="primary" table-id="table_primary_'.$table_id.'" '.$has_ded_status.'>
+                        <i class="fa-solid fa-clone"></i> Dedications
+                    </button>
+                </li>
                 <li>
                     <button type="button" class="dropdown-item text-secondary btn-sm dt-control" '.$has_hw_set.'>
                         <i class="fa-solid fa-microchip"></i> HW Set
@@ -71,7 +80,7 @@ echo '<tr '.$row_disabled_paded.'>
         <td class="'.$cls.' '.$hide.'">'.$new_orig_prio.'</td>
         <td class="'.$cls.' '.$hide.'">NOT_INSTANCE</td>
         <td class="'.$cls.' '.$hide.'">NOT_INSTANCE</td>
-        <td class="'.$cls.' '.$hide.'">NO_RES_AREA</td>
+        <td class="'.$cls.' '.$hide.'">'.$res_area_arr[0].'</td>
     </tr>';
 
 ?>

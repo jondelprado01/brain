@@ -13,6 +13,10 @@
             }
         }
 
+        $res_area_arr = array_unique(array_map(function($element) {
+            return $element['TEST_TYPE'];
+        }, $part_data));
+        
         if (count($multi_partnum) <= 1) {
         ?>
             <p class="lead d-flex justify-content-end h5 mb-2">

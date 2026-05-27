@@ -78,15 +78,16 @@ if (in_array('HW Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP
     $has_hw_set = '';
 }
 
+$from_ded = ($result['RES_PRIO_CD'][1]['IS_DED'] == "1") ? "from-dedication" : "";
 $bg_btn = "btn-outline-warning";
-$ded_btn = '<li><button type="button" class="dropdown-item text-secondary btn-sm dedication-config" table-id="table_primary_'.$table_id.'" '.$has_ded_status.'>
+$ded_btn = '<li><button type="button" class="dropdown-item text-secondary btn-sm dedication-config '.$from_ded.'" table-id="table_primary_'.$table_id.'" '.$has_ded_status.'>
                 <i class="fa-solid fa-clone"></i> Dedications
             </button></li>';
 
 if ($result['RES_PRIO_CD'][1]['IS_DED'] == "1") {
     $cls = " bg-part-dedication-primary";
     $bg_btn = "btn-primary";
-    $ded_btn = '';
+    // $ded_btn = '';
 }
 
 $row_disabled_ppi = ($pi_eng_tester == null || $pi_eng_handler == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';

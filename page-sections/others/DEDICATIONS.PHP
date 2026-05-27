@@ -186,12 +186,12 @@
                         </div>
                     </div>
                     <div class="col-lg-5">
-                        <div class="card mb-3">
+                        <div class="card mb-3 normal-setup-controls">
                             <input type="hidden" class="selected-setup">
                             <div class="card-header">
                                 <span class="card-title fw-bold">Controls</span>
                             </div>
-                            <div class="card-body test-div">
+                            <div style="display: none!important;" class="card-body normal-setup-controls">
                                 <div class="row">
                                     <div class="col-lg-6">
                                         <div class="form-check form-switch mb-2">
@@ -220,6 +220,20 @@
                                     <!-- <button type="button" class="btn btn-danger btn-remove-all-dedication w-50 mb-2">
                                         Remove All <i class="fa-solid fa-trash"></i>
                                     </button> -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: none!important;" class="card mb-3 dedication-setup-controls">
+                            <input type="hidden" class="selected-setup">
+                            <div class="card-header">
+                                <span class="card-title fw-bold">Controls</span>
+                            </div>
+                            <div class="card-body">
+                                <div style="gap: 20px;" class="d-flex justify-content-center">
+                                    <button type="button" class="btn btn-info btn-save-update-dedication w-50 mb-2">
+                                        Save Changes <i class="fa-regular fa-floppy-disk"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
