@@ -1,9 +1,30 @@
 $(document).ready(function(){
-
+    console.log(has_delinquent_t2);
+    
     var table_type_2 = $(".table-hw-type2").DataTable({
         // bPaginate: false,
         scrollY: 'calc(100vh - 650px)',
-        bSort: false,
+        // bSort: false,
+        order: [[ 5, "asc" ]],
+        columnDefs: [
+            {
+                targets: 5,
+                render: function(data, type, row, meta) {
+                    if (type === 'sort') {
+                        if (parseInt(JSON.parse(has_delinquent_t2)) > 0) {
+                            return parseFloat("20"+data.replace("_W", ""));
+                            
+                        }
+                        return -meta.row[1];
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: '_all',
+                orderable: false
+            }
+        ],
         responsive: true,
     });
 

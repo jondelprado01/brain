@@ -26,8 +26,8 @@ $existing_mapping = $response['TYPE_1'];
 $existing_capacity = $response['TYPE_2'];
 $existing_nonboard = $response['TYPE_3'];
 $weeks = $response['WEEKS'];
-// echo "<pre>", var_dump($weeks_open), "</pre>";
-// return;
+$has_delinquent_t1 = 0;
+$has_delinquent_t2 = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -47,6 +47,7 @@ $weeks = $response['WEEKS'];
             var existing_capacity = '<?php echo json_encode($existing_capacity);?>';
             var existing_nonboard = '<?php echo json_encode($existing_nonboard);?>';
             var weeks = '<?php echo json_encode($weeks);?>';
+            var current_fyww = '<?php echo json_encode($weeks[0]);?>';
         </script>
         <?php
             foreach ($assets as $key => $asset) {
@@ -273,6 +274,14 @@ $weeks = $response['WEEKS'];
                                                         <tbody>
                                                             <?php
                                                                 foreach ($existing_mapping as $key => $mapping) {
+
+                                                                    $current_fyww = (int)str_replace("_W", "", $weeks[0]);
+                                                                    $hw_end_t1 = (int)str_replace("_W", "", $mapping['EFF_END']);
+                                                                    $current_hw_end = "20".$hw_end_t1;
+                                                                    $delinquent_code = ($current_fyww > $current_hw_end) ? "bg-danger-subtle" : "";
+                                                                    if ($delinquent_code != "") {
+                                                                        $has_delinquent_t1++;
+                                                                    }
                                                                 ?>
                                                                     <tr>
                                                                         <td>
@@ -285,7 +294,7 @@ $weeks = $response['WEEKS'];
                                                                         <td><?php echo $mapping['GENPOOL']?></td>
                                                                         <td><?php echo $mapping['HW_NM']?></td>
                                                                         <td><?php echo $mapping['EFF_START']?></td>
-                                                                        <td><?php echo $mapping['EFF_END']?></td>
+                                                                        <td class="<?php echo $delinquent_code; ?>"><?php echo $mapping['EFF_END']?></td>
                                                                         <td><?php echo $mapping['CAPACITY']?></td>
                                                                         <td><?php echo $mapping['HW_TYPE']?></td>
                                                                         <td>
@@ -518,6 +527,13 @@ $weeks = $response['WEEKS'];
                                                                     $res_cap = $hw_current_cap - $emp_dedicated_cap;
 
                                                                     $deletable = ($res_cap < 0) ? false : true;
+                                                                    
+                                                                    $current_fyww = (int)str_replace("_W", "", $weeks[0]);
+                                                                    $current_hw_start = "20".$hw_start;
+                                                                    $delinquent_code = ($current_fyww > $current_hw_start) ? "bg-danger-subtle" : "";
+                                                                    if ($delinquent_code != "") {
+                                                                        $has_delinquent_t2++;
+                                                                    }
                                                                 ?>
                                                                     <tr>
                                                                         <td>
@@ -535,7 +551,7 @@ $weeks = $response['WEEKS'];
                                                                         <td><?php echo $capacity['HW_NM']?></td>
                                                                         <td><?php echo $capacity['SITE_NUM']?></td>
                                                                         <td><?php echo $capacity['RES_AREA']?></td>
-                                                                        <td><?php echo $capacity['EFF_START']?></td>
+                                                                        <td class="<?php echo $delinquent_code; ?>"><?php echo $capacity['EFF_START']?></td>
                                                                         <td><?php echo $capacity['EFF_END']?></td>
                                                                         <td><?php echo $capacity['OVERRIDE_CAP']?></td>
                                                                         <td>
@@ -1123,3 +1139,7 @@ $weeks = $response['WEEKS'];
     </body>
     
 </html>
+<script>
+    var has_delinquent_t1 = '<?php echo json_encode($has_delinquent_t1); ?>';
+    var has_delinquent_t2 = '<?php echo json_encode($has_delinquent_t2); ?>';
+</script>

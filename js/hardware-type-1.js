@@ -1,9 +1,29 @@
 $(document).ready(function(){
-    
+    console.log(has_delinquent_t1);
     var hw_override_table = $(".table-dummy-type1").DataTable({
         // bPaginate: false,
         scrollY: 'calc(100vh - 650px)',
-        bSort: false,
+        // bSort: false,
+        order: [[ 6, "asc" ]],
+        columnDefs: [
+            {
+                targets: 6,
+                render: function(data, type, row, meta) {
+                    if (type === 'sort') {
+                        if (parseInt(JSON.parse(has_delinquent_t1)) > 0) {
+                            return parseFloat("20"+data.replace("_W", ""));
+                            
+                        }
+                        return -meta.row[1];
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: '_all',
+                orderable: false
+            }
+        ],
         responsive: true,
     });
 
