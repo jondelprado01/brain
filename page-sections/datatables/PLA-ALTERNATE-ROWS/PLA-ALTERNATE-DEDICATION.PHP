@@ -53,7 +53,7 @@ echo '<tr '.$row_disabled_paded.'>
         <td class="'.$cls.'">'.$ded_data['UTPI'].'</td>
         <td class="'.$cls.'">'.round($ded_data['INDEX_TIME'], 2).'</td>
         <td class="'.$cls.'">'.number_format((float)$ded_data['OEE'], 2, '.', '').'</td>
-        <td class="'.$cls.'">'.round($ded_data['QC_FACTOR'], 2).'</td>
+        <td class="'.$cls.'">'.round($ded_data['QC_FACTOR'], 3).'</td>
         <td class="'.$cls.'">'.round($ded_data['SPRINT_UPH'], 2).'</td>
         <td class="'.$cls.'">'.round($ded_data['UPH'], 2).'</td>
         <td class="'.$cls.'">
