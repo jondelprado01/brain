@@ -239,8 +239,8 @@
                                                                     $idtf = $pd['ENGR_TESTER'].'|'.$pd['ENGR_HANDLER'].'|'.$pd['ATOM_TESTER'].'|'.$pd['ATOM_HANDLER'].'|'.$route_id.'|'.$pd['STEP'];
                                                                     
                                                                     $utpi           = ($pd['UTPI'] != null          && $pd['UTPI'] != '')       ? $pd['UTPI'] : 'N/A';
-                                                                    $rnd_test_time  = ($pd['TEST_TIME'] != null     && $pd['TEST_TIME'] != '')  ? round($pd['TEST_TIME'], 2)  : 'N/A';
-                                                                    $rnd_index_time = ($pd['INDEX_TIME'] != null    && $pd['INDEX_TIME'] != '') ? round($pd['INDEX_TIME'], 2) : 'N/A';
+                                                                    $rnd_test_time  = ($pd['TTPI'] != null          && $pd['TTPI'] != '')       ? round($pd['TTPI'], 2)  : 'N/A';
+                                                                    $rnd_index_time = ($pd['INDX'] != null          && $pd['INDX'] != '')       ? round($pd['INDX'], 2) : 'N/A';
                                                                     $rnd_oee        = ($pd['OEE'] != null           && $pd['OEE'] != '')        ? number_format((float)$pd['OEE'], 2, '.', '') : 'N/A';
                                                                     $rnd_qc_factor  = ($pd['QC_FACTOR'] != null     && $pd['QC_FACTOR'] != '')  ? round($pd['QC_FACTOR'], 3)  : 'N/A';
                                                                     $rnd_sprint_uph = ($pd['SPRINT_UPH'] != null    && $pd['SPRINT_UPH'] != '') ? round($pd['SPRINT_UPH'], 2) : 'N/A';
@@ -354,8 +354,8 @@
                                                                 if (isset($primary_data) && !in_array($part_id, $primary_data)) {
                                                                     $cls = "td-hide";
                                                                     $utpi           = ($pd['UTPI'] != null          && $pd['UTPI'] != '')       ? $pd['UTPI'] : 'N/A';
-                                                                    $rnd_test_time  = ($pd['TEST_TIME'] != null     && $pd['TEST_TIME'] != '')  ? round($pd['TEST_TIME'], 2)  : 'N/A';
-                                                                    $rnd_index_time = ($pd['INDEX_TIME'] != null    && $pd['INDEX_TIME'] != '') ? round($pd['INDEX_TIME'], 2) : 'N/A';
+                                                                    $rnd_test_time  = ($pd['TTPI'] != null          && $pd['TTPI'] != '')       ? round($pd['TTPI'], 2)  : 'N/A';
+                                                                    $rnd_index_time = ($pd['INDX'] != null          && $pd['INDX'] != '')       ? round($pd['INDX'], 2) : 'N/A';
                                                                     $rnd_oee        = ($pd['OEE'] != null           && $pd['OEE'] != '')        ? number_format((float)$pd['OEE'], 2, '.', '') : 'N/A';
                                                                     $rnd_qc_factor  = ($pd['QC_FACTOR'] != null     && $pd['QC_FACTOR'] != '')  ? round($pd['QC_FACTOR'], 3)  : 'N/A';
                                                                     $rnd_sprint_uph = ($pd['SPRINT_UPH'] != null    && $pd['SPRINT_UPH'] != '') ? round($pd['SPRINT_UPH'], 2) : 'N/A';

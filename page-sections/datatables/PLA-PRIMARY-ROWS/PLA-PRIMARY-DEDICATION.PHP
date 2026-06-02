@@ -23,6 +23,9 @@ $new_orig_prio = (array_key_exists('ORIG_PRIO', $ded_data)) ? $ded_data['ORIG_PR
 
 $row_disabled_pded = ($ded_data['ENGR_TESTER'] == null || $ded_data['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 
+$ttpi_ded = round($ded_data['TEST_TIME'], 2) * $ded_data['UTPI'];
+$indxpi_ded = round($ded_data['INDEX_TIME'], 2) * $ded_data['UTPI'];
+
 echo '<tr '.$row_disabled_pded.'>
         <td class="'.$cls.'">
             <button class="btn btn-success btn-sm btn-dedication-table_primary_'.$table_id.'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -45,9 +48,9 @@ echo '<tr '.$row_disabled_pded.'>
         <td class="'.$cls.'">'.$ded_data['ENGR_HANDLER'].'</td>
         <td class="'.$cls.'">'.$ded_data['TESTER'].'</td>
         <td class="'.$cls.'">'.$ded_data['HANDLER'].'</td>
-        <td class="'.$cls.'">'.round($ded_data['TEST_TIME'], 2).'</td>
+        <td class="'.$cls.'">'.round($ttpi_ded, 2).'</td>
         <td class="'.$cls.'">'.$ded_data['UTPI'].'</td>
-        <td class="'.$cls.'">'.round($ded_data['INDEX_TIME'], 2).'</td>
+        <td class="'.$cls.'">'.round($indxpi_ded, 2).'</td>
         <td class="'.$cls.'">'.number_format((float)$ded_data['OEE'], 2, '.', '').'</td>
         <td class="'.$cls.'">'.round($ded_data['QC_FACTOR'], 3).'</td>
         <td class="'.$cls.'">'.round($ded_data['SPRINT_UPH'], 2).'</td>
