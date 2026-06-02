@@ -146,7 +146,14 @@
   $header[] = "Content-Transfer-Encoding: quoted-printable";
   $header[] = "From: do_not_reply@brain.analog.com";
 
-  $test_recipients = ["vishnu.padmakumar@analog.com", "ricci.bejarin@analog.com", "lorraine.digma@analog.com"];
+  $test_recipients = [
+    "vishnu.padmakumar@analog.com", 
+    "ricci.bejarin@analog.com",
+    "Ivy.Espiritu@analog.com",
+    "Charmaine.Dimaranan@analog.com",
+    "Joy.Castillo@analog.com",
+    "Amie.Tibayan@analog.com",
+    "Luis.Bravo@analog.com"];
   // $test_recipients = ["jonathan.delprado@analog.com"];
 
   $result = mail(implode(",", $test_recipients), "BRAIN - Change in Primary Engr. Tester/Handler", $body, implode("\n",$header));
