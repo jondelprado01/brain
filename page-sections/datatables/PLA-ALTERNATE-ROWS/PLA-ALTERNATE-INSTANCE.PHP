@@ -100,7 +100,7 @@ if (count($result) > 0) {
                             </button></li>';
             // }
 
-            $row_disabled_pai = ($pi_eng_tester == null || $pi_eng_handler == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+            $row_disabled_pai = ($pi_eng_tester == null || $pi_eng_handler == null || $pi_eng_tester == "NONE" || $pi_eng_handler == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
             $editable = ($row_disabled_pai == '') ? $editable : '';
 
             echo '<tr '.$row_disabled_pai.'>

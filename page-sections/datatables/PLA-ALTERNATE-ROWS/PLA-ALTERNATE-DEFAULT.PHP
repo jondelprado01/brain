@@ -13,7 +13,7 @@ if (in_array('HW Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP
     $has_hw_set = '';
 }
 
-$row_disabled_pad = ($pd['ENGR_TESTER'] == null || $pd['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+$row_disabled_pad = ($pd['ENGR_TESTER'] == null || $pd['ENGR_HANDLER'] == null || $pd['ENGR_TESTER'] == "NONE" || $pd['ENGR_HANDLER'] == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 
 echo '<tr '.$row_disabled_pad.'>
         <td>

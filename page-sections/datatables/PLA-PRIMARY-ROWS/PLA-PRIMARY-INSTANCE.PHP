@@ -90,7 +90,7 @@ if ($result['RES_PRIO_CD'][1]['IS_DED'] == "1") {
     // $ded_btn = '';
 }
 
-$row_disabled_ppi = ($pi_eng_tester == null || $pi_eng_handler == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+$row_disabled_ppi = ($pi_eng_tester == null || $pi_eng_handler == null || $pi_eng_tester == "NONE" || $pi_eng_handler == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 echo '<tr '.$row_disabled_ppi.'>
         <td class="'.$cls.'">
             <button class="btn btn-success btn-sm btn-dedication-table_primary_'.$table_id.'" 

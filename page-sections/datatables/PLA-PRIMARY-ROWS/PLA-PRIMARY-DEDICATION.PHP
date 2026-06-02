@@ -21,7 +21,7 @@ foreach ($test as $key => $t) {
 
 $new_orig_prio = (array_key_exists('ORIG_PRIO', $ded_data)) ? $ded_data['ORIG_PRIO'] : max($orig_prio_arr) + 1;
 
-$row_disabled_pded = ($ded_data['ENGR_TESTER'] == null || $ded_data['ENGR_HANDLER'] == null) ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+$row_disabled_pded = ($ded_data['ENGR_TESTER'] == null || $ded_data['ENGR_HANDLER'] == null || $ded_data['ENGR_TESTER'] == "NONE" || $ded_data['ENGR_HANDLER'] == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 
 $ttpi_ded = round($ded_data['TEST_TIME'], 2) * $ded_data['UTPI'];
 $indxpi_ded = round($ded_data['INDEX_TIME'], 2) * $ded_data['UTPI'];
