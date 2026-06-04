@@ -59,6 +59,13 @@ $assets = RENDER_ASSETS("module");
             #dt-length-0{
                 margin-right: 0.5em!important;
             }
+            .table-graph th:first-child,
+            .table-graph td:first-child {
+                position: sticky;
+                left: 0;
+                background: white;
+                z-index: 1;
+            }
         </style>
     </head>
 
@@ -360,11 +367,12 @@ $assets = RENDER_ASSETS("module");
                                 </tbody>
                             </table>
                         </div>
-                        
+
                         <div style="overflow-x: auto;" class="table-responsive-sm">
-                            <table class="table table-bordered">
+                            <table class="table table-bordered table-graph">
                                 <thead>
                                     <tr>
+                                        <th>&nbsp;</th>
                                         <?php
                                             for ($i=1; $i <= 10; $i++) { 
                                                 $sign = ($i <= 9) ? "<=" : ">";
@@ -381,6 +389,7 @@ $assets = RENDER_ASSETS("module");
                                         ?>
                                     </tr>
                                     <tr>
+                                        <td><b>UTPI:</b></td>
                                         <?php
                                             for ($i=0.2; $i <= 10; $i+= 0.2) {
                                                 $i = round($i, 1);
@@ -394,6 +403,7 @@ $assets = RENDER_ASSETS("module");
                                 </thead>
                                 <tbody>
                                     <tr>
+                                        <td><b>Index Time:</b></td>
                                         <?php
                                             for ($i=0.2; $i <= 10; $i+= 0.2) {
                                                 $i = round($i, 1);
@@ -410,7 +420,21 @@ $assets = RENDER_ASSETS("module");
                     </div>
                     
                     <div class="modal-body pt-4 pb-4 pr-2 pl-2">
-                        <canvas id="VarIndex" style="max-width:100%;"></canvas>
+                        <div class="d-flex align-items-center">
+                            <!-- Y-axis title -->
+                            <div class="me-3 mt-0" style="writing-mode: vertical-rl; transform: rotate(180deg);">
+                                <b>Index Time</b>
+                            </div>
+
+                            <div style="width: 100%!important; height: 350px;">
+                                 <canvas id="VarIndex" style="max-width:100%;"></canvas>
+
+                                <!-- X-axis title -->
+                                <div class="text-center mt-2">
+                                    <b>UTPI</b>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     
                 </div>
