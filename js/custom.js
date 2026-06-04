@@ -1556,6 +1556,8 @@ $(document).ready(function(){
         let curr_atom_handler = $(".td-ahandler").filter(":visible").text();
         let new_atom_tester = $(".select2-tester option:selected").val();
         let new_atom_handler = $(".select2-handler option:selected").val();
+        let parent_tester = $(".select2-tester option:selected").attr("parent-data");
+        let parent_handler = $(".select2-handler option:selected").attr("parent-data");
         let primary_table = $("#"+selected_ded_setup[16]).DataTable().rows().data().toArray();
         let alternate_table = $("#"+selected_ded_setup[17]).DataTable().rows().data().toArray();
         let exists_counter = 0;
@@ -1607,6 +1609,8 @@ $(document).ready(function(){
 
                 session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['TESTER'] = new_atom_tester;
                 session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['HANDLER'] = new_atom_handler;
+                session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['TESTER_ENG'] = parent_tester;
+                session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['HANDLER_ENG'] = parent_handler;
                 session_instance[instance_id]['CHANGE_USER'] = user_details['emp_id'];
 
                 if (session_instance[instance_id]['NOTES'] == null) {
@@ -1618,19 +1622,19 @@ $(document).ready(function(){
                     "OUTPUT_TYPE":"TPI_PUT_ONE",
                     "INPUT": session_instance
                 };
-		let new_session_data = session_instance;
+		        let new_session_data = session_instance;
                 $.ajax({
                     type: 'post',
                     url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP',
                     data: JSON.stringify(payload),
-		    beforeSend: function(){
+		            beforeSend: function(){
                         showLoader('Processing... \n Please Wait!');
                     },
                     success: function(data){                        
                         if (JSON.parse(data)['STATUS'] == "SUCCESS") {
                             console.log(JSON.parse(data));
                             setTimeout(function(){
-				sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
+				                sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
                                 showGenericAlert("success", "Dedication Updated Successfully!");
                                 location.reload()
                             },1500);
@@ -2204,7 +2208,13 @@ $(document).ready(function(){
             showGenericAlert("error", "No Changes Detected!");
         }
         else if(ded_table.length > 0){
-            let input_data = split[2]+'|'+setup[1]+'|'+setup[2];
+            let input_data = "";
+            if ($(".instance-loaded-alert").length == 0) {
+                input_data = split[2]+'|'+setup[1]+'|'+setup[2];
+            }
+            else{
+                input_data = split[2]+'|'+parent_tester+'|'+parent_handler;
+            }
             $.each(ded_table, function(index, item){
                 let ded_data = item[2]+'|'+item[3]+'|'+item[4];
                 if (input_data == ded_data) {
@@ -2291,6 +2301,17 @@ $(document).ready(function(){
                 let alternate_setups = $("#"+item[17]).DataTable().rows().data().toArray();
                 alternates = $.merge([], primary_setups.concat(alternate_setups));
                 
+                let ded_engr_tester = "";
+                let ded_engr_handler = "";
+
+                if ($(".instance-loaded-alert").length == 0) {
+                    ded_engr_tester = (parent_tester != item[1]) ? item[1] : parent_tester;
+                    ded_engr_handler = (parent_handler != item[2]) ? item[2] : parent_handler;
+                }
+                else{
+                    ded_engr_tester = parent_tester;
+                    ded_engr_handler = parent_handler;
+                }
 
                 payload.push({
                     "ATOM_MASTER_ID":item[13],
@@ -2301,8 +2322,8 @@ $(document).ready(function(){
                     "HANDLER":      ded_handler,
                     // "ENGR_TESTER":  item[1],
                     // "ENGR_HANDLER": item[2],
-                    "ENGR_TESTER":  (parent_tester != item[1]) ? item[1] : parent_tester,
-                    "ENGR_HANDLER": (parent_handler != item[2]) ? item[2] : parent_handler,
+                    "ENGR_TESTER":  ded_engr_tester,
+                    "ENGR_HANDLER": ded_engr_handler,
                     "HASH":         item[13],
                     "HW_SET_ID":    item[19],
                     "ID":           "",
@@ -2323,8 +2344,8 @@ $(document).ready(function(){
                     "ALTERNATES":   alternates,
 		            "RES_AREA":     $(".td-res").html()
                 });
-	    });
-
+	        });
+            
             if ($(".instance-loaded-alert").length == 0) {
                 setDedication(payload, setup, user_details);
             }
@@ -2396,7 +2417,7 @@ $(document).ready(function(){
             });
             if (ded_id.length > 0) {
 
-		let ded_payload = formatTimephaseDedication(ded_id, sessionStorage.getItem("instance-loaded"), "remove-tp-ded", user_details);
+		        let ded_payload = formatTimephaseDedication(ded_id, sessionStorage.getItem("instance-loaded"), "remove-tp-ded", user_details);
                 let instance_id = new URLSearchParams(window.location.search).get('timephase-instance');
                 let rte_seq_count = Object.keys(ded_payload[instance_id]['DATA']['RTE_SEQ_NUM']).length;
                 let empty_count = 0;
@@ -4591,18 +4612,24 @@ function formatTimephaseDedication(data, session_instance, type = null, user_det
                     let prio_keys = Object.keys(si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD']);
                     $.each(prio_keys, function(index, item){
                         let si_setup = si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item];
-
-                        if (tpd_id == si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item]['TPD_ID']) {
+                        
+                        if (tpd_id != "" && tpd_id != null) {
+                            if (tpd_id == si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item]['TPD_ID']) {
+                                delete si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item];
+                                
+                            }
+                        }
+                        else if(prio_cd == item){
                             delete si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item];
                         }
 
                         if (prio_cd < item && prio_cd != item) {
                             let new_prio = parseInt(item) - 1;
                             // if (is_excl != 0) { // ALREADY WORKING, FIX RES_PRIO_CD REORDERING IF A PRIMARY DEDICATION IS DELETED AND ITS NOT A DED_IS_EXCLUSIVE (FOR NOW, CONDITION IS DISABLED)
-                                if (new_prio >= 99) {
-                                    new_prio = new_prio - 99;
-                                }
-				//adjust new_prio to prevent it becoming zero
+                                // if (new_prio >= 99) {
+                                //     new_prio = new_prio - 99;
+                                // }
+				                //adjust new_prio to prevent it becoming zero
                                 new_prio = (new_prio <= 0) ? 1 : new_prio;
                             // }
                             delete si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item];
