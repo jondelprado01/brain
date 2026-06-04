@@ -12,6 +12,7 @@ var plannable_setups        = [];
 var oee_onchange            = 0;
 var data_set = [];
 var group_header = [];
+const has_params = new URLSearchParams(window.location.search);
 
 $(document).ready(function(){
     //POPOVER INITIALIZATION
@@ -20,6 +21,15 @@ $(document).ready(function(){
         trigger: 'focus',
         html: true
     }));
+
+    //TOGGLE STATUS FOR FULLSCREEN TOGGLE BTN
+    let is_collapsed = sessionStorage.getItem("is-collapsed");
+    if (is_collapsed == "true") {
+        $("#sidebar").addClass("collapsed");
+    }
+    else{
+        $("#sidebar").removeClass("collapsed").removeClass("animate");
+    }
 
     // ---------------------------------------------------------------------------------SESSION VARIABLES--------------------------------------------------------------------------
     var session_search =  sessionStorage.getItem('session_search');
@@ -72,7 +82,7 @@ $(document).ready(function(){
         }
     });
 
-    $('.toast').toast('show');
+    // $('.toast').toast('show');
     var current_primary_data = null;
     var group_header_arr = [];
     if ($(".pre-data").val() != "") {
@@ -176,7 +186,7 @@ $(document).ready(function(){
                                     break;
                             }
                             $(td).attr({
-                                'contenteditable': true,
+                                'contenteditable': (rowData[1] != "" && rowData[2]) ? true : false,
                                 'instance-data-id': parameterValue,
                                 'instance-field': field_val,
                                 'instance-default': cellData,
@@ -296,7 +306,7 @@ $(document).ready(function(){
                                         break;
                                 }
                                 $(td).attr({
-                                    'contenteditable': true,
+                                    'contenteditable': (rowData[1] != "" && rowData[2]) ? true : false,
                                     'instance-data-id': parameterValue,
                                     'instance-field': field_val,
                                     'instance-default': cellData,
@@ -1500,8 +1510,11 @@ $(document).ready(function(){
     //---------------------------------------------------------------------------------------- DEDICATIONS-----------------------------------------------------------------------------------------------
     $('.table_source tbody, .table_primary tbody').on('click', 'tr', function(event){
         $(".btn-message").hide();
+	$(".normal-setup-controls").hide();
+        $(".dedication-setup-controls").hide();
         if (typeof($(event.target).attr('class')) != 'undefined') {
             if ($(event.target).attr('class').indexOf('dedication-config') !== -1) {
+		        let setup_type = $(event.target).hasClass("from-dedication");
                 let module_type = null;
                 let ded_type = $(event.target).attr("dedication-type");
                 let table_id = $(this).attr('table-id');
@@ -1529,7 +1542,104 @@ $(document).ready(function(){
 
                 $(".btn-loader").show();
 
-                getTesterHandler(table_data, table_row, table_dedication, module_type);
+                getTesterHandler(table_data, table_row, table_dedication, module_type, setup_type);
+            }
+        }
+    });
+
+    //UPDATE DEDICATION - EXCLUSIVE ONLY TO ALL DEDICATION SETUPS (UPDATE PROCESS ONLY, NO CLONING/CREATE)
+    $(document).delegate(".btn-save-update-dedication", "click", function(){
+        let selected_ded_setup = JSON.parse($(".selected-setup").val());
+        let curr_engr_tester = selected_ded_setup[1];
+        let curr_engr_handler = selected_ded_setup[2];
+        let curr_atom_tester = $(".td-atester").filter(":visible").text();
+        let curr_atom_handler = $(".td-ahandler").filter(":visible").text();
+        let new_atom_tester = $(".select2-tester option:selected").val();
+        let new_atom_handler = $(".select2-handler option:selected").val();
+        let primary_table = $("#"+selected_ded_setup[16]).DataTable().rows().data().toArray();
+        let alternate_table = $("#"+selected_ded_setup[17]).DataTable().rows().data().toArray();
+        let exists_counter = 0;
+        
+        $.each(primary_table.concat(alternate_table), function(index, item){
+            if (item[1] == curr_engr_tester && item[2] == curr_engr_handler && item[3] == new_atom_tester && item[4] == new_atom_handler) {
+                exists_counter++;
+            }
+        });
+
+        if (curr_atom_tester == new_atom_tester && curr_atom_handler == new_atom_handler) {
+            showGenericAlert("error", "No Changes Detected!");
+        }
+        else if(exists_counter > 0){
+            showGenericAlert("error", "Engr./Atom Tester & Handler combination is already existing!");
+        }
+        else{
+
+            selected_ded_setup[34] = new_atom_tester;
+            selected_ded_setup[35] = new_atom_handler;
+
+            if ($(".instance-loaded-alert").length == 0) {
+                 $.ajax({
+                    type: 'post',
+                    url: 'http://mxhtafot01l.maxim-ic.com/TEST/PRIMARY_SETUP.php?PROCESS_TYPE=UPDATE_DEDICATION',
+                    data: {payload: selected_ded_setup, user_details: user_details},
+                    beforeSend: function(){
+                        showLoader('Processing... \n Please Wait!');
+                    },
+                    success: function(data){
+                        setTimeout(function(){
+                            if (data) {
+                                showGenericAlert("success", "Dedication Updated Successfully!");
+                                location.reload();
+                            }
+                        }, 1500);
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
+            }
+            else{
+                const urlParams = new URLSearchParams(window.location.search);
+                const instance_id = urlParams.get('timephase-instance');
+                let rte_seq = selected_ded_setup[31].split("|")[1];
+                let prio_cd = selected_ded_setup[30];
+                let session_instance = JSON.parse(sessionStorage.getItem('instance-loaded'));
+
+                session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['TESTER'] = new_atom_tester;
+                session_instance[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][prio_cd]['HANDLER'] = new_atom_handler;
+                session_instance[instance_id]['CHANGE_USER'] = user_details['emp_id'];
+
+                if (session_instance[instance_id]['NOTES'] == null) {
+                    session_instance[instance_id]['NOTES'] = '';
+                }
+
+                let payload = {
+                    "INPUT_TYPE":"JSON",
+                    "OUTPUT_TYPE":"TPI_PUT_ONE",
+                    "INPUT": session_instance
+                };
+		let new_session_data = session_instance;
+                $.ajax({
+                    type: 'post',
+                    url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP',
+                    data: JSON.stringify(payload),
+		    beforeSend: function(){
+                        showLoader('Processing... \n Please Wait!');
+                    },
+                    success: function(data){                        
+                        if (JSON.parse(data)['STATUS'] == "SUCCESS") {
+                            console.log(JSON.parse(data));
+                            setTimeout(function(){
+				sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
+                                showGenericAlert("success", "Dedication Updated Successfully!");
+                                location.reload()
+                            },1500);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log(xhr);
+                    }
+                });
             }
         }
     });
@@ -2191,8 +2301,8 @@ $(document).ready(function(){
                     "HANDLER":      ded_handler,
                     // "ENGR_TESTER":  item[1],
                     // "ENGR_HANDLER": item[2],
-                    "ENGR_TESTER":  parent_tester,
-                    "ENGR_HANDLER": parent_handler,
+                    "ENGR_TESTER":  (parent_tester != item[1]) ? item[1] : parent_tester,
+                    "ENGR_HANDLER": (parent_handler != item[2]) ? item[2] : parent_handler,
                     "HASH":         item[13],
                     "HW_SET_ID":    item[19],
                     "ID":           "",
@@ -2210,16 +2320,17 @@ $(document).ready(function(){
                     "PARENT_TABLE": item[17],
                     "TEMP_CLASS":   item[29],
                     "ORIG_PRIO":    item[30],
-                    "ALTERNATES":   alternates
+                    "ALTERNATES":   alternates,
+		            "RES_AREA":     $(".td-res").html()
                 });
-            });
+	    });
 
             if ($(".instance-loaded-alert").length == 0) {
                 setDedication(payload, setup, user_details);
             }
             else{
                 let session_instance = sessionStorage.getItem('instance-loaded');
-                let ded_payload = formatTimephaseDedication(payload, session_instance);
+                let ded_payload = formatTimephaseDedication(payload, session_instance, null, user_details);
                 setTimephaseInstance(ded_payload);
             }
 
@@ -2284,6 +2395,25 @@ $(document).ready(function(){
                 }
             });
             if (ded_id.length > 0) {
+
+		let ded_payload = formatTimephaseDedication(ded_id, sessionStorage.getItem("instance-loaded"), "remove-tp-ded", user_details);
+                let instance_id = new URLSearchParams(window.location.search).get('timephase-instance');
+                let rte_seq_count = Object.keys(ded_payload[instance_id]['DATA']['RTE_SEQ_NUM']).length;
+                let empty_count = 0;
+
+                $.each(Object.keys(ded_payload[instance_id]['DATA']['RTE_SEQ_NUM']), function(index, item){
+                    if (Object.keys(ded_payload[instance_id]['DATA']['RTE_SEQ_NUM'][item]['RES_PRIO_CD']).length == 0) {
+                        empty_count++;
+                    }            
+                });
+
+                $(".delete-all-alert").remove();
+                if (rte_seq_count == empty_count) {
+                    let alert_msg = appendAlertError();
+                    $("#panelsStayOpen-collapseTwo .accordion-body .justify-content-end").before(alert_msg);
+                    return;
+                }
+
                 showConfirm('Remove Dedications', 'Are you sure you want to remove selected dedications?', 'remove-all-dedication-tp', ded_id);
             }
             else{
@@ -2349,23 +2479,239 @@ $(document).ready(function(){
     //----------------------------------------------------------------------------------------END DEDICATIONS ---------------------------------------------------------------------------------------------
 
     //-----------------------------------------------------------------------------------------TIMEPHASING---------------------------------------------------------------------------------------------
+    
+    if (has_params.has('planning-assumption') === false) {
+        //CHECK IF INSTANCE IS LOADED CORRECTLY
+        loadedInstanceChecker();
+    
+        //FLOW REMOVAL - DELETE STEPS
+        $(".btn-flow-removal").on("click", function(e){
+	    e.preventDefault();
+            let instance = JSON.parse(sessionStorage.getItem('instance-loaded'));
+            let tp_id = $(this).attr("instance-id");
+            let rte_seq = $(this).attr("data-id");
+            let step = $(this).attr("step-id");
+            
+            if (instance[tp_id]['NOTES'] == null) {
+                instance[tp_id]['NOTES'] = '';
+            }
+	    instance[tp_id]['CHANGE_USER'] = user_details['emp_id'];
+            delete instance[tp_id]['DATA']['RTE_SEQ_NUM'][rte_seq];
 
-    //CHECK IF INSTANCE IS LOADED CORRECTLY
-    loadedInstanceChecker();
+            //empty data checker (no setups left - tpd_id)
+            let rte_seq_count = Object.keys(instance[tp_id]['DATA']['RTE_SEQ_NUM']).length;
+            let remaining_setups = 0;
 
-    //FLOW REMOVAL - DELETE STEPS
-    $(".btn-flow-removal").on("click", function(){
-        let instance = JSON.parse(sessionStorage.getItem('instance-loaded'));
-        let tp_id = $(this).attr("instance-id");
-        let rte_seq = $(this).attr("data-id");
-        let step = $(this).attr("step-id");
-        
-        if (instance[tp_id]['NOTES'] == null) {
-            instance[tp_id]['NOTES'] = '';
-        }
-        delete instance[tp_id]['DATA']['RTE_SEQ_NUM'][rte_seq];
-        showConfirm("Flow Removal", "Are You Sure You Want To Delete Step:<br><b>"+step+"</b>?", "set-timephase-instance", instance);
-    });
+            if (rte_seq_count > 0) {
+                $.each(Object.keys(instance[tp_id]['DATA']['RTE_SEQ_NUM']), function(index, item){
+                    if (Object.keys(instance[tp_id]['DATA']['RTE_SEQ_NUM'][item]['RES_PRIO_CD']).length > 0) {
+                        remaining_setups++;
+                    }
+                });
+            }
+            
+            $(".delete-all-alert").remove();
+
+            if (rte_seq_count == 0 || remaining_setups == 0) {
+                let alert_msg = appendAlertError();
+                $(".tp-alert-container").after(alert_msg);
+                $('html, body').animate({ scrollTop: 0 }, 'fast');
+                return;
+            }
+
+            showConfirm("Flow Removal", "Are You Sure You Want To Delete Step:<br><b>"+step+"</b>?", "set-timephase-instance", instance);
+        });
+
+        $(".btn-load-instance").on("click", function(){
+            let tp_id = $(this).attr("instance-id");
+            let url = new URL(window.location.href);
+            let params = url.searchParams;
+            let urlParams = new URLSearchParams(window.location.search);
+            let parameterExistsWithValue = urlParams.has('timephase-instance', tp_id);
+            
+            if (!parameterExistsWithValue) {
+                getInstance(tp_id);
+                params.set('timephase-instance', tp_id); 
+                window.history.pushState({}, '', url);   
+            }
+            else{
+                showGenericAlert("warning", "Instance already loaded.");
+            }
+        });
+
+        // UNLOAD INSTANCE / RELOAD PAGE
+        $(document).delegate(".unload-instance", "click", function(){
+            const url = new URL(window.location.href);
+            const params = url.searchParams; 
+            params.delete('timephase-instance');
+            window.history.replaceState({}, document.title, url.toString()); 
+            location.reload();
+        })
+
+        //NEW & EDIT INSTANCE
+        $(".btn-instance, .btn-edit-instance").on("click", function(){
+            let process = $(this).attr("process");
+            let iprocess = $(this).attr("instance-process");
+            let route = $(this).attr("instance-route");
+            let part = $(this).attr("instance-part");
+            let type = $(this).attr("instance-type");
+            let date = $(this).attr("instance-date");
+            let week = $(this).attr("instance-week");
+            let note = $(this).attr("instance-note");
+            let num = $(this).attr("instance-num");
+            let id = $(this).attr("instance-id");
+
+            $('.tp-process:checked').prop("checked", false);
+            $(".tp-notes").val('');
+
+            if (process == "new") {
+                $(".old-data-fields").each(function(){
+                    $(this).val('');
+                });
+                $(this).addClass("visually-hidden");
+                $(".footer-"+id).append(showLoaderButton());
+                getCalendar(route, date, week, num, id, type, "new", "new", part);
+            }
+            else{
+                getCalendar(route, date, week, num, id, type, "edit", "edit", part);
+                $('.tp-process').each(function(){
+                    let split_process = iprocess.split("<br>");
+                    if ($.inArray($(this).val(), split_process) !== -1) {
+                        $(this).prop("checked", true);
+                    }
+                });
+                $(".tp-notes").val((note != 'null' && note != '') ? note : '');
+
+                $(".old-tp-date").val(date);
+                $(".old-tp-num").val(num);
+                $(".old-tp-week").val(week);
+                $(".old-tp-process").val(iprocess.split("<br>").join(","));
+                $(".old-tp-notes").val((note != 'null' && note != '') ? note : '');
+            }
+
+            $(".ext-tp-id").val(id);
+            $(".ext-tp-date").val(date);
+            $(".ext-tp-week").val(week);
+            $(".ext-tp-num").val(num);
+        });
+
+        //PAGINATE WEEKS
+        $(".page-link").on("click", function(){
+            let tp_crud = $(".tp-crud").val();
+            let page_type = $(this).attr("page-type");
+            let default_data = JSON.parse($(".tp-default-data").val());
+            let part_data = $(".tp-part").val();
+            let temp_container = [];
+            let target_date = "";
+            let current_date = $(".ext-tp-date").val();
+
+            $.each(default_data['data'], function(index, item){
+                $.each(item, function(idx, itm){
+                    $.each(itm, function(inner_idx, inner_itm){
+                        if (inner_itm['DAY_NAME'] == "Sunday") {
+                            temp_container.push(inner_itm['MFG_DATE']);
+                        }
+                    });
+                });
+            });
+
+            if (page_type == "paginate-previous") {
+                target_date = temp_container[0];
+                if ($.inArray(current_date, temp_container) !== -1) {
+                    return false;
+                }
+            }
+            else{
+                target_date = temp_container[temp_container.length - 1];
+            }
+            
+            getCalendar(default_data['route'], target_date, default_data['week'], default_data['num'], default_data['id'], "paginate", page_type, tp_crud, part_data);
+        });
+
+        //SELECT WEEK NUMBER
+        $(document).delegate(".tp-day", "click", function(){
+            //RESET SELECTED WEEK ROW
+            $(".bg-selected").each(function(){
+                if ($(this).length > 0) {
+                    $(this).removeClass("bg-selected").addClass($(this).attr("orig-color"));
+                }
+            });
+
+            let fyw = $(this).attr("data");
+            let date = $('[data="'+fyw+'"][day="Sunday"]').attr("eff-date");
+            $(".tp-date").val(date);
+            $(".tp-week").val(fyw);
+            
+            $("."+fyw).each(function(){
+                if ($(this).attr("orig-color") != "bg-grey") {
+                    $(this).removeClass($(this).attr("orig-color")).addClass("bg-selected");
+                }
+            });
+        });
+
+        //SAVE INSTANCE
+        $(".btn-save-instance").on("click", function(){
+            let count = 0;
+            let date = $(".tp-date").val();
+            let route = $(".tp-route").val();
+            let part = $(".tp-part").val();
+            let week = $(".tp-week").val();
+            let process = $('.tp-process:checked');
+            let notes = $(".tp-notes").val();
+            let num = $(".tp-num").val();
+            let id = $(".tp-id").val();
+            let crud = $(".tp-crud").val();
+
+            let old_data = {
+                old_date: ($(".old-tp-date").val() != '') ? $(".old-tp-date").val() : null,
+                old_week: ($(".old-tp-week").val() != '') ? $(".old-tp-week").val() : null,
+                old_process: ($(".old-tp-process").val() != '') ? $(".old-tp-process").val() : null,
+                old_notes: ($(".old-tp-notes").val() != '') ? $(".old-tp-notes").val() : null,
+                old_num: ($(".old-tp-num").val() != '') ? $(".old-tp-num").val() : null
+            }
+            // let overlap = 0;
+            // let new_fyw = parseInt(week.substring(2, 4)+''+week.slice(-2));
+            // let existing_instance = JSON.parse($(".tp-existing-"+route.replace(/\./g, "_").replace(/\#/g, "_").replace(/\//g, "_").replace(/\-/g, "_").replace(/\^/g, "_")).val());
+            
+            if($(".in-container").text() == "New"){
+                if (date == '' || date == null || date == 'undefined' || $(".bg-selected").length == 0) {
+                    count++;
+                }
+            }
+            else{
+                if (date == '' || date == null || date == 'undefined') {
+                    count++;
+                }
+            }
+
+            if (week == '' || process.length == 0) {
+                count++;
+            }
+
+            if (count == 0) {
+                let process_arr = [];
+                $.each(process, function(){
+                    process_arr.push($(this).val());
+                });
+                setTimephase({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id, part: part}, user_details, crud, old_data);
+            }
+            else{
+                showGenericAlert("error", "FYWW & Process Type fields are required!");
+            }
+        });
+
+        // DELETE INSTANCE
+        $(".btn-delete-instance").on("click", function(){
+            let id = $(this).attr("data-id");
+            let num = $(this).attr("data-num");
+            let week = $(this).attr("data-week");
+            let route = $(this).attr("data-route");
+            let partnum = $(this).attr("data-part");
+            let details = "<strong>"+route+"</strong><br><strong>Instance #"+num+" - "+week+"</strong>";
+            showConfirm('Remove Instance', 'Are you sure you want to remove this instance:<br>'+details, 'remove-timephase', {id: id, num: num, route: route, partnum: partnum, user_details: user_details});
+        });
+    }
+
 
     //SELECT & LOAD INSTANCE
     $(".instance-card").on("click", function(){
@@ -2379,194 +2725,6 @@ $(document).ready(function(){
             });
             $(this.parentNode).addClass("instance-selected");
         }
-    });
-
-    $(".btn-load-instance").on("click", function(){
-        let tp_id = $(this).attr("instance-id");
-        let url = new URL(window.location.href);
-        let params = url.searchParams;
-        let urlParams = new URLSearchParams(window.location.search);
-        let parameterExistsWithValue = urlParams.has('timephase-instance', tp_id);
-        
-        if (!parameterExistsWithValue) {
-            getInstance(tp_id);
-            params.set('timephase-instance', tp_id); 
-            window.history.pushState({}, '', url);   
-        }
-        else{
-            showGenericAlert("warning", "Instance already loaded.");
-        }
-    });
-
-    //UNLOAD INSTANCE / RELOAD PAGE
-    $(document).delegate(".unload-instance", "click", function(){
-        const url = new URL(window.location.href);
-        const params = url.searchParams; 
-        params.delete('timephase-instance');
-        window.history.replaceState({}, document.title, url.toString()); 
-        location.reload();
-    })
-
-    //NEW & EDIT INSTANCE
-    $(".btn-instance, .btn-edit-instance").on("click", function(){
-        let process = $(this).attr("process");
-        let iprocess = $(this).attr("instance-process");
-        let route = $(this).attr("instance-route");
-        let part = $(this).attr("instance-part");
-        let type = $(this).attr("instance-type");
-        let date = $(this).attr("instance-date");
-        let week = $(this).attr("instance-week");
-        let note = $(this).attr("instance-note");
-        let num = $(this).attr("instance-num");
-        let id = $(this).attr("instance-id");
-
-        $('.tp-process:checked').prop("checked", false);
-        $(".tp-notes").val('');
-
-        if (process == "new") {
-            $(".old-data-fields").each(function(){
-                $(this).val('');
-            });
-            $(this).addClass("visually-hidden");
-            $(".footer-"+id).append(showLoaderButton());
-            getCalendar(route, date, week, num, id, type, "new", part);
-        }
-        else{
-            getCalendar(route, date, week, num, id, type, "edit", part);
-            $('.tp-process').each(function(){
-                let split_process = iprocess.split("<br>");
-                if ($.inArray($(this).val(), split_process) !== -1) {
-                    $(this).prop("checked", true);
-                }
-            });
-            $(".tp-notes").val((note != 'null' && note != '') ? note : '');
-
-            $(".old-tp-date").val(date);
-            $(".old-tp-num").val(num);
-            $(".old-tp-week").val(week);
-            $(".old-tp-process").val(iprocess.split("<br>").join(","));
-            $(".old-tp-notes").val((note != 'null' && note != '') ? note : '');
-        }
-
-        $(".ext-tp-id").val(id);
-        $(".ext-tp-date").val(date);
-        $(".ext-tp-week").val(week);
-        $(".ext-tp-num").val(num);
-    });
-
-    //PAGINATE WEEKS
-    $(".page-link").on("click", function(){
-        let page_type = $(this).attr("page-type");
-        let default_data = JSON.parse($(".tp-default-data").val());
-        let part_data = JSON.parse($(".tp-part").val());
-        let temp_container = [];
-        let target_date = "";
-        let current_date = $(".ext-tp-date").val();
-
-        $.each(default_data['data'], function(index, item){
-            $.each(item, function(idx, itm){
-                $.each(itm, function(inner_idx, inner_itm){
-                    if (inner_itm['DAY_NAME'] == "Sunday") {
-                        temp_container.push(inner_itm['MFG_DATE']);
-                    }
-                });
-            });
-        });
-
-        if (page_type == "paginate-previous") {
-            target_date = temp_container[0];
-            if ($.inArray(current_date, temp_container) !== -1) {
-                return false;
-            }
-        }
-        else{
-            target_date = temp_container[temp_container.length - 1];
-        }
-        
-        getCalendar(default_data['route'], target_date, default_data['week'], default_data['num'], default_data['id'], "paginate", page_type, part_data);
-    });
-
-    //SELECT WEEK NUMBER
-    $(document).delegate(".tp-day", "click", function(){
-        //RESET SELECTED WEEK ROW
-        $(".bg-selected").each(function(){
-            if ($(this).length > 0) {
-                $(this).removeClass("bg-selected").addClass($(this).attr("orig-color"));
-            }
-        });
-
-        let fyw = $(this).attr("data");
-        let date = $('[data="'+fyw+'"][day="Sunday"]').attr("eff-date");
-        $(".tp-date").val(date);
-        $(".tp-week").val(fyw);
-        
-        $("."+fyw).each(function(){
-            if ($(this).attr("orig-color") != "bg-grey") {
-                $(this).removeClass($(this).attr("orig-color")).addClass("bg-selected");
-            }
-        });
-    });
-
-    //SAVE INSTANCE
-    $(".btn-save-instance").on("click", function(){
-        let count = 0;
-        let date = $(".tp-date").val();
-        let route = $(".tp-route").val();
-        let part = $(".tp-part").val();
-        let week = $(".tp-week").val();
-        let process = $('.tp-process:checked');
-        let notes = $(".tp-notes").val();
-        let num = $(".tp-num").val();
-        let id = $(".tp-id").val();
-        let crud = $(".tp-crud").val();
-
-        let old_data = {
-            old_date: ($(".old-tp-date").val() != '') ? $(".old-tp-date").val() : null,
-            old_week: ($(".old-tp-week").val() != '') ? $(".old-tp-week").val() : null,
-            old_process: ($(".old-tp-process").val() != '') ? $(".old-tp-process").val() : null,
-            old_notes: ($(".old-tp-notes").val() != '') ? $(".old-tp-notes").val() : null,
-            old_num: ($(".old-tp-num").val() != '') ? $(".old-tp-num").val() : null
-        }
-        // let overlap = 0;
-        // let new_fyw = parseInt(week.substring(2, 4)+''+week.slice(-2));
-        // let existing_instance = JSON.parse($(".tp-existing-"+route.replace(/\./g, "_").replace(/\#/g, "_").replace(/\//g, "_").replace(/\-/g, "_").replace(/\^/g, "_")).val());
-        
-        if($(".in-container").text() == "New"){
-            if (date == '' || date == null || date == 'undefined' || $(".bg-selected").length == 0) {
-                count++;
-            }
-        }
-        else{
-            if (date == '' || date == null || date == 'undefined') {
-                count++;
-            }
-        }
-
-        if (week == '' || process.length == 0) {
-            count++;
-        }
-
-        if (count == 0) {
-            let process_arr = [];
-            $.each(process, function(){
-                process_arr.push($(this).val());
-            });
-            setTimephase({date: date, route: route, week: week, process: process_arr, notes: notes, num: num, id: id, part: part}, user_details, crud, old_data);
-        }
-        else{
-            showGenericAlert("error", "FYWW & Process Type fields are required!");
-        }
-    });
-
-    //DELETE INSTANCE
-    $(".btn-delete-instance").on("click", function(){
-        let id = $(this).attr("data-id");
-        let num = $(this).attr("data-num");
-        let week = $(this).attr("data-week");
-        let route = $(this).attr("data-route");
-        let partnum = $(this).attr("data-part");
-        let details = "<strong>"+route+"</strong><br><strong>Instance #"+num+" - "+week+"</strong>";
-        showConfirm('Remove Instance', 'Are you sure you want to remove this instance:<br>'+details, 'remove-timephase', {id: id, num: num, route: route, partnum: partnum, user_details: user_details});
     });
 
     //----------------------------------------------------------------------------------------END TIMEPHASING---------------------------------------------------------------------------------------------
@@ -3200,7 +3358,7 @@ function getOEE(oee_main){
 //-----------------------------------------------------------------------------END OEE API-----------------------------------------------------------------------------
 
 //---------------------------------------------------------------------------DEDICATIONS API-----------------------------------------------------------------------------
-function getTesterHandler(table_data, table_row, table_dedication, module_type = null){
+function getTesterHandler(table_data, table_row, table_dedication, module_type = null, setup_type = null){
     $.ajax({
         type: 'post',
         url: 'http://MXHDAFOT01L.maxim-ic.com/API/DEDICATIONS.PHP?PROCESS_TYPE=GET_TESTER_HANDLER',
@@ -3218,7 +3376,16 @@ function getTesterHandler(table_data, table_row, table_dedication, module_type =
                 }
 
                 if (isValidJson(data)) {
-                    renderDedications(JSON.parse(data), table_row, table_dedication);
+                    let atom_data = JSON.parse(data);
+                    var exists = atom_data['HANDLER'].find(function(item) {
+                        return item.ENG_NAME == "HANDTEST";
+                    });
+
+                    if (exists === undefined && module_type != null) {
+                        atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
+                        atom_data['HANDLER_HEADER'].push("HANDTEST");
+                    }
+                    renderDedications(atom_data, table_row, table_dedication, setup_type);
                 }
                 else{
                     $(".btn-no-result").fadeIn();
@@ -3283,7 +3450,7 @@ function removeDedication(payload, type = null){
         });
     }
     else{
-        let ded_payload = formatTimephaseDedication(payload, sessionStorage.getItem("instance-loaded"), "remove-tp-ded");
+        let ded_payload = formatTimephaseDedication(payload, sessionStorage.getItem("instance-loaded"), "remove-tp-ded", user_details);
         setTimephaseInstance(ded_payload, "remove-tp-ded");      
     }
 }
@@ -3291,229 +3458,230 @@ function removeDedication(payload, type = null){
 //------------------------------------------------------------------------END DEDICATIONS API-----------------------------------------------------------------------------
 
 
-//--------------------------------------------------------------------------TIMEPHASING API--------------------------------------------------------------------------------
-function getCalendar(route, date, week, num, id, type, crud, part) {
-    $.ajax({
-        type: 'post',
-        url: 'http://MXHTAFOT01L.maxim-ic.com/TEST/TIMEPHASING.PHP?PROCESS_TYPE=GET_CALENDAR',
-        data: {date: date, week: week, type: type, crud: crud},
-        success: function(data){
-            renderTimephasingCalendar(route, date, week, JSON.parse(data), num, id, crud, part);
-        },
-        complete: function(){
-            $(".btn-instance").removeClass("visually-hidden");
-            $(".btn-loader").remove();
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
-function getInstance(tp_id){
-    $.ajax({
-        type: 'get',
-        url: 'http://mxhdafot01l.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=TPI_ID&OUTPUT_TYPE=TPI_DATA_GET_ONE&INPUT[0]='+tp_id+'',
-        beforeSend: function(){
-            showLoader('Loading Instance... \n Please Wait!');
-        },
-        success: function(data){
-            if (JSON.parse(data)['STATUS'] == "SUCCESS") {
-                setTimeout(function(){
-                    let result = JSON.parse(data);
-                    result['DATA'][tp_id]['TPI_ID'] = tp_id;
-                    sessionStorage.setItem('instance-loaded', JSON.stringify(result['DATA']));
-                    location.reload();
-                }, 1500);
+//--------------------------------------------------------------------------TIMEPHASING API-------------------------------------------------------------------------------
+if (has_params.has('planning-assumption') === false) {
+    function getCalendar(route, date, week, num, id, type, paginate_type, crud, part) {
+        $.ajax({
+            type: 'post',
+            url: 'http://MXHTAFOT01L.maxim-ic.com/TEST/TIMEPHASING.PHP?PROCESS_TYPE=GET_CALENDAR',
+            data: {date: date, week: week, type: type, crud: paginate_type},
+            success: function(data){
+                renderTimephasingCalendar(route, date, week, JSON.parse(data), num, id, crud, part);
+            },
+            complete: function(){
+                $(".btn-instance").removeClass("visually-hidden");
+                $(".btn-loader").remove();
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
             }
-            else{
-                showGenericAlert("error", JSON.parse(data)['MESSAGE']);
-            }
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
-function setTimephaseInstance(data, type = null){
-    let loader_txt = 'Updating Instance';
-    let success_txt = 'Instance Updated Succesfully!';
-
-    if (type != null) {
-        loader_txt = 'Processing';
-        success_txt = 'Dedication Removed Succesfully!';
+        });
     }
-    
-    let payload = {
-        "INPUT_TYPE":"JSON",
-        "OUTPUT_TYPE":"TPI_PUT_ONE",
-        "INPUT": data
-    };
-    
-    let new_session_data = data;
-    // console.log(payload);
-    // return;
-    $.ajax({
-        type: 'post',
-        url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP',
-        data: JSON.stringify(payload),
-        beforeSend: function(){
-            showLoader(''+loader_txt+'... \n Please Wait!');
-        },
-        success: function(data){
-            setTimeout(function(){
+
+    function getInstance(tp_id){
+        $.ajax({
+            type: 'get',
+            url: 'http://mxhdafot01l.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=TPI_ID&OUTPUT_TYPE=TPI_DATA_GET_ONE&INPUT[0]='+tp_id+'',
+            beforeSend: function(){
+                showLoader('Loading Instance... \n Please Wait!');
+            },
+            success: function(data){
                 if (JSON.parse(data)['STATUS'] == "SUCCESS") {
-                    sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
-                    showSuccess(success_txt);
-                    location.reload();
+                    setTimeout(function(){
+                        let result = JSON.parse(data);
+                        result['DATA'][tp_id]['TPI_ID'] = tp_id;
+                        sessionStorage.setItem('instance-loaded', JSON.stringify(result['DATA']));
+                        location.reload();
+                    }, 1500);
                 }
                 else{
                     showGenericAlert("error", JSON.parse(data)['MESSAGE']);
                 }
-            }, 1500);            
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
-function setTimephase(data, user_details, crud, old_data){
-    let tpi_data = data.id;
-    let change_log_payload = {data: data, old_data: old_data};
-
-    let endpoint = "";
-    let param;
-    let payload = {
-        "SAP_RTE_ID":     data['route'],
-        "EFF_START_DT":   data['date'],
-        "FYWW":           data['week'].replace("FY","20").replace("_W", ""),
-        "PROCESS_TYPE":   data['process'],
-        "NOTES":          data['notes'],
-        "CHANGE_USER":    user_details['emp_id']
-    }
-
-    switch (crud) {
-        case "new":
-            if (data['id'] != "current") {
-                payload.TPI_ID = data['id'];
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
             }
-            payload['PROCESS_TYPE'] = payload['PROCESS_TYPE'].join("|");
-            endpoint = 'http://mxhdafot01l.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_CLONE&INPUT[0]='+encodeURIComponent(JSON.stringify(payload))+'';
-            break;
-        
-        default: // FOR CURRENT DATA / INSTANCE
-            let edit_payload = {}
-            payload['DATA'] = {};
-            payload['SUMMARY'] = [];
-            payload['COMPARE'] = [];
-            payload['INSTANCE'] = data['num'];
-            edit_payload[data['id']] = payload;
-            endpoint = 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_PUT_ONE&INPUT='+encodeURIComponent(JSON.stringify(edit_payload))+'';
-            break;
+        });
     }
 
-    $.ajax({
-        type: 'post',
-        url: endpoint,
-        data: param,
-        beforeSend: function(){
-            showLoader('Processing... \n Please Wait!');
-        },
-        success: function(data){
-            setTimeout(function(){
+    function setTimephaseInstance(data, type = null){
+        let loader_txt = 'Updating Instance';
+        let success_txt = 'Instance Updated Succesfully!';
 
-                let module_name = (crud != "edit") ? (tpi_data == "current") ? "created new" : "cloned" : "edited";
-
-                if (crud == "new") {
+        if (type != null) {
+            loader_txt = 'Processing';
+            success_txt = 'Dedication Removed Succesfully!';
+        }
+        
+        let payload = {
+            "INPUT_TYPE":"JSON",
+            "OUTPUT_TYPE":"TPI_PUT_ONE",
+            "INPUT": data
+        };
+        
+        let new_session_data = data;
+        // console.log(payload);
+        // return;
+        $.ajax({
+            type: 'post',
+            url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP',
+            data: JSON.stringify(payload),
+            beforeSend: function(){
+                showLoader(''+loader_txt+'... \n Please Wait!');
+            },
+            success: function(data){
+                setTimeout(function(){
                     if (JSON.parse(data)['STATUS'] == "SUCCESS") {
-                        showSuccess("Instance Created Succesfully!");
-
-                        //2025-10-15 RM additionally, load the newly created instance directly rather than require another click, and potentially a horizontal scroll if many instances
-                        const aryTPIIDNew = JSON.parse(data)['DATA'];
-                        intTPIIDNew = null;
-                        for(i in aryTPIIDNew) {
-                            intTPIIDNew = aryTPIIDNew;
-                        }
-
-                        change_log_payload.data.id = (intTPIIDNew !== null) ? intTPIIDNew[0] : "current";
-                        addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
-
-                        if(intTPIIDNew !== null) {
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('timephase-instance',intTPIIDNew);
-                            window.location.href = url.toString();
-                        }else{
-                            location.reload();
-                        }
+                        sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
+                        showSuccess(success_txt);
+                        location.reload();
                     }
                     else{
                         showGenericAlert("error", JSON.parse(data)['MESSAGE']);
                     }
+                }, 1500);            
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
+            }
+        });
+    }
+
+    function setTimephase(data, user_details, crud, old_data){
+        let tpi_data = data.id;
+        let change_log_payload = {data: data, old_data: old_data};
+
+        let endpoint = "";
+        let param;
+        let payload = {
+            "SAP_RTE_ID":     data['route'],
+            "EFF_START_DT":   data['date'],
+            "FYWW":           data['week'].replace("FY","20").replace("_W", ""),
+            "PROCESS_TYPE":   data['process'],
+            "NOTES":          data['notes'],
+            "CHANGE_USER":    user_details['emp_id']
+        }
+
+        switch (crud) {
+            case "new":
+                if (data['id'] != "current") {
+                    payload.TPI_ID = data['id'];
                 }
-                else{
-                    if (JSON.parse(data)) {
-                        addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
-                        showSuccess("Instance Edited Succesfully!");
+                payload['PROCESS_TYPE'] = payload['PROCESS_TYPE'].join("|");
+                endpoint = 'http://mxhdafot01l.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_CLONE&INPUT[0]='+encodeURIComponent(JSON.stringify(payload))+'';
+                break;
+            
+            default: // FOR CURRENT DATA / INSTANCE
+                let edit_payload = {}
+                payload['DATA'] = {};
+                payload['SUMMARY'] = [];
+                payload['COMPARE'] = [];
+                payload['INSTANCE'] = data['num'];
+                edit_payload[data['id']] = payload;
+                endpoint = 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_PUT_ONE&INPUT='+encodeURIComponent(JSON.stringify(edit_payload))+'';
+                break;
+        }
+
+        $.ajax({
+            type: 'post',
+            url: endpoint,
+            data: param,
+            beforeSend: function(){
+                showLoader('Processing... \n Please Wait!');
+            },
+            success: function(data){
+                setTimeout(function(){
+
+                    let module_name = (crud != "edit") ? (tpi_data == "current") ? "created new" : "cloned" : "edited";
+
+                    if (crud == "new") {
+                        if (JSON.parse(data)['STATUS'] == "SUCCESS") {
+                            showSuccess("Instance Created Succesfully!");
+
+                            //2025-10-15 RM additionally, load the newly created instance directly rather than require another click, and potentially a horizontal scroll if many instances
+                            const aryTPIIDNew = JSON.parse(data)['DATA'];
+                            intTPIIDNew = null;
+                            for(i in aryTPIIDNew) {
+                                intTPIIDNew = aryTPIIDNew;
+                            }
+
+                            change_log_payload.data.id = (intTPIIDNew !== null) ? intTPIIDNew[0] : "current";
+                            // addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
+
+                            if(intTPIIDNew !== null) {
+                                const url = new URL(window.location.href);
+                                url.searchParams.set('timephase-instance',intTPIIDNew);
+                                window.location.href = url.toString();
+                            }else{
+                                location.reload();
+                            }
+                        }
+                        else{
+                            showGenericAlert("error", JSON.parse(data)['MESSAGE']);
+                        }
+                    }
+                    else{
+                        if (JSON.parse(data)) {
+                            // addChangeLog(change_log_payload, user_details, module_name+ " time-phased instance");
+                            showSuccess("Instance Edited Succesfully!");
+                            location.reload();
+                        }
+                    }
+                }, 1500);            
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
+            }
+        });
+    }
+
+    function removeTimephase(data){
+        let instance_id = data['id'];
+        let partnum_data = data['partnum'];
+        let route_data = data['route'];
+        let delete_payload = [{
+            "TPI_ID": instance_id,
+            "CHANGE_USER": user_details['emp_id'],
+        }];
+        
+        $.ajax({
+            type: 'post',
+            // url: 'http://MXHDAFOT01L.maxim-ic.com/API/TIMEPHASING.PHP?PROCESS_TYPE=DELETE_TIMEPHASE',
+            url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_DELETE_ONE&INPUT='+encodeURIComponent(JSON.stringify(delete_payload))+'',
+            // data: {data: data, user_details: data['user_details']},
+            beforeSend: function(){
+                showLoader('Processing... \n Please Wait!');
+            },
+            success: function(data){
+                setTimeout(function(){
+                    if (data) {
+
+                        const queryString = window.location.search;
+                        const urlParams = new URLSearchParams(queryString);
+                        const instanceID = urlParams.get('timephase-instance');
+
+                        if (instance_id == instanceID) {
+                            const url = new URL(window.location.href);
+                            const params = url.searchParams; 
+                            params.delete('timephase-instance');
+                            window.history.replaceState({}, document.title, url.toString());
+                        }
+
+                        showSuccess("Instance Removed Succesfully!");
+                        
+                        //ADD CHANGE LOG - DELETE TIMEPHASE - not needed in t
+                        // delete_payload[0].MFG_PART_NUM = partnum_data;
+                        // delete_payload[0].SAP_RTE_ID = route_data;
+                        // addChangeLog(delete_payload, user_details, "deleted time-phased instance");
                         location.reload();
                     }
-                }
-            }, 1500);            
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
-
-function removeTimephase(data){
-    let instance_id = data['id'];
-    let partnum_data = data['partnum'];
-    let route_data = data['route'];
-    let delete_payload = [{
-        "TPI_ID": instance_id,
-        "CHANGE_USER": user_details['emp_id'],
-    }];
-    
-    $.ajax({
-        type: 'post',
-        // url: 'http://MXHDAFOT01L.maxim-ic.com/API/TIMEPHASING.PHP?PROCESS_TYPE=DELETE_TIMEPHASE',
-        url: 'http://MXHDAFOT01L.maxim-ic.com/API/MAPPER_BRAIN_006.PHP?INPUT_TYPE=JSON&OUTPUT_TYPE=TPI_DELETE_ONE&INPUT='+encodeURIComponent(JSON.stringify(delete_payload))+'',
-        // data: {data: data, user_details: data['user_details']},
-        beforeSend: function(){
-            showLoader('Processing... \n Please Wait!');
-        },
-        success: function(data){
-            setTimeout(function(){
-                if (data) {
-
-                    const queryString = window.location.search;
-                    const urlParams = new URLSearchParams(queryString);
-                    const instanceID = urlParams.get('timephase-instance');
-
-                    if (instance_id == instanceID) {
-                        const url = new URL(window.location.href);
-                        const params = url.searchParams; 
-                        params.delete('timephase-instance');
-                        window.history.replaceState({}, document.title, url.toString());
-                    }
-
-                    showSuccess("Instance Removed Succesfully!");
-                    
-                    //ADD CHANGE LOG - DELETE TIMEPHASE
-                    delete_payload[0].MFG_PART_NUM = partnum_data;
-                    delete_payload[0].SAP_RTE_ID = route_data;
-                    addChangeLog(delete_payload, user_details, "deleted time-phased instance");
-
-                    location.reload();
-                }
-            }, 1500);            
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
+                }, 1500);            
+            },
+            error: function(xhr, status, error) {
+                console.log(xhr);
+            }
+        });
+    }  
 }
 
 
@@ -4006,7 +4174,7 @@ function renderOEE(result, common_fields, ignore_fields, hide_col, oee_main, com
     $("#oeeModal").modal("show");    
 }
 
-function renderDedications(result, table_row, table_dedication){
+function renderDedications(result, table_row, table_dedication, setup_type){
 
     let tester_opt = "";
     let handler_opt = "";
@@ -4017,6 +4185,13 @@ function renderDedications(result, table_row, table_dedication){
     existing_ded = existing_ded.filter(function(item) {  
         return item.MFG_PART_NUM === split[0]; 
     });
+
+    if (setup_type) {
+        $(".dedication-setup-controls").show();
+    }
+    else{
+        $(".normal-setup-controls").show();
+    }
 
     //RENDER TABLE DEDICATION
     if ($(".instance-loaded-alert").length == 0) {
@@ -4131,139 +4306,145 @@ function renderDedications(result, table_row, table_dedication){
     $(".td-uph").text(table_row[11]);
 
     $(".selected-setup").val(JSON.stringify(table_row));
+
+    $('.select2-tester option[value="'+table_row[3]+'"]').prop("selected", true);
+    $('.select2-handler option[value="'+table_row[4]+'"]').prop("selected", true);
 }
 
-function renderTimephasingCalendar(route, date, week, data, num, id, crud, part){
-    //CLEAR MODAL CONTENTS FIRST
-    $(".table-calendar tbody").empty();
+if (has_params.has('planning-assumption') === false) {
+    function renderTimephasingCalendar(route, date, week, data, num, id, crud, part){
+        //CLEAR MODAL CONTENTS FIRST
+        $(".table-calendar tbody").empty();
+        
+        //COLOR CODING
+        let criteria_arr = [];
+        $.each(data, function(index, item){
+            let key_index = Object.keys(data).indexOf(index);
+            let month_name = "";
+            let color_month = "";
     
-    //COLOR CODING
-    let criteria_arr = [];
-    $.each(data, function(index, item){
-        let key_index = Object.keys(data).indexOf(index);
-        let month_name = "";
-        let color_month = "";
-
-        switch (key_index) {
-            case 0:
-                month_name = index;
-                color_month = "bg-pink";
-                break;
-
-            case 1:
-                month_name = index;
-                color_month = "bg-blue";
-                break;
-
-            case 2:
-                month_name = index;
-                color_month = "bg-green";
-                break;
-        
-            default:
-                month_name = index;
-                color_month = "bg-yellow";
-                break;
-        }
-
-        criteria_arr.push(key_index+'|'+month_name+'|'+color_month);
-    });
-
-    //RENDER CALENDAR
-    $.each(data, function(index, item){
-        
-        let header_count = Object.keys(data).indexOf(index) + 1;
-        let month_color = "";
-        $.each(criteria_arr, function(idx2, itm2){
-            let split = itm2.split("|");
-            if (index == split[1]) {
-                month_color = split[2];
+            switch (key_index) {
+                case 0:
+                    month_name = index;
+                    color_month = "bg-pink";
+                    break;
+    
+                case 1:
+                    month_name = index;
+                    color_month = "bg-blue";
+                    break;
+    
+                case 2:
+                    month_name = index;
+                    color_month = "bg-green";
+                    break;
+            
+                default:
+                    month_name = index;
+                    color_month = "bg-yellow";
+                    break;
             }
+    
+            criteria_arr.push(key_index+'|'+month_name+'|'+color_month);
         });
-
-        let col_arr = ['FY_WW','S','M','T','W','TH','F','S'];
-        let columns = "";
-        let weeks = "";
-        
-        //CONSTRUCT HEADERS
-        if (header_count == 1) {
-            if (Object.keys(item).length > 0) {
-                $.each(col_arr, function(idx, itm){
-                    columns += '<th class="'+month_color+'">'+itm+'</th>';
+    
+        //RENDER CALENDAR
+        $.each(data, function(index, item){
+            
+            let header_count = Object.keys(data).indexOf(index) + 1;
+            let month_color = "";
+            $.each(criteria_arr, function(idx2, itm2){
+                let split = itm2.split("|");
+                if (index == split[1]) {
+                    month_color = split[2];
+                }
+            });
+    
+            let col_arr = ['FY_WW','S','M','T','W','TH','F','S'];
+            let columns = "";
+            let weeks = "";
+            
+            //CONSTRUCT HEADERS
+            if (header_count == 1) {
+                if (Object.keys(item).length > 0) {
+                    $.each(col_arr, function(idx, itm){
+                        columns += '<th class="'+month_color+'">'+itm+'</th>';
+                    });
+                }
+            }
+    
+            $.each(item, function(idx, itm){
+                let days = "";
+                let existing_instance = JSON.parse($(".tp-existing-"+route.replace(/\./g, "_").replace(/\#/g, "_").replace(/\//g, "_").replace(/\-/g, "_").replace(/\^/g, "_")).val());
+                $.each(itm, function(inner_idx, inner_itm){
+                    let color = "";
+                    let clickable = "";
+                    let date = new Date(inner_itm['MFG_DATE']);
+                    let current_date = new Date();
+    
+                    if (date < current_date) {
+                        color = "bg-grey";
+                    }
+                    else{
+                        $.each(criteria_arr, function(idx2, itm2){
+                            let split = itm2.split("|");
+                            if (inner_itm['MONTH_NAME'] == split[1]) {
+                                color = split[2];
+                            }
+                        });
+    
+                        $.each(existing_instance, function(iindex, iitm){
+                            let existing_fyww = iitm.split("|")[0];
+                            if (idx == existing_fyww) {
+                                color = "bg-existing";
+                            }
+                        });
+                    }
+                    clickable = (color != "bg-grey" && color != 'bg-existing') ? "tp-day" : "";
+                    days += '<td orig-color="'+color+'" data="'+idx+'" day="'+inner_itm['DAY_NAME']+'" eff-date="'+inner_itm['MFG_DATE']+'" class="'+clickable+' '+color+' '+idx+'">'+inner_itm['MFG_DATE'].split('-')[2]+'</td>';
                 });
-            }
-        }
-
-        $.each(item, function(idx, itm){
-            let days = "";
-            let existing_instance = JSON.parse($(".tp-existing-"+route.replace(/\./g, "_").replace(/\#/g, "_").replace(/\//g, "_").replace(/\-/g, "_").replace(/\^/g, "_")).val());
-            $.each(itm, function(inner_idx, inner_itm){
-                let color = "";
-                let clickable = "";
-                let date = new Date(inner_itm['MFG_DATE']);
-                let current_date = new Date();
-
-                if (date < current_date) {
-                    color = "bg-grey";
-                }
-                else{
-                    $.each(criteria_arr, function(idx2, itm2){
-                        let split = itm2.split("|");
-                        if (inner_itm['MONTH_NAME'] == split[1]) {
-                            color = split[2];
-                        }
-                    });
-
-                    $.each(existing_instance, function(iindex, iitm){
-                        let existing_fyww = iitm.split("|")[0];
-                        if (idx == existing_fyww) {
-                            color = "bg-existing";
-                        }
-                    });
-                }
-                clickable = (color != "bg-grey" && color != 'bg-existing') ? "tp-day" : "";
-                days += '<td orig-color="'+color+'" data="'+idx+'" day="'+inner_itm['DAY_NAME']+'" eff-date="'+inner_itm['MFG_DATE']+'" class="'+clickable+' '+color+' '+idx+'">'+inner_itm['MFG_DATE'].split('-')[2]+'</td>';
+    
+                let week_color = month_color;
+                let instance_week = "";
+                $.each(existing_instance, function(iindex, iitm){
+                    let existing_fyww = iitm.split("|")[0];
+                    let existing_num = iitm.split("|")[1];
+                    if (idx == existing_fyww) {
+                        week_color = "bg-existing";
+                        instance_week = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">'+existing_num+'</span>';
+                    }
+                });
+    
+                weeks += '<tr>'+
+                            '<td orig-color="'+week_color+'" class="'+week_color+' '+idx+' position-relative">'+idx+' '+instance_week+'</td>'+days+
+                         '</tr>';
             });
-
-            let week_color = month_color;
-            let instance_week = "";
-            $.each(existing_instance, function(iindex, iitm){
-                let existing_fyww = iitm.split("|")[0];
-                let existing_num = iitm.split("|")[1];
-                if (idx == existing_fyww) {
-                    week_color = "bg-existing";
-                    instance_week = '<span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">'+existing_num+'</span>';
-                }
-            });
-
-            weeks += '<tr>'+
-                        '<td orig-color="'+week_color+'" class="'+week_color+' '+idx+' position-relative">'+idx+' '+instance_week+'</td>'+days+
-                     '</tr>';
+    
+            $(".table-calendar .tbody").append(
+                '<tr>'+
+                    '<td class="'+month_color+'"><strong class="d-flex justify-content-center align-items-center">'+index+'</strong></td>'+
+                    '<td class="p-0 '+month_color+'">'+
+                        '<table class="table table-bordered table-hover pb-0 mb-0"><thead><tr>'+columns+'</tr></thead><tbody>'+weeks+'</tbody></table>'+
+                    '</td>'+
+                '</tr>'
+            );
         });
-
-        $(".table-calendar .tbody").append(
-            '<tr>'+
-                '<td class="'+month_color+'"><strong class="d-flex justify-content-center align-items-center">'+index+'</strong></td>'+
-                '<td class="p-0 '+month_color+'">'+
-                    '<table class="table table-bordered table-hover pb-0 mb-0"><thead><tr>'+columns+'</tr></thead><tbody>'+weeks+'</tbody></table>'+
-                '</td>'+
-            '</tr>'
-        );
-    });
-
-    //ADD DATA TO INPUT HIDDEN
-    $(".tp-default-data").val(JSON.stringify({route, date, week, data, num, id, crud}));
-    $(".tp-id").val(id);
-    $(".tp-date").val(date);
-    $(".tp-week").val(week);
-    $(".in-container").text((crud == "edit") ? parseInt(num) : "New");
-    $(".cw-container").text(week);
-    $(".tp-num").val(parseInt(num));
-    $(".tp-crud").val(crud);
-    $(".tp-part").val(part);
-    $("#timephasingModalLabel").text((crud == "edit") ? "Edit Instance" : "New Instance");
-    $("#timephasingModal").modal('show');
+    
+        //ADD DATA TO INPUT HIDDEN
+        $(".tp-default-data").val(JSON.stringify({route, date, week, data, num, id, crud}));
+        $(".tp-id").val(id);
+        $(".tp-date").val(date);
+        $(".tp-week").val(week);
+        $(".in-container").text((crud == "edit") ? parseInt(num) : "New");
+        $(".cw-container").text(week);
+        $(".tp-num").val(parseInt(num));
+        $(".tp-crud").val(crud);
+        $(".tp-part").val(part);
+        $("#timephasingModalLabel").text((crud == "edit") ? "Edit Instance" : "New Instance");
+        $("#timephasingModal").modal('show');
+    }
 }
+
 
 
 // ----------------------------------------------------------------------END DYNAMIC DATA RENDERING---------------------------------------------------------------------------------
@@ -4318,7 +4499,7 @@ function formatData(type = null, data, process){
     return data_result;
 }
 
-function formatTimephaseDedication(data, session_instance, type = null){
+function formatTimephaseDedication(data, session_instance, type = null, user_details){
     if (type == null) {
         const parameterValue = new URLSearchParams(window.location.search).get('timephase-instance');
         let si_data = JSON.parse(session_instance);
@@ -4388,6 +4569,7 @@ function formatTimephaseDedication(data, session_instance, type = null){
             if (si_data[parameterValue]['NOTES'] == null) {
                 si_data[parameterValue]['NOTES'] = '';
             }
+            si_data[parameterValue]['CHANGE_USER'] = user_details['emp_id'];
         });
         
         return si_data;
@@ -4420,6 +4602,8 @@ function formatTimephaseDedication(data, session_instance, type = null){
                                 if (new_prio >= 99) {
                                     new_prio = new_prio - 99;
                                 }
+				//adjust new_prio to prevent it becoming zero
+                                new_prio = (new_prio <= 0) ? 1 : new_prio;
                             // }
                             delete si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][item];
                             si_data[instance_id]['DATA']['RTE_SEQ_NUM'][rte_seq]['RES_PRIO_CD'][new_prio] = si_setup;
@@ -4431,6 +4615,7 @@ function formatTimephaseDedication(data, session_instance, type = null){
             if (si_data[instance_id]['NOTES'] == null) {
                 si_data[instance_id]['NOTES'] = '';
             }
+            si_data[instance_id]['CHANGE_USER'] = user_details['emp_id'];
         });
         return si_data;
     }
@@ -4767,60 +4952,76 @@ function popupContentGenerator(type, data, multiple = false){
     return content;
 }
 
-function loadedInstanceChecker(){
-    let session = sessionStorage.getItem('instance-loaded');
-    let urlParams = new URLSearchParams(window.location.search);
-    let parameterExists = urlParams.has('timephase-instance');
-    let parameterValue = urlParams.get('timephase-instance');
-    $(".tp-alert-container").empty();
-    
-    if (parameterExists) {
-        let alert_content = '';
-        if (session != null && session != '') {
-            
-            let get_instance = JSON.parse(session);
-            if (get_instance[parameterValue] != undefined) {
-                let instance_id = get_instance[parameterValue]['TPI_ID'];
-                let instance_num = get_instance[parameterValue]['INSTANCE'];
-                if (instance_id == parameterValue) {
-                    //2025-10-15 RM added TPI_ID for reference. we can remove if users dont care, but for testing purposes it makes it easier
-                    alert_content = '<div class="alert alert-success d-flex justify-content-between instance-loaded-alert" role="alert">'+
-                                        '<span>Time-Phasing: <strong>Instance #'+instance_num+'</strong> (TPI_ID:' + instance_id + ') is now loaded; any changes made will be applied to this instance.</span>'+
-                                        '<a href="#" class="alert-link unload-instance">Unload Instance</a>'+
-                                    '</div>';
+if (has_params.has('planning-assumption') === false) {
+    function loadedInstanceChecker(){
+        let session = sessionStorage.getItem('instance-loaded');
+        let urlParams = new URLSearchParams(window.location.search);
+        let parameterExists = urlParams.has('timephase-instance');
+        let parameterValue = urlParams.get('timephase-instance');
+        $(".tp-alert-container").empty();
+        
+        if (parameterExists) {
+            let alert_content = '';
+            if (session != null && session != '') {
+                
+                let get_instance = JSON.parse(session);
+                if (get_instance[parameterValue] != undefined) {
+                    let instance_id = get_instance[parameterValue]['TPI_ID'];
+                    let instance_num = get_instance[parameterValue]['INSTANCE'];
+                    if (instance_id == parameterValue) {
+                        //2025-10-15 RM added TPI_ID for reference. we can remove if users dont care, but for testing purposes it makes it easier
+                        alert_content = '<div class="alert alert-success d-flex justify-content-between instance-loaded-alert" role="alert">'+
+                                            '<span>Time-Phasing: <strong>Instance #'+instance_num+'</strong> (TPI_ID:' + instance_id + ') is now loaded; any changes made will be applied to this instance.</span>'+
+                                            '<a href="#" class="alert-link unload-instance">Unload Instance</a>'+
+                                        '</div>';
+                    }
+                }
+                else{
+                    alert_content = '<div class="alert alert-danger d-flex justify-content-between" role="alert"><span><strong>Instance Not Found!</strong> Please Load a Valid Instance.</span> <a href="#" class="alert-link unload-instance">Reload</a></div>';
                 }
             }
             else{
-                alert_content = '<div class="alert alert-danger d-flex justify-content-between" role="alert"><span><strong>Instance Not Found!</strong> Please Load a Valid Instance.</span> <a href="#" class="alert-link unload-instance">Reload</a></div>';
+                let instance_session_data = $(".instance-session-data").val();
+                if (instance_session_data != null && instance_session_data != '') {
+                    sessionStorage.setItem('instance-loaded', instance_session_data);
+                    
+                    let get_instance = JSON.parse(sessionStorage.getItem('instance-loaded'));
+                    let instance_id = get_instance[parameterValue]['TPI_ID'];
+                    let instance_num = get_instance[parameterValue]['INSTANCE'];
+    
+                    if (instance_id == parameterValue) {
+                        //2025-10-15 RM added TPI_ID for reference. we can remove if users dont care, but for testing purposes it makes it easier
+                        alert_content = '<div class="alert alert-success d-flex justify-content-between instance-loaded-alert" role="alert">'+
+                                            '<span>Time-Phasing: <strong>Instance #'+instance_num+'</strong> (TPI_IDkey: "value", ' + instance_id + ') is now loaded; any changes made will be applied to this instance.</span>'+
+                                            '<a href="#" class="alert-link unload-instance">Unload Instance</a>'+
+                                        '</div>';
+                    }
+                }
+                else{
+                    alert_content = '<div class="alert alert-danger d-flex justify-content-between" role="alert"><span><strong>Instance Not Found!</strong> Please Load a Valid Instance.</span> <a href="#" class="alert-link unload-instance">Reload</a></div>';
+                }
             }
+            $(".tp-alert-container").append(alert_content);
         }
         else{
-            let instance_session_data = $(".instance-session-data").val();
-            if (instance_session_data != null && instance_session_data != '') {
-                sessionStorage.setItem('instance-loaded', instance_session_data);
-                
-                let get_instance = JSON.parse(sessionStorage.getItem('instance-loaded'));
-                let instance_id = get_instance[parameterValue]['TPI_ID'];
-                let instance_num = get_instance[parameterValue]['INSTANCE'];
-
-                if (instance_id == parameterValue) {
-                    //2025-10-15 RM added TPI_ID for reference. we can remove if users dont care, but for testing purposes it makes it easier
-                    alert_content = '<div class="alert alert-success d-flex justify-content-between instance-loaded-alert" role="alert">'+
-                                        '<span>Time-Phasing: <strong>Instance #'+instance_num+'</strong> (TPI_IDkey: "value", ' + instance_id + ') is now loaded; any changes made will be applied to this instance.</span>'+
-                                        '<a href="#" class="alert-link unload-instance">Unload Instance</a>'+
-                                    '</div>';
-                }
-            }
-            else{
-                alert_content = '<div class="alert alert-danger d-flex justify-content-between" role="alert"><span><strong>Instance Not Found!</strong> Please Load a Valid Instance.</span> <a href="#" class="alert-link unload-instance">Reload</a></div>';
-            }
+            sessionStorage.removeItem('instance-loaded');
         }
-        $(".tp-alert-container").append(alert_content);
-    }
-    else{
-        sessionStorage.removeItem('instance-loaded');
     }
 }
+
+function appendAlertError(){
+    return '<div class="alert alert-warning alert-dismissible delete-all-alert" role="alert">'+
+        '<h6 class="alert-heading">Unable to Delete</h6>'+
+        '<p>Deleting the selected item(s) would leave the loaded timephase instance empty. At least one item must remain.</p>'+
+        '<small>Available options:</small>'+
+        '<ul>'+
+            '<li>Delete the currently loaded instance and create a new one to start with a fresh set of data.</li>'+
+            '<li>Update the existing record (for Dedicated Setups only) instead of deleting it.</li>'+
+        '</ul>'+
+        '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>'+
+    '</div>';
+}
+
 //themes - will reuse later
 // let current_theme = sessionStorage.getItem('theme');
 // let theme_status = (current_theme == "light") ? false : true;
