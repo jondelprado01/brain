@@ -2199,6 +2199,11 @@ $(document).ready(function(){
         let is_exclusive = 0;
         let type = 'ALTERNATE';
         
+        if($(".dedication-allow-setups").prop("checked") == false && $(".dedication-is-primary").prop("checked") == false){
+            exceptions++;
+            showGenericAlert("error", "Set as Primary before marking it as Exclusive.");
+        }
+
         if ((ded_tester == '' || ded_tester == null) || (ded_handler == '' || ded_handler == null)) {
             exceptions++;
             showGenericAlert("error", "Please Select Tester/Handler Dedication!");
@@ -4196,6 +4201,9 @@ function renderOEE(result, common_fields, ignore_fields, hide_col, oee_main, com
 }
 
 function renderDedications(result, table_row, table_dedication, setup_type){
+
+    //prop as checked
+    $(".dedication-allow-setups").prop("checked", true);
 
     let tester_opt = "";
     let handler_opt = "";
