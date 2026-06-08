@@ -227,13 +227,15 @@ $weeks = $response['WEEKS'];
                                                     </div>
                                                 </div>
                                                 <hr>
-                                                <div class="d-flex justify-content-end">
+                                                <div class="d-flex justify-content-between">
+                                                    <button class="btn btn-outline-info btn-reload-default">Reload Default Data <span style="display: none;" class="spinner-border spinner-border-sm default-spinner" aria-hidden="true"></span></button>
                                                     <button type="button" class="btn btn-success btn-save-socket" disabled>Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                 </div>
                                                 <table class="table table-non-type2 table-bordered table-hover h-100">
                                                     <thead>
                                                         <tr>
                                                             <th>BOARD</th>
+                                                            <th>HW_TYPE</th>
                                                             <th>SOCKET EFFICIENCY</th>
                                                         </tr>
                                                     </thead>

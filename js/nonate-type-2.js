@@ -19,20 +19,20 @@ $(document).ready(function(){
             {
                 targets: "_all",
                 createdCell: function(td, cellData, rowData, row, col){
-                    if (col == 1) {
+                    if (col == 2) {
                         $(td).attr("contenteditable", true);
-                        $(td).attr("default-se", rowData[1]);
+                        $(td).attr("default-se", rowData[2]);
                         $(td).addClass("socket-efficiency bg-info-subtle dt-left");
                     }
-                    $(td).attr("cell-id-type2", rowData[2]);
+                    $(td).attr("cell-id-type2", rowData[3]);
                 }
             },
         ],
         createdRow: function (row, data, index) {
-            data[1] = parseFloat((data[1].replace("%", "") / 100).toFixed(3));
+            data[2] = parseFloat((data[2].replace("%", "") / 100).toFixed(3));
             $(row).attr('default-state-type2', JSON.stringify(data));
-            $(row).attr('db-id-type2', data[3]);
-            $(row).attr('row-id-type2', data[2]);
+            $(row).attr('db-id-type2', data[4]);
+            $(row).attr('row-id-type2', data[3]);
         }
     });
 
@@ -42,6 +42,17 @@ $(document).ready(function(){
 
     //PRELOAD EXISTING OVERRIDE SOCKET EFFICIENCY
     preloadSocket(existing_socket, table_type_2);
+
+    $(document).delegate(".btn-reload-default", "click", function(){
+        $(".default-spinner").show();
+        $(this).prop("disabled", true);
+
+        setTimeout(function(){
+            preloadSocket(existing_socket, table_type_2);
+            $(".btn-reload-default").prop("disabled", false);
+            $(".default-spinner").hide();
+        }, 1000);
+    });
 
 
     //SEARCH BOARD
@@ -164,13 +175,13 @@ $(document).ready(function(){
 
                 temp.push(item);
 
-                let socef = temp[1].replace("%", "");
+                let socef = temp[2].replace("%", "");
                 
                 if (socef == '') {
                     error++;
                 }
                 
-                temp[1] = parseFloat((socef / 100).toFixed(3));
+                temp[2] = parseFloat((socef / 100).toFixed(3));
 
                 $('[row-id-type2="'+item+'"]').each(function(){
                     temp.push($(this).attr('db-id-type2'));
@@ -201,6 +212,7 @@ function preloadSocket(board, table_type_2){
             if (parseFloat(item['SOCKET_EFFICIENCY']) != 0.95) {
                 rows.push([
                     item['BOARD'],
+                    item['HW_TYPE'],
                     parseFloat((item['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%',
                     item['HASH'],
                     item['ID'],
@@ -228,6 +240,7 @@ function getBoardsSocket(board, table_type_2){
                 let rows = [];
                 let existing_cell_id = [];
                 let se_boards = JSON.parse(data);
+                console.log(se_boards);
                 
                 if (se_boards.length > 0) {
                     if (JSON.parse(existing_socket).length > 0) {
@@ -256,6 +269,7 @@ function getBoardsSocket(board, table_type_2){
 
                         rows.push([
                             item['BURNIN_BOARD'],
+                            item['HW_TYPE'],
                             socket_efficiency,
                             item['SEID'],
                             id
