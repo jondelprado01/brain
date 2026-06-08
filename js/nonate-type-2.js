@@ -48,6 +48,7 @@ $(document).ready(function(){
         $(this).prop("disabled", true);
 
         setTimeout(function(){
+            $("#dt-search-1").val("").trigger('input');
             preloadSocket(existing_socket, table_type_2);
             $(".btn-reload-default").prop("disabled", false);
             $(".default-spinner").hide();
