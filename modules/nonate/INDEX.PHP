@@ -171,7 +171,11 @@ $weeks = $response['WEEKS'];
                                                     <!-- <button type="button" class="btn btn-success btn-save-type1">Save <i class="fa-regular fa-floppy-disk"></i></button> -->
                                                 <!-- </div> -->
                                                 <hr>
-                                                <div class="d-flex justify-content-end">
+                                                <div class="d-flex justify-content-between">
+                                                    <button class="btn btn-outline-info btn-reload-default-type1">
+                                                        <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type1" aria-hidden="true"></span>
+                                                        Reload Default Data <i class="fa-regular fa-window-restore"></i>
+                                                    </button>
                                                     <button type="button" class="btn btn-success btn-save-burnin" disabled>Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                 </div>
                                                 <table class="table table-non-type1 table-bordered table-hover h-100">
@@ -183,6 +187,7 @@ $weeks = $response['WEEKS'];
                                                             <th>LOAD_UNLOAD-HOURS</th>
                                                             <th>TOTAL_BI_HRS</th>
                                                             <th>TURNS_PER_WEEK</th>
+                                                            <th>HW_TYPE</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -228,7 +233,10 @@ $weeks = $response['WEEKS'];
                                                 </div>
                                                 <hr>
                                                 <div class="d-flex justify-content-between">
-                                                    <button class="btn btn-outline-info btn-reload-default">Reload Default Data <span style="display: none;" class="spinner-border spinner-border-sm default-spinner" aria-hidden="true"></span></button>
+                                                    <button class="btn btn-outline-info btn-reload-default-type2">
+                                                        <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type2" aria-hidden="true"></span>
+                                                        Reload Default Data <i class="fa-regular fa-window-restore"></i>
+                                                    </button>
                                                     <button type="button" class="btn btn-success btn-save-socket" disabled>Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                 </div>
                                                 <table class="table table-non-type2 table-bordered table-hover h-100">

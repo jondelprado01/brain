@@ -32,8 +32,15 @@ $(document).ready(function(){
                         $(td).addClass('load-unload-hours');
                     }
                     if (col == 5) {
+                        $(td).attr("default-val", rowData[5]);
                         $(td).addClass('turns-per-week');
                     }
+                }
+            },
+            {
+            targets: 6, // first displayed column
+                render: function(data, type, row, meta) {
+                    return row[8];
                 }
             }
         ],
@@ -52,6 +59,18 @@ $(document).ready(function(){
     });
 
     preloadBurnin(existing_burnin, table_type_1);
+
+    $(document).delegate(".btn-reload-default-type1", "click", function(){
+        $(".default-spinner-type1").show();
+        $(this).prop("disabled", true);
+
+        setTimeout(function(){
+            $("#dt-search-0").val("").trigger('input');
+            preloadBurnin(existing_burnin, table_type_1);
+            $(".btn-reload-default-type1").prop("disabled", false);
+            $(".default-spinner-type1").hide();
+        }, 1000);
+    });
 
     //SEARCH BOARD
     $("#search-board-field-type1").on("keypress", function(e){
@@ -105,7 +124,13 @@ $(document).ready(function(){
     });
 
     //CALCULATE LOAD/UNLOAD HOURS
-    $(document).delegate(".load-hours", "keydown input", function(event){
+    function setDefaultValues(cell_id, element, default_val){
+        $(element['LOAD_UNLOAD']).text(default_val['LOAD_UNLOAD']);
+        $(element['TOTAL_BI_HRS']+'[cell-id="'+cell_id+'"]').text(default_val['TOTAL_BI_HRS']);
+        $(element['TURNS_PER_WEEK']+'[cell-id="'+cell_id+'"]').text(default_val['TURNS_PER_WEEK']);
+    }
+
+    $(document).delegate(".load-hours", "input", function(event){
 
         if (event.key === "Enter") {
             event.preventDefault();
@@ -113,23 +138,26 @@ $(document).ready(function(){
         }
 
         let cell_id = $(this).attr("cell-id");
-        let default_cell_val = parseFloat($(this).attr("default-val"));
         let cell_val = $(this).text();
+        let default_cell_val = parseFloat($(this).attr("default-val"));
+        let default_load_unload = parseFloat($('.load-unload-hours[cell-id="'+cell_id+'"]').attr("default-val"));
+        let default_turns_per_week = parseFloat($('.turns-per-week[cell-id="'+cell_id+'"]').attr("default-val"));
         let bi_hours = parseFloat($('.bi-hours[cell-id="'+cell_id+'"]').text());
-        let default_load_unload = parseFloat($('.load-unload-hours[cell-id="'+cell_id+'"]').text());
         let load_unload;
         let check_input = /[^a-zA-Z0-9.]/.test(cell_val);
+        let default_val_arr  = {LOAD_UNLOAD: default_cell_val, TOTAL_BI_HRS: default_load_unload,  TURNS_PER_WEEK: default_turns_per_week};
+        let default_elem_arr = {LOAD_UNLOAD: $(this),          TOTAL_BI_HRS: ".load-unload-hours", TURNS_PER_WEEK: ".turns-per-week"};
 
         if (check_input) {
             showGenericAlertType1("error", "Invalid value! Special characters are not allowed");
-            $(this).text(default_cell_val);
+            setDefaultValues(cell_id, default_elem_arr, default_val_arr);
             return;
         }
 
         if (parseFloat(cell_val) > 168) {
             showGenericAlertType1("error", "Max Load Hours: 168 Hours");
-            load_unload = bi_hours + 10;
-            $(this).text(default_cell_val);
+            setDefaultValues(cell_id, default_elem_arr, default_val_arr);
+
             $('[cell-id="'+cell_id+'"]').each(function(){
                 if ($(this).hasClass("load-hours")) {
                     $(this).addClass('bg-info-subtle');
@@ -141,15 +169,20 @@ $(document).ready(function(){
         
         if ($.isNumeric(cell_val)) {
             if (parseFloat(cell_val) <= 0) {
-                showGenericAlertType1("error", "Load Hours must be greater than Zero.");
-                load_unload = bi_hours + 10;
-                $(this).text(default_cell_val);
-                $('td[cell-id="'+cell_id+'"]').each(function(){
-                    if ($(this).hasClass("load-hours")) {
-                        $(this).addClass('bg-info-subtle');
-                    }
-                    $(this).removeClass('bg-success-subtle');
-                });
+                if (default_cell_val != 0) {
+                    showGenericAlertType1("error", "Load Hours must be greater than Zero.");
+                    setDefaultValues(cell_id, default_elem_arr, default_val_arr);
+    
+                    $('td[cell-id="'+cell_id+'"]').each(function(){
+                        if ($(this).hasClass("load-hours")) {
+                            $(this).addClass('bg-info-subtle');
+                        }
+                        $(this).removeClass('bg-success-subtle');
+                    });
+                }
+                else{
+                    setDefaultValues(cell_id, default_elem_arr, default_val_arr);
+                }
             }
             else{
                 load_unload = bi_hours + parseFloat(cell_val);
@@ -183,8 +216,10 @@ $(document).ready(function(){
             $(".btn-save-burnin").prop("disabled", true);
         }
         
-        $('.load-unload-hours[cell-id="'+cell_id+'"]').text(load_unload);
-        $('.turns-per-week[cell-id="'+cell_id+'"]').text(parseFloat(168 / load_unload).toFixed(2));
+        if (load_unload != undefined) {
+            $('.load-unload-hours[cell-id="'+cell_id+'"]').text(load_unload);
+            $('.turns-per-week[cell-id="'+cell_id+'"]').text(parseFloat(168 / load_unload).toFixed(2));
+        }
     });
 
 
@@ -296,7 +331,7 @@ function preloadBurnin(board, table_type_1){
     if (data.length > 0) {
         let rows = [];
         $.each(data, function(index, item){
-            if (item['LOAD_HOURS'] != 10) {
+            // if (item['LOAD_HOURS'] != 10) { //turned off for now, will revisit logic
                 load_unload = parseFloat(item['BI_HOURS']) + parseFloat(item['LOAD_HOURS']);
                 rows.push([
                     item['MFG_PART_NUM'],
@@ -306,9 +341,10 @@ function preloadBurnin(board, table_type_1){
                     load_unload,
                     parseFloat(168 / load_unload).toFixed(2),
                     item['HASH'],
-                    item['ID']
+                    item['ID'],
+                    item['HW_TYPE']
                 ]);
-            }
+            // }
         });
         table_type_1.clear();
         table_type_1.rows.add(rows);
@@ -343,7 +379,7 @@ function getBoardsBurnin(board, table_type_1){
         
                     $.each(bi_boards, function(index, item){
         
-                        let load_hours = 10;
+                        let load_hours = (item['BURNIN_TYPE'] != "TCVOS") ? 10 : 0;
                         let load_unload;
                         let id = "UNCHANGED";
         
@@ -368,7 +404,8 @@ function getBoardsBurnin(board, table_type_1){
                             load_unload,
                             parseFloat(168 / load_unload).toFixed(2),
                             item['BID'],
-                            id
+                            id,
+                            item['BURNIN_TYPE']
                         ]);
                     });
         
@@ -409,7 +446,7 @@ function addBoardsBurnin(payload, user_details){
                         $.each(payload, function(index, item){
                             let part  = item[0];
                             let board = item[1];
-                            let hash  = item[6];
+                            let hash  = item[7];
                             let load  = item[3];
                             let uload = item[4];
 
@@ -425,7 +462,7 @@ function addBoardsBurnin(payload, user_details){
 
                             $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
 
-                            item.splice(7, 1);
+                            item.splice(8, 1);
                             $('[row-id="'+hash+'"]').attr('default-state', JSON.stringify(item));
                         });
 

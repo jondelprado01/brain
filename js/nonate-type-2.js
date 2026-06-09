@@ -43,15 +43,15 @@ $(document).ready(function(){
     //PRELOAD EXISTING OVERRIDE SOCKET EFFICIENCY
     preloadSocket(existing_socket, table_type_2);
 
-    $(document).delegate(".btn-reload-default", "click", function(){
-        $(".default-spinner").show();
+    $(document).delegate(".btn-reload-default-type2", "click", function(){
+        $(".default-spinner-type2").show();
         $(this).prop("disabled", true);
 
         setTimeout(function(){
             $("#dt-search-1").val("").trigger('input');
             preloadSocket(existing_socket, table_type_2);
-            $(".btn-reload-default").prop("disabled", false);
-            $(".default-spinner").hide();
+            $(".btn-reload-default-type2").prop("disabled", false);
+            $(".default-spinner-type2").hide();
         }, 1000);
     });
 
