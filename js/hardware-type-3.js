@@ -193,34 +193,40 @@ function crudProcessType3(process, payload){
 }
 
 function searchDataType3(payload, limit, table_nonboard){
+    $(".notif-container-type3").hide();
     $.ajax({
         type: 'post',
         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=SEARCH_NON_BOARD&OUTPUT_TYPE=BODS_JDA_ADI',
         data: {payload: payload, limit: limit},
         beforeSend: function(){
-
+            $(".notif-retrieve-type3").fadeIn();
         },
         success: function(data){
-            let res = JSON.parse(data);
-            if (res.length > 0) {
-                let rows = [];
+            setTimeout(function(){
+                $(".notif-retrieve-type3").hide();
+                let res = JSON.parse(data);
+                if (res.length > 0) {
+                    let rows = [];
 
-                $.each(res, function(index, item){
-                    rows.push([
-                        item['SITE_NUM'],
-                        item['RES_AREA'],
-                        item['HW_TYPE_HMS'],
-                        item['HW_TYPE_SUS'],
-                        item['HW_NM'],
-                        item['AVAIL_QTY']
-                    ]);
-                });
-                
-                table_nonboard.clear();
-                table_nonboard.rows.add(rows);
-                table_nonboard.draw();
-            }
-            
+                    $.each(res, function(index, item){
+                        rows.push([
+                            item['SITE_NUM'],
+                            item['RES_AREA'],
+                            item['HW_TYPE_HMS'],
+                            item['HW_TYPE_SUS'],
+                            item['HW_NM'],
+                            item['AVAIL_QTY']
+                        ]);
+                    });
+                    
+                    table_nonboard.clear();
+                    table_nonboard.rows.add(rows);
+                    table_nonboard.draw();
+                }
+                else{
+                    $(".notif-no-result-type3").fadeIn();
+                }
+            }, 1500)
         },
         error: function(xhr, status, error) {
             console.log(xhr);

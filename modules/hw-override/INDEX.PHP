@@ -186,17 +186,6 @@ $has_delinquent_t2 = 0;
                                                                         <h1 class="modal-title fs-5">Create HW Mapping</h1>
                                                                         <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
                                                                     </div>
-                                                                    <!-- <i class="details-tooltip fa-solid fa-circle-info text-info" data-bs-toggle="tooltip" data-bs-placement="top"
-                                                                        data-bs-custom-class="custom-tooltip" data-bs-html="true"
-                                                                        data-bs-title='<div class="alert alert-success pt-0 pb-0" role="alert">
-                                                                                            New Override.
-                                                                                        </div>
-                                                                                        <div class="alert alert-warning pt-0 pb-0" role="alert">
-                                                                                            Existing Override.
-                                                                                        </div>
-                                                                                        <div class="alert alert-primary pt-0 pb-0" role="alert">
-                                                                                            Rendered From CSV.
-                                                                                        </div>'></i> -->
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="row">
@@ -372,17 +361,6 @@ $has_delinquent_t2 = 0;
                                                                         <h1 class="modal-title fs-5">Create HW Capacity Override</h1>
                                                                         <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
                                                                     </div>
-                                                                    <i class="details-tooltip fa-solid fa-circle-info text-info" data-bs-toggle="tooltip" data-bs-placement="top"
-                                                                        data-bs-custom-class="custom-tooltip" data-bs-html="true"
-                                                                        data-bs-title='<div class="alert alert-success pt-0 pb-0" role="alert">
-                                                                                            New Override.
-                                                                                        </div>
-                                                                                        <div class="alert alert-warning pt-0 pb-0" role="alert">
-                                                                                            Existing Override.
-                                                                                        </div>
-                                                                                        <div class="alert alert-primary pt-0 pb-0" role="alert">
-                                                                                            Rendered From CSV.
-                                                                                        </div>'></i>
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="row">
@@ -633,21 +611,10 @@ $has_delinquent_t2 = 0;
                                                                 <div>
                                                                     <h1 class="modal-title fs-5">Plan Non-Boards for All Parts</h1>
                                                                 </div>
-                                                                <i class="details-tooltip fa-solid fa-circle-info text-info" data-bs-toggle="tooltip" data-bs-placement="top"
-                                                                    data-bs-custom-class="custom-tooltip" data-bs-html="true"
-                                                                    data-bs-title='<div class="alert alert-success pt-0 pb-0" role="alert">
-                                                                                        New Override.
-                                                                                    </div>
-                                                                                    <div class="alert alert-warning pt-0 pb-0" role="alert">
-                                                                                        Existing Override.
-                                                                                    </div>
-                                                                                    <div class="alert alert-primary pt-0 pb-0" role="alert">
-                                                                                        Rendered From CSV.
-                                                                                    </div>'></i>
                                                             </div>
                                                             <div class="modal-body">
                                                                 <div class="row">
-                                                                    <div class="col-lg-12 col-sm-12 mb-3">
+                                                                    <div class="col-lg-8 col-sm-12 mb-3">
                                                                         <div class="input-group">
                                                                             <div class="form-floating">
                                                                                 <input type="text" class="form-control input-hw-name-type3" placeholder="">
@@ -669,6 +636,15 @@ $has_delinquent_t2 = 0;
                                                                                 </div>
                                                                                 <i class="fa-solid fa-magnifying-glass"></i>
                                                                             </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div class="col-lg-4 d-flex justify-content-center">
+                                                                        <div style="display:none!important;" class="notif-container-type3 notif-retrieve-type3 text-info">
+                                                                            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                                                            <span role="status">Retrieving Data... Please wait.</span>
+                                                                        </div>
+                                                                        <div style="display:none!important;" class="notif-container-type3 notif-no-result-type3 text-danger">
+                                                                            <span role="status">No results found for your search. Please try a different keyword.</span>
                                                                         </div>
                                                                     </div>
                                                                     <hr>
