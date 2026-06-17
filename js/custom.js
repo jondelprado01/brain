@@ -3406,10 +3406,19 @@ function getTesterHandler(table_data, table_row, table_dedication, module_type =
                     var exists = atom_data['HANDLER'].find(function(item) {
                         return item.ENG_NAME == "HANDTEST";
                     });
-
-                    if (exists === undefined && module_type != null) {
-                        atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
-                        atom_data['HANDLER_HEADER'].push("HANDTEST");
+                    if (module_type != null) {
+                        if (exists === undefined) {
+                            atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
+                            atom_data['HANDLER_HEADER'].push("HANDTEST");
+                        }
+                        else{
+                            atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
+                        }
+                    }
+                    else{
+                        if ($.inArray("HANDTEST", atom_data['HANDLER_HEADER']) !== -1) {
+                            atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
+                        }
                     }
                     renderDedications(atom_data, table_row, table_dedication, setup_type);
                 }
