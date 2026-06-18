@@ -3416,7 +3416,10 @@ function getTesterHandler(table_data, table_row, table_dedication, module_type =
                         }
                     }
                     else{
-                        if ($.inArray("HANDTEST", atom_data['HANDLER_HEADER']) !== -1) {
+                        var handler_exists = atom_data['HANDLER'].find(function(item) {
+                            return item.ATOM_NAME == "HANDTEST";
+                        });
+                        if ($.inArray("HANDTEST", atom_data['HANDLER_HEADER']) !== -1 && handler_exists === undefined) {
                             atom_data['HANDLER'].push({ATOM_NAME: "HANDTEST", ENG_NAME: "HANDTEST", RES_TYPE: "HANDLER", SITE_NUM: "ADGT"});
                         }
                     }
