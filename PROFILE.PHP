@@ -30,6 +30,39 @@ function print_r2($aryArray) {
                 }
             }
         ?>
+        <style>
+            .thread,
+            .thread ul {
+                list-style: none;
+                margin: 0;
+                padding-left: 20px;
+                position: relative;
+            }
+
+            .thread ul::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                border-left: 1px solid #ccc;
+            }
+
+            .thread li {
+                position: relative;
+                padding-left: 20px;
+                margin: 8px 0;
+            }
+
+            .thread li::before {
+                content: '';
+                position: absolute;
+                top: 12px;
+                left: 0;
+                width: 15px;
+                border-top: 1px solid #ccc;
+            }
+        </style>
     </head>
 
     <body>
@@ -39,66 +72,127 @@ function print_r2($aryArray) {
 
             //NAVBAR
             require('./page-sections/navs/PAGES.PHP');
+
+            //user groups and roles
+            $user_group_role_arr = [
+                "Resource Picker"   => [],
+                "Main Display"      => [],
+                "Default Atom"      => ["Assign Default Atom"],
+                "HW Override"       => [],
+                "NON-ATE"           => [],
+                "Index Time"        => ["Fixed", "Variable"]
+            ];
+
+            if (count($_SESSION['EMP_USER_GROUP']) == 0) {
+                array_push($user_group_role_arr["Resource Picker"], "Search", "OEE Override");
+                array_push($user_group_role_arr["Main Display"], "Alternate To Primary", "Change HW Set", "Set Flag Status", "Dedications", "Time-phasing");
+                array_push($user_group_role_arr["HW Override"], "Type 1 - HW Mapping", "Type 2 - HW Capacity Override", "Type 3 - Plan Non-Boards");
+                array_push($user_group_role_arr["NON-ATE"], "Type 1 - BurnIn Load/Unload Hours","Type 2 - Override Socket Efficiency","Type 3 - HW Capacity Override");
+            }
+            else{
+                foreach ($_SESSION['EMP_USER_GROUP'] as $ugkey => $user_group) {
+                    if ($user_group == "SCM Cap Planning") {
+                        array_push($user_group_role_arr["Resource Picker"], "Search");
+                        array_push($user_group_role_arr["Main Display"], "Alternate To Primary", "Change HW Set", "Set Flag Status", "Dedications", "Time-phasing");
+                    }
+                    if ($user_group == "HW Planning") {
+                        array_push($user_group_role_arr["Resource Picker"], "Search");
+                        array_push($user_group_role_arr["Main Display"], "Alternate To Primary", "Change HW Set", "Time-phasing");
+                        array_push($user_group_role_arr["HW Override"], "Type 1 - HW Mapping", "Type 2 - HW Capacity Override", "Type 3 - Plan Non-Boards");
+                        array_push($user_group_role_arr["NON-ATE"], "Type 1 - BurnIn Load/Unload Hours","Type 2 - Override Socket Efficiency","Type 3 - HW Capacity Override");
+                    }
+                    if ($user_group == "Production Planning") {
+                        array_push($user_group_role_arr["Resource Picker"], "Search", "OEE Override");
+                        array_push($user_group_role_arr["Main Display"], "Alternate To Primary", "Time-phasing");
+                    }
+                }
+            }
+
         ?>
 
-        <div class="container">
+        <div class="container mt-5">
             <div class="row">
-                <div class="card mt-5">
-                    <div class="card-body">
-                        <div class="text-center">
-                            <img style="height: 100px; width: 100px;" src="assets/profile.jpg" class="rounded mb-3">
-                            <h5>
-                                <?php 
-                                if(isset($_SESSION["EMP_NAME"])) {
-                                    echo $_SESSION["EMP_NAME"];
-                                }else{
-                                    echo "????";
-                                }
+                <div class="col-lg-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="text-center">
+                                <img style="height: 100px; width: 100px;" src="assets/profile.jpg" class="rounded mb-3">
+                                <h5>
+                                    <?php
+                                    if(isset($_SESSION["EMP_NAME"])) {
+                                        echo $_SESSION["EMP_NAME"];
+                                    }else{
+                                        echo "????";
+                                    }
+                                    ?>
+                                </h5>
+                                <small>
+                                    <?php 
+                                    if(isset($_SESSION["EMP_EMAIL"])) {
+                                        echo $_SESSION["EMP_EMAIL"];
+                                    }else{
+                                        echo "????";
+                                    }
+                                    ?>
+                                </small>
+                            </div>
+                            <hr>
+                            <b>User Role:</b>&emsp;<?php echo $_SESSION["EMP_ROLE"]; ?><br><br>
+                            <b>Assigned User Group(s):</b>
+                            <ul>
+                                <?php
+                                    if (count($_SESSION['EMP_USER_GROUP']) == 0) {
+                                        echo "<li>Administrator</li>";
+                                    }
+                                    else{
+                                        foreach ($_SESSION['EMP_USER_GROUP'] as $ugkey => $user_group) {
+                                            echo "<li>".$user_group."</li>";
+                                        }
+                                    }
                                 ?>
-                                <!-- Admin User -->
-                            </h5>
-                            <small>
-                                <?php 
-                                if(isset($_SESSION["EMP_EMAIL"])) {
-                                    echo $_SESSION["EMP_EMAIL"];
-                                }else{
-                                    echo "????";
-                                }
-                                ?>
-                                <!-- admin@user.com -->
-                            </small>
+                            </ul>
                         </div>
-                        <hr>
-                        <div class="row">
-                            <div class="col-lg-6">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" placeholder="">
-                                    <label>
+                    </div>
+                </div>
+                <div class="col-lg-8">
+                    <div class="card">
+                        <div class="card-body">
+
+                            <ul class="thread">
+                                <li>
                                     <?php 
-                                    if(isset($_SESSION["FIRST_NAME"])) {
-                                        echo $_SESSION["FIRST_NAME"];
-                                    }else{
-                                        echo "????";
-                                    }
+                                        if (count($_SESSION['EMP_USER_GROUP']) == 0) {
+                                            echo "Administrator";
+                                        }
+                                        else{
+                                            echo implode(", ", $_SESSION['EMP_USER_GROUP']);
+                                        }
                                     ?>
-                                    <!-- First Name -->
-                                    </label>
-                                </div>
-                            </div>
-                            <div class="col-lg-6">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" placeholder="">
-                                    <label>
-                                    <?php 
-                                    if(isset($_SESSION["LAST_NAME"])) {
-                                        echo $_SESSION["LAST_NAME"];
-                                    }else{
-                                        echo "????";
-                                    }
-                                    ?>
-                                    <!-- Last Name --> </label>
-                                </div>
-                            </div>
+                                    <ul>
+                                        <?php
+                                            foreach ($user_group_role_arr as $modkey => $modules) {
+                                                if (count($modules) > 0) {
+                                                ?>
+                                                    <li>
+                                                        <b><?php echo $modkey?></b>
+                                                        <ul>
+                                                            <?php
+                                                                foreach (array_unique($modules) as $funckey => $function) {
+                                                                ?>
+                                                                    <li><?php echo $function; ?></li>
+                                                                <?php
+                                                                }
+                                                            ?>
+                                                        </ul>
+                                                    </li>
+                                                <?php
+                                                }
+                                            }
+                                        ?>
+                                    </ul>
+                                </li>
+                            </ul>
+
                         </div>
                     </div>
                 </div>

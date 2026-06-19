@@ -19,6 +19,7 @@
     $it = '';
     $am = '';
     $cl = '';
+    $pr = '';
     $url = explode("/", $_SERVER['REQUEST_URI']);
     if (strpos($_SERVER['REQUEST_URI'], 'modules') !== false) {
         switch ($url[$index]) {
@@ -52,12 +53,21 @@
         if ($url[$idx] != 'PROFILE.PHP') {
             $pa = 'active';
         }
+        else{
+            $pr = 'active';
+        }
+    }
+
+    $brain_logo_path = ($pa == 'active') ? "./" : "../../";
+
+    if ($pr == 'active') {
+        $brain_logo_path = "./";
     }
 ?>
 <nav class="navbar navbar-expand-lg  sticky-top bg-body-tertiary" data-bs-theme="dark">
     <div class="container-fluid">
         <a class="navbar-brand" href="#">
-            <img src="<?php echo ($pa == 'active') ? "./" : "../../"?>assets/brain-logo.png" alt="Bootstrap" width="50" height="50">
+            <img src="<?php echo $brain_logo_path; ?>assets/brain-logo.png" alt="Bootstrap" width="50" height="50">
             &nbsp;BRAIN
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
