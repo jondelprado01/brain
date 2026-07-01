@@ -186,6 +186,11 @@ $assets = RENDER_ASSETS("module");
                                                 <h5 class="card-title"><i class="fa-solid fa-lock"></i> Fixed</h5>
                                                 <small>Fixed Index Time</small>
                                             </div>
+                                            <div class="d-flex align-items-center">
+                                                <button type="button" class="btn btn-sm btn-primary" id="io-add-fixed">
+                                                    <i class="fa-solid fa-plus"></i> Add Index Time
+                                                </button>
+                                            </div>
                                         </div>
                                        
                                         <div class="card-body">
@@ -202,7 +207,7 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"mainTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>Matches</th></tr>";
+                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>Matches</th><th>Edit</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
@@ -239,8 +244,9 @@ $assets = RENDER_ASSETS("module");
                                                                     echo "<td>".$aryLine["UTPI"]."</td>";
                                                                     echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
                                                                     echo "<td class=\"scx-matches-cell\" data-isd-id=\"".$intISDID."\" data-handler=\"".htmlspecialchars($aryLine["HANDLER"], ENT_QUOTES)."\">View</td>";
+                                                                    echo "<td class=\"io-edit-cell\" data-row=\"".htmlspecialchars(json_encode(IO_EDIT_ROW($intISDID, $aryFITTemp, 'fixed')), ENT_QUOTES)."\"><a href=\"#\" class=\"io-edit-link\">Edit</a></td>";
                                                                     echo "</tr>";
-    
+
                                                                     ++$intCtr;
                                                                 }
                                                             }
@@ -306,6 +312,11 @@ $assets = RENDER_ASSETS("module");
                                                 <h5 class="card-title"><i class="fa-solid fa-arrows-turn-to-dots"></i> Variable</h5>
                                                 <small>Variable Index Time</small>
                                             </div>
+                                            <div class="d-flex align-items-center">
+                                                <button type="button" class="btn btn-sm btn-primary" id="io-add-variable">
+                                                    <i class="fa-solid fa-plus"></i> Add Index Time
+                                                </button>
+                                            </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
@@ -317,7 +328,7 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"variableTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Soak Time</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th><th>Action</th><th>Matches</th></tr>";
+                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Soak Time</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th><th>Action</th><th>Matches</th><th>Edit</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
@@ -363,8 +374,9 @@ $assets = RENDER_ASSETS("module");
                                                                         echo "<td>".$aryLine["THRESHOLD_FORMULA"]."</td>";
                                                                         echo '<td><button type="button" class="btn btn-calculation btn-link" btn-data='.json_encode($aryLine).'>Calculation</button></td>';
                                                                         echo "<td class=\"scx-matches-cell\" data-isd-id=\"".$intISDID."\" data-handler=\"".htmlspecialchars($aryLine["HANDLER"], ENT_QUOTES)."\">View</td>";
+                                                                        echo "<td class=\"io-edit-cell\" data-row=\"".htmlspecialchars(json_encode(IO_EDIT_ROW($intISDID, $aryFITTemp, 'variable')), ENT_QUOTES)."\"><a href=\"#\" class=\"io-edit-link\">Edit</a></td>";
                                                                         echo "</tr>";
-        
+
                                                                         ++$intCtr;
                                                                     }
                                                                 }
@@ -532,10 +544,158 @@ $assets = RENDER_ASSETS("module");
             </div>
         </div>
 
+        <!-- INDEX OVERRIDE ADD/EDIT MODAL (added for index-calc page) -->
+        <div class="modal fade" id="indexOverrideModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="indexOverrideModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg">
+                <div class="modal-content">
+                    <form id="io-form" autocomplete="off" onsubmit="return false;">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="indexOverrideModalLabel">Index Time</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+
+                            <!-- hidden identity fields (edit mode) -->
+                            <input type="hidden" id="io-isd-id" value="">
+                            <input type="hidden" id="io-ism-id" value="">
+
+                            <!-- index type -->
+                            <div class="mb-3">
+                                <label class="form-label d-block mb-1">Index Type</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="io-index-type" id="io-type-fixed" value="fixed" checked>
+                                    <label class="form-check-label" for="io-type-fixed">Fixed</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="io-index-type" id="io-type-variable" value="variable">
+                                    <label class="form-check-label" for="io-type-variable">Variable</label>
+                                </div>
+                            </div>
+
+                            <!-- combination fields -->
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="io-handler">Handler</label>
+                                    <input type="text" class="form-control io-combo" id="io-handler">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="io-package">Package Type</label>
+                                    <input type="text" class="form-control io-combo" id="io-package">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-soak-time">Soak Time</label>
+                                    <input type="text" class="form-control io-combo" id="io-soak-time">
+                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-body-size">Body Size</label>
+                                    <input type="text" class="form-control io-combo" id="io-body-size">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-temp-class">Temp Class</label>
+                                    <input type="text" class="form-control io-combo" id="io-temp-class">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-lead-min">Leads Min</label>
+                                    <input type="text" class="form-control io-combo" id="io-lead-min">
+                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-lead-max">Leads Max</label>
+                                    <input type="text" class="form-control io-combo" id="io-lead-max">
+                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label" for="io-utpi">UTPI</label>
+                                    <input type="text" class="form-control io-combo" id="io-utpi">
+                                    <div class="invalid-feedback">Required; integer &gt;= 1.</div>
+                                </div>
+                            </div>
+
+                            <hr>
+
+                            <!-- value + formula fields -->
+                            <div class="row g-3">
+                                <div class="col-md-3">
+                                    <label class="form-label" for="io-index-value">Index Value</label>
+                                    <input type="text" class="form-control" id="io-index-value">
+                                    <div class="invalid-feedback">Required; numeric.</div>
+                                </div>
+                                <div class="col-md-3 io-variable-only">
+                                    <label class="form-label" for="io-ttpi-threshold">TTPI Threshold</label>
+                                    <input type="text" class="form-control" id="io-ttpi-threshold">
+                                    <div class="invalid-feedback">Required; numeric.</div>
+                                </div>
+                                <div class="col-md-3 io-variable-only">
+                                    <label class="form-label" for="io-coefficient">Coefficient</label>
+                                    <input type="text" class="form-control" id="io-coefficient">
+                                    <div class="invalid-feedback">Required; numeric.</div>
+                                </div>
+                                <div class="col-md-3 io-variable-only">
+                                    <label class="form-label" for="io-constant">Constant</label>
+                                    <input type="text" class="form-control" id="io-constant">
+                                    <div class="invalid-feedback">Required; numeric.</div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mt-1 io-variable-only">
+                                <div class="col-md-12">
+                                    <label class="form-label text-muted">Threshold Formula <small>(auto-generated)</small></label>
+                                    <input type="text" class="form-control bg-light text-muted" id="io-threshold-formula-preview" readonly tabindex="-1">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label text-muted">Final Formula <small>(auto-generated)</small></label>
+                                    <input type="text" class="form-control bg-light text-muted" id="io-final-formula-preview" readonly tabindex="-1">
+                                </div>
+                            </div>
+
+                            <div class="io-message mt-3"></div>
+
+                        </div>
+                        <div class="modal-footer justify-content-between">
+                            <button type="button" class="btn btn-danger d-none" id="io-delete-btn">
+                                <i class="fa-solid fa-trash"></i> Delete
+                            </button>
+                            <div>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="button" class="btn btn-primary" id="io-save-btn">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </body>
 </html>
 
 <?php
+
+    /*
+     * Build the data-row payload attached to each "Edit" cell. Carries the
+     * keys the editor modal needs. PACKAGE is aliased PKG_TYPE in the query;
+     * INDEX_VALUE is the master INDX_VALUE. TYPE is decided by whether a
+     * THRESHOLD_FORMULA exists (variable) or not (fixed).
+     */
+    function IO_EDIT_ROW($intISDID, $aryTemp, $type) {
+        return array(
+            "ISD_ID"         => $intISDID,
+            "ISM_ID"         => isset($aryTemp["ISM_ID"]) ? $aryTemp["ISM_ID"] : null,
+            "HANDLER"        => isset($aryTemp["HANDLER"]) ? $aryTemp["HANDLER"] : null,
+            "PACKAGE"        => isset($aryTemp["PKG_TYPE"]) ? $aryTemp["PKG_TYPE"] : null,
+            "SOAK_TIME"      => isset($aryTemp["SOAK_TIME"]) ? $aryTemp["SOAK_TIME"] : null,
+            "BODY_SIZE"      => isset($aryTemp["BODY_SIZE"]) ? $aryTemp["BODY_SIZE"] : null,
+            "LEAD_COUNT_MIN" => isset($aryTemp["LEAD_COUNT_MIN"]) ? $aryTemp["LEAD_COUNT_MIN"] : null,
+            "LEAD_COUNT_MAX" => isset($aryTemp["LEAD_COUNT_MAX"]) ? $aryTemp["LEAD_COUNT_MAX"] : null,
+            "TEMP_CLASS"     => isset($aryTemp["TEMP_CLASS"]) ? $aryTemp["TEMP_CLASS"] : null,
+            "UTPI"           => isset($aryTemp["UTPI"]) ? $aryTemp["UTPI"] : null,
+            "INDEX_VALUE"    => isset($aryTemp["INDEX_VALUE"]) ? $aryTemp["INDEX_VALUE"] : null,
+            "TTPI_THRESHOLD" => isset($aryTemp["TTPI_THRESHOLD"]) ? $aryTemp["TTPI_THRESHOLD"] : null,
+            "COEFFICIENT"    => isset($aryTemp["COEFFICIENT"]) ? $aryTemp["COEFFICIENT"] : null,
+            "CONSTANT"       => isset($aryTemp["CONSTANT"]) ? $aryTemp["CONSTANT"] : null,
+            "TYPE"           => $type
+        );
+    }
 
     function parentHeaderBG($i){
         switch ($i) {
