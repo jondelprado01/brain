@@ -126,6 +126,11 @@ $assets = RENDER_ASSETS("module");
                 overflow: hidden;
                 text-overflow: ellipsis;
             }
+            .no-event{
+                opacity: 0.5;
+                cursor: not-allowed;
+                pointer-events: none; 
+            }
         </style>
     </head>
 
@@ -159,6 +164,9 @@ $assets = RENDER_ASSETS("module");
                                     }
                                 }
                                 else {$fixed = 'active';}
+
+                                //Enable Edit/Delete only for Admin or OR user groups.
+                                $disable_btn = (count($_SESSION['EMP_USER_GROUP']) == 0 || in_array("Operation Research", $_SESSION['EMP_USER_GROUP'])) ? "" : "no-event";
                             ?>
 
                             
@@ -653,12 +661,12 @@ $assets = RENDER_ASSETS("module");
 
                         </div>
                         <div class="modal-footer justify-content-between">
-                            <button type="button" class="btn btn-danger d-none" id="io-delete-btn">
+                            <button type="button" class="btn btn-danger d-none <?php echo $disable_btn; ?>" id="io-delete-btn">
                                 <i class="fa-solid fa-trash"></i> Delete
                             </button>
                             <div>
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-primary" id="io-save-btn">Save</button>
+                                <button type="button" class="btn btn-primary <?php echo $disable_btn; ?>" id="io-save-btn">Save</button>
                             </div>
                         </div>
                     </form>
