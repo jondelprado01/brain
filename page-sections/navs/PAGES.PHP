@@ -112,14 +112,14 @@
                 ?>
                 
                 <li class="nav-item me-4">
-                    <a class="nav-link <?php echo $ho." ".$hwm_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/hw-override/INDEX.PHP">
+                    <a class="nav-link <?php echo $ho." ".$hwm_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/hw-override/INDEX.PHP?tab=type-1">
                         <i class="fa-solid fa-microchip"></i>
                         HARDWARE OVERRIDE
                     </a>
                 </li>
 
                 <li class="nav-item me-4">
-                    <a class="nav-link <?php echo $na." ".$hwm_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/nonate/INDEX.PHP">
+                    <a class="nav-link <?php echo $na." ".$hwm_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/nonate/INDEX.PHP?tab=type-1">
                         <i class="fa-solid fa-fire-burner"></i>
                         NONATE
                     </a>

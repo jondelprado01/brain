@@ -296,7 +296,7 @@ td[contenteditable="true"]:focus {
     color: red!important;
 }
 
-.btn-upload-csv, .btn-modal-dummy, .btn-modal-hw, .btn-modal-non{
+.btn-upload-csv, .btn-modal-dummy, .btn-modal-hw, .btn-modal-non, .btn-filter{
     text-decoration: none!important;
     font-weight: 500!important;
     color: #000!important;

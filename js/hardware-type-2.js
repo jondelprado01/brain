@@ -1,9 +1,66 @@
 $(document).ready(function(){
-    console.log(has_delinquent_t2);
-    
+
+    //show delinquents
+    if (has_delinquent_t2 > 0) {
+        $(".delinquent-container-type2").show();
+        $(".delinquent-type2").text(has_delinquent_t2);
+    }
+
+    //initialize inputmask - eff dates input
+    $("#eff-start-from-type2, #eff-start-to-type2, #eff-end-from-type2, #eff-end-to-type2").inputmask("99\\_W99");
+
+    //initialize multiple select2
+    $(".select2-type2").each(function(){
+        let elem_id = $(this).attr("id");
+        let has_tags = (elem_id.includes("hw-name")) ? true : false;
+
+        $("#"+elem_id).select2({
+            tags: has_tags,
+            theme: 'bootstrap-5',
+            placeholder: "RES_AREA",
+            allowClear: true
+        });
+    });
+
+    var file_name_type_2 = "";
+
+    //exclude columns in datatable export
+    function exportButtonType2(type) {
+        let cols = [];
+        let title_object = {};
+        for (var i = 1; i <= 9; i++) {
+            cols.push(i);
+        }
+
+        if (type == 'print') {
+            title_object = {
+                customize: function (win) {
+                    win.document.title = 'HW Override [Type 2 - Capacity Override]';
+                }
+            }
+        }
+        else{
+            title_object = {title: 'BRAIN - HW Override [Type 2 - Capacity Override]'};
+        }
+
+        let config_object = {
+            extend: type,
+            filename: function () {
+                return file_name_type_2;
+            },
+            className: 'd-none buttons-' + type +'-type-2',
+            exportOptions: {
+                columns: cols
+            },
+            ...title_object,
+        }
+        
+        return config_object;
+    }
+
     var table_type_2 = $(".table-hw-type2").DataTable({
         // bPaginate: false,
-        scrollY: 'calc(100vh - 650px)',
+        scrollY: 'calc(100vh - 590px)',
         // bSort: false,
         order: [[ 5, "asc" ]],
         columnDefs: [
@@ -26,6 +83,53 @@ $(document).ready(function(){
             }
         ],
         responsive: true,
+        layout: {
+            topStart: "pageLength",
+            top2Start: {
+                buttons: [exportButtonType2('copy'), exportButtonType2('csv'), exportButtonType2('excel'), exportButtonType2('pdf'), exportButtonType2('print')],
+            },
+            bottomStart: "info"
+        }
+    });
+
+
+    // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
+    $(".btn-export-process-type2").on("click", function(){
+        let export_type = $(this).attr("export-type");
+        let tab_type = $(this).attr("tab-type");
+        
+        if (table_type_2.rows().count() == 0) {
+            showToast("No data available to export.", "warning");
+            return;
+        }
+
+        $(".btn-export").attr("tab-type", tab_type);
+
+        if ($.inArray(export_type, ["copy", "print"]) === -1) {
+            $(".export-type-title").text(export_type.toUpperCase());
+            $("#export-type").val(export_type);
+            $("#modal-export").modal("show");
+        }
+        else{
+            table_type_2.button(".buttons-"+export_type+"-type2").trigger();
+        }
+    });
+
+    $(".btn-export").on("click", function(){
+
+        let export_type = $("#export-type").val();
+        let filename = $("#export-filename").val();
+        let tab_type = $(this).attr("tab-type");
+
+        if (tab_type == "type-2") {
+            if (filename != "") {
+                file_name_type_2 = "BRAIN_"+filename;
+                table_type_2.button(".buttons-"+export_type+"-"+tab_type).trigger();
+            }
+            else{
+                $(".export-error").fadeIn();
+            }
+        }
     });
 
     //ONLY PURPOSE - ADJUSTS COLUMN HEADERS
@@ -1839,6 +1943,221 @@ function dateFormatterType2(date){
     return $.datepicker.formatDate('M dd, yy', new Date(date));
 }
 
+
+// -----------------------------------------------------------------------------------FILTERS------------------------------------------------------------------------------
+$(document).ready(function(){
+
+    //prefill values first
+    preFillInputFiltersType2();
+
+    $(".btn-clear-type2").on("click", function(){
+        $(".hwo-inputs-type2").val('').trigger('change');
+        $(".hwo-checks-type2").prop("checked", false);
+    });
+
+    $(".btn-remove-type2").on("click", function(){
+        let curr_url = window.location.href;
+        let pos = curr_url.indexOf("&");
+        window.location.href = (pos !== -1) ? curr_url.substring(0, pos) : curr_url;
+    });
+
+    $('.input-override-cap, .input-hms-count').on('input', function () {
+        let value = $(this).val();
+        // Remove non-numeric characters except dot
+        value = value.replace(/[^0-9.]/g, '');
+        // Remove negative values
+        if (parseFloat(value) < 0) {
+            value = '';
+        }
+        $(this).val(value);
+    });
+
+    //for prefilled fyww inputs (enable to inputs if there's a prefilled value and is valid)
+    if ($('#eff-start-from-type2').inputmask('unmaskedvalue').length > 0) {
+        $("#eff-start-to-type2").prop("disabled", false);
+    }
+
+    if ($('#eff-end-from-type2').inputmask('unmaskedvalue').length > 0) {
+        $("#eff-end-to-type2").prop("disabled", false);
+    }
+
+    //enabling or disabling and clearing the value of TO fyww inputs if FROM inputs are valid or not (or if user is still typing)
+    $('.eff-date').on('input', function () {
+        let input_id = $(this).attr("id");
+        if (this.value) {
+            let is_disabled = (!$(this).inputmask("isComplete")) ? true : false;
+            $("#"+input_id.replace("from", "to")).prop("disabled", is_disabled);
+            if (is_disabled) {
+                $("#"+input_id.replace("from", "to")).inputmask('setvalue', '');
+            }
+        } else {
+            $("#"+input_id.replace("from", "to")).prop("disabled", true).val('');
+        }
+    });
+
+    //enabling or disabling apply filter button based on the eff_dates values (if valid or not)
+    $("#eff-start-from-type2, #eff-start-to-type2, #eff-end-from-type2, #eff-end-to-type2").on("input", function(){
+        let is_disabled = false;
+        let target_name = $(this).attr("input-name");
+
+        //first check - target fyww input
+        is_disabled = (!$(this).inputmask("isComplete")) ? true : false;
+        is_disabled = ($(this).inputmask("unmaskedvalue") === "") ? false : is_disabled;
+
+        //second check - counterpart fyww input (either FROM or TO)
+        if (target_name.includes("TO") && is_disabled == false) {
+            let elem_counterpart = target_name.replace("TO", "FROM");
+            is_disabled = (!$("#"+elem_counterpart).inputmask("isComplete")) ? true : false;
+            is_disabled = ($("#"+elem_counterpart).inputmask("unmaskedvalue") === "") ? false : is_disabled;
+        }
+        $(".btn-set-type2").prop("disabled", is_disabled);
+    });
+
+    $(".btn-set-type2").on("click", function(){
+
+        let user = user_details['emp_name'];
+        let var_arr = {
+            HW_NAME: "",
+            SITE_NUM: "",
+            RES_AREA: "",
+            EFF_START: "",
+            EFF_END: "",
+            OVERRIDE_CAP: "",
+            HMS_COUNT: "",
+            HW_TYPE: "",
+            CREATED_BY: "",
+            DATE_STATUS: "",
+        };
+        
+        let param_arr = [];
+        $(".hwo-inputs-type2").each(function(){
+
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            
+            if (typeof input_val === "object" && input_val.length > 0) {
+                var_arr['HW_NAME'] += (input_id == "hw-name-type2") ? input_val.join(",") : "";
+                var_arr['SITE_NUM'] += (input_id == "site-num-type2") ? input_val.join(",") : "";
+                var_arr['RES_AREA'] += (input_id == "res-area-type2") ? input_val.join(",") : "";
+                var_arr['HW_TYPE'] += (input_id == "hw-type-type2") ? input_val.join(",") : "";
+            }
+            else if (typeof input_val === "string" && input_val != "") {
+                if (input_id == "eff-start-from-type2") {
+                    var_arr['EFF_START'] += input_val;
+                }
+                if (input_id == "eff-start-to-type2") {
+                    var_arr['EFF_START'] += ","+input_val;
+                }
+                if (input_id == "eff-end-from-type2") {
+                    var_arr['EFF_END'] += input_val;
+                }
+                if (input_id == "eff-end-to-type2") {
+                    var_arr['EFF_END'] += ","+input_val;
+                }
+                if (input_id == "override-cap-min") {
+                    var_arr['OVERRIDE_CAP'] += input_val;
+                }
+                if (input_id == "override-cap-max") {
+                    var_arr['OVERRIDE_CAP'] += ","+input_val;
+                }
+                if (input_id == "hms-count-min") {
+                    var_arr['HMS_COUNT'] += input_val;
+                }
+                if (input_id == "hms-count-max") {
+                    var_arr['HMS_COUNT'] += ","+input_val;
+                }
+            }
+            // console.log(input_val);
+        });
+
+        $(".hwo-checks-type2").each(function(){
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            if ($(this).is(":checked")) {
+                if (input_val == "MY_RECORDS") {
+                    var_arr['CREATED_BY'] += user;
+                }
+                else{
+                    if (input_id.includes("-dates") === false) {
+                        var_arr['CREATED_BY'] += input_val;
+                    }
+                    else{
+                        var_arr['DATE_STATUS'] += input_val;
+                    }
+                }
+            }
+        });
+        
+        $.each(var_arr, function(key, item){
+            if (item != "") {
+                if ($.inArray(key, ["OVERRIDE_CAP", "HMS_COUNT"]) !== -1) {
+                    item = (item.trim().startsWith(",")) ? "0"+item : item;
+                }
+                param_arr.push(key+"="+item.toUpperCase());
+            }
+        });
+
+        if (param_arr.length > 0) { 
+            let curr_url = window.location.href;
+            let pos = curr_url.indexOf("&");
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasTab = (urlParams.has("tab")) ? "" : "?tab=type-2";
+
+            window.location.href = (pos !== -1) ? curr_url.substring(0, pos)+hasTab+"&"+param_arr.join("&") : curr_url+hasTab+"&"+param_arr.join("&");
+        }
+        else{
+            showToast("Please enter at least one filter value.", "error");
+        }
+    });
+});
+
+function preFillInputFiltersType2(){
+
+    const params = Object.fromEntries(new URLSearchParams(window.location.search));
+    if (params.tab != "type-2") return;
+    delete params.tab;
+    
+    $.each(params, function(index, item){
+        if ($.inArray(index, ["EFF_START", "EFF_END", "OVERRIDE_CAP", "HMS_COUNT"]) !== -1) {
+            let range_val = item.split(",");
+            let num_field_int = (range_val.length > 1) ? ["MIN", "MAX"] : ["MIN"];
+            let num_field_date = (range_val.length > 1) ? ["FROM", "TO"] : ["FROM"];;
+            let first_val;
+            let second_val;
+            if (index == "EFF_START" || index == "EFF_END") {
+                $.each(num_field_date, function(idx, itm){
+                    $('[input-name="'+index+'_'+itm+'"]').val(range_val[idx]);
+                });
+            }
+            else{
+                $.each(num_field_int, function(idx, itm){
+                    $('[input-name="'+index+'_'+itm+'"]').val(range_val[idx]);
+                });
+            }
+        }
+        else if($.inArray(index, ["CREATED_BY", "DATE_STATUS"]) !== -1){
+            let param_val = item.split("_")[0];
+            
+            if (index == "CREATED_BY") {
+                param_val = ($.inArray(item, ["OTHERS", "ALL"]) === -1) ? "MY" : item.split("_")[0];
+            }
+            
+            $('[input-name="'+index+'_'+param_val+'"]').prop("checked", true);
+        }
+        else{
+            if (index == "HW_NAME") {
+                $.each(item.split(","), function(idx, itm){
+                    $('[input-name="'+index+'"]').append(new Option(itm, itm, true, true)).trigger('change');
+                });
+            }
+            else{
+                $('[input-name="'+index+'"]').val(item.split(",")).trigger('change');
+            }
+        }
+    });
+
+}
 
 // -----------------------------------------------------------------------------------ALERTS------------------------------------------------------------------------------
 function showGenericAlertType2(icon, title){

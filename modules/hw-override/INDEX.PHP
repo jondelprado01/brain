@@ -20,11 +20,14 @@ include_once("../../assets/LIST.PHP");
 include_once("../../requests/API.PHP");
 $assets = RENDER_ASSETS("module");
 
-$response = API_REQUEST('hw-override-tool');
+//include user's name for querying their own records (type 1,2,3)
+$_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
+$response = API_REQUEST('hw-override-tool', json_encode($_GET));
+// echo "<pre>", var_dump($response['TYPE_3']), "</pre>";
 
-$existing_mapping = $response['TYPE_1'];
-$existing_capacity = $response['TYPE_2'];
-$existing_nonboard = $response['TYPE_3'];
+$existing_mapping = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
+$existing_capacity = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
+$existing_nonboard = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
 $weeks = $response['WEEKS'];
 $has_delinquent_t1 = 0;
 $has_delinquent_t2 = 0;
@@ -58,12 +61,20 @@ $has_delinquent_t2 = 0;
         ?>
         <link rel="stylesheet" href="../../css/plugins/dataTables.dataTables.2.3.2.min.css"/>
         <script src="../../js/plugins/dataTables.2.3.2.min.js"></script>
+        <script src="../../js/plugins/dataTables.buttons.js"></script>
+        <script src="../../js/plugins/buttons.dataTables.js"></script>
+        <script src="../../js/plugins/jszip.min.js"></script>
+        <script src="../../js/plugins/pdfmake.min.js"></script>
+        <script src="../../js/plugins/vfs_fonts.js"></script>
+        <script src="../../js/plugins/buttons.html5.min.js"></script>
+        <script src="../../js/plugins/buttons.print.min.js"></script>
+        <script src="../../js/plugins/jquery.inputmask.min.js"></script>
         <script src="../../js/hardware-type-1.js"></script>
         <script src="../../js/hardware-type-2.js"></script>
         <script src="../../js/hardware-type-3.js"></script>
 
-        <!-- FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES) -->
         <script>
+            // FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES)
             function addChangeLog(payload, user_details, module, old_data = []){
                 $.ajax({
                     type: 'post',
@@ -76,6 +87,33 @@ $has_delinquent_t2 = 0;
                         console.log(xhr);
                     }
                 });
+            }
+
+            function showToast(message, type){
+                switch (type) {
+                    case "error":
+                        type = "bg-danger-subtle border-danger";
+                        break;
+                    case "warning":
+                        type = "bg-warning-subtle border-warning";
+                        break;
+                    case "info":
+                        type = "bg-info-subtle border-info";
+                        break;
+                    case "success":
+                        type = "bg-success-subtle border-success";
+                        break;
+                    default:
+                        break;
+                }
+                $("#notif-toast")
+                    .removeClass(function(i, c) {
+                        return c.split(" ").filter(function(cls) {return cls !== "toast";}).join(" ");
+                    })
+                    .addClass(type);
+                $("#notif-toast .toast-body").text(message);
+                var toast = new bootstrap.Toast($("#notif-toast")[0]);
+                toast.show();
             }
         </script>
         <style>
@@ -122,6 +160,15 @@ $has_delinquent_t2 = 0;
         ?>
 
         <div class="container-sm p-4">
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="notif-toast" class="toast" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body"></div>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title text-center">HARDWARE OVERRIDE</h3>
@@ -152,32 +199,50 @@ $has_delinquent_t2 = 0;
                                 else {$active_type1 = 'active';}
                             ?>
                             
+                            <?php
+                                require('FILTER-TYPE-1.PHP');
+                                require('FILTER-TYPE-2.PHP');
+                                require('FILTER-TYPE-3.PHP');
+                            ?>
+
                             <nav class="pt-3">
                                 <div class="nav nav-tabs d-flex justify-content-evenly" id="nav-tab" role="tablist">
-                                    <button tab-name="type-1" class="nav-link hw-link <?php echo $active_type1; ?>" id="nav-type1-tab" data-bs-toggle="tab" data-bs-target="#nav-type1" type="button" role="tab" aria-controls="nav-type1" aria-selected="false">Type 1</button>
-                                    <button tab-name="type-2" class="nav-link hw-link <?php echo $active_type2; ?>" id="nav-type2-tab" data-bs-toggle="tab" data-bs-target="#nav-type2" type="button" role="tab" aria-controls="nav-type2" aria-selected="false">Type 2</button>
-                                    <button tab-name="type-3" class="nav-link hw-link <?php echo $active_type3; ?>" id="nav-type3-tab" data-bs-toggle="tab" data-bs-target="#nav-type3" type="button" role="tab" aria-controls="nav-type3" aria-selected="false">Type 3</button>
+                                    <button tab-name="type-1" class="nav-link hw-link <?php echo $active_type1; ?>" id="nav-type1-tab" data-bs-toggle="tab" data-bs-target="#nav-type1" type="button" role="tab" aria-controls="nav-type1" aria-selected="false">
+                                        <i class="fa-solid fa-microchip"></i> Type 1 - Hardware Mapping
+                                    </button>
+                                    <button tab-name="type-2" class="nav-link hw-link <?php echo $active_type2; ?>" id="nav-type2-tab" data-bs-toggle="tab" data-bs-target="#nav-type2" type="button" role="tab" aria-controls="nav-type2" aria-selected="false">
+                                        <i class="fa-solid fa-calendar-week"></i> Type 2 - Capacity Override
+                                    </button>
+                                    <button tab-name="type-3" class="nav-link hw-link <?php echo $active_type3; ?>" id="nav-type3-tab" data-bs-toggle="tab" data-bs-target="#nav-type3" type="button" role="tab" aria-controls="nav-type3" aria-selected="false">
+                                        <i class="fa-solid fa-list-check"></i> Type 3 - Plan Non-Boards
+                                    </button>
                                 </div>
                             </nav>
                             <div class="tab-content d-flex justify-content-center" id="nav-tabContent">
                                 <div class="tab-pane w-100 fade <?php echo ($active_type1 != '') ? 'show ' : ''; echo $active_type1;?>" id="nav-type1" role="tabpanel" aria-labelledby="nav-type1-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2">
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-microchip"></i> Type 1</h5>
-                                                <small>Plan Dummy HW for Specific Part</small>
+                                                <button type="button" class="btn btn-link btn-modal-dummy" data-bs-toggle="modal" data-bs-target="#modal-add-dummy-type1">
+                                                    HW Mapping <i class="fa-solid fa-circle-plus text-success"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-link btn-upload-csv" data-bs-toggle="modal" data-bs-target="#modal-upload-csv-type1">
+                                                    Upload CSV for Mass Update <i class="fa-solid fa-cloud-arrow-up text-primary"></i>
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <span style="display: none!important;" class="delinquent-container-type1"><small>Delinquents</small> - <mark class="delinquent-type1 fw-bold bg-danger-subtle"></mark></span>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type1 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType1" aria-controls="filterOffCanvasType1">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-modal-dummy" data-bs-toggle="modal" data-bs-target="#modal-add-dummy-type1">HW Mapping <i class="fa-solid fa-circle-plus text-success"></i></button>
-                                                </div>
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-upload-csv" data-bs-toggle="modal" data-bs-target="#modal-upload-csv-type1">Upload CSV for Mass Update <i class="fa-solid fa-cloud-arrow-up text-primary"></i></button>
-                                                </div>
-                                                <hr class="mb-2">
-                                                <div class="col-lg-12 mt-3 mb-3">
+                                                <div class="col-lg-12">
                                                     <div class="modal fade zoom" id="modal-add-dummy-type1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
                                                         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"  style="min-width:90%;">
                                                             <div class="modal-content">
@@ -237,8 +302,17 @@ $has_delinquent_t2 = 0;
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="d-flex justify-content-end btn-delete-hw-container d-none">
-                                                        <button type="button" class="btn btn-danger btn-delete-hw-all">Delete All HW Mappings</button>
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="copy">Copy <i class="fa-solid fa-copy"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="csv">CSV <i class="fa-solid fa-file-csv"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                        </div>
+                                                        <div class="btn-delete-type2-container d-none">
+                                                            <button type="button" class="btn btn-danger btn-sm btn-delete-type2-all">Delete All Overrides</button>
+                                                        </div>
                                                     </div>
                                                     <table class="table table-dummy-type1 table-bordered table-hover h-100">
                                                         <thead>
@@ -337,22 +411,28 @@ $has_delinquent_t2 = 0;
                                 </div>
                                 <div class="tab-pane w-100 fade <?php echo ($active_type2 != '') ? 'show ' : ''; echo $active_type2;?>" id="nav-type2" role="tabpanel" aria-labelledby="nav-type2-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2">
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-calendar-week"></i> Type 2</h5>
-                                                <small>Hardware Capacity Override</small>
+                                                <button type="button" class="btn btn-link btn-modal-hw" data-bs-toggle="modal" data-bs-target="#modal-add-hw-type2">
+                                                    HW Capacity Override <i class="fa-solid fa-circle-plus text-success"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-link btn-upload-csv" data-bs-toggle="modal" data-bs-target="#modal-upload-csv-type2">
+                                                    Upload CSV for Mass Update <i class="fa-solid fa-cloud-arrow-up text-primary"></i>
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <span style="display: none!important;" class="delinquent-container-type2"><small>Delinquents</small> - <mark class="delinquent-type2 fw-bold bg-danger-subtle"></mark></span>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType2" aria-controls="filterOffCanvasType2">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-modal-hw" data-bs-toggle="modal" data-bs-target="#modal-add-hw-type2">HW Capacity Override <i class="fa-solid fa-circle-plus text-success"></i></button>
-                                                </div>
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-upload-csv" data-bs-toggle="modal" data-bs-target="#modal-upload-csv-type2">Upload CSV for Mass Update <i class="fa-solid fa-cloud-arrow-up text-primary"></i></button>
-                                                </div>
-                                                <hr class="mb-2">
-                                                <div class="col-lg-12 mt-3 mb-3">
+                                                <div class="col-lg-12">
                                                     <div class="modal fade zoom" id="modal-add-hw-type2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
                                                         <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"  style="min-width:90%;">
                                                             <div class="modal-content">
@@ -405,8 +485,17 @@ $has_delinquent_t2 = 0;
                                                             </div>
                                                         </div>
                                                     </div>
-                                                    <div class="d-flex justify-content-end btn-delete-type2-container d-none">
-                                                        <button type="button" class="btn btn-danger btn-delete-type2-all">Delete All Overrides</button>
+                                                    <div class="d-flex justify-content-between">
+                                                        <div class="d-flex gap-2">
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type2" tab-type="type-2" export-type="copy">Copy <i class="fa-solid fa-copy"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type2" tab-type="type-2" export-type="csv">CSV <i class="fa-solid fa-file-csv"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type2" tab-type="type-2" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type2" tab-type="type-2" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
+                                                            <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type2" tab-type="type-2" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                        </div>
+                                                        <div class="btn-delete-type2-container d-none">
+                                                            <button type="button" class="btn btn-danger btn-sm btn-delete-type2-all">Delete All Overrides</button>
+                                                        </div>
                                                     </div>
                                                     <table class="table table-hw-type2 table-bordered table-hover h-100">
                                                         <thead>
@@ -581,10 +670,10 @@ $has_delinquent_t2 = 0;
                                                         </tbody>
                                                     </table>
                                                     <hr>
-                                                    <div class="d-flex justify-content-end">
-                                                        <span class="badge rounded-pill text-bg-info">HMS COUNT</span>&emsp;
-                                                        <span class="badge rounded-pill text-bg-warning">JDA FEED</span>&emsp;
-                                                        <span class="badge rounded-pill text-bg-success">REMAINING CAPACITY</span>&emsp;
+                                                    <div class="d-flex justify-content-end gap-2">
+                                                        <span class="badge rounded-pill text-bg-info">HMS COUNT</span>
+                                                        <span class="badge rounded-pill text-bg-warning">JDA FEED</span>
+                                                        <span class="badge rounded-pill text-bg-success">REMAINING CAPACITY</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -593,17 +682,23 @@ $has_delinquent_t2 = 0;
                                 </div>
                                 <div class="tab-pane w-100 fade <?php echo ($active_type3 != '') ? 'show ' : ''; echo $active_type3;?>" id="nav-type3" role="tabpanel" aria-labelledby="nav-type3-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2">
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-list-check"></i> Type 3</h5>
-                                                <small>Plan Non-Boards for all Parts</small>
+                                                <button type="button" class="btn btn-link btn-modal-dummy" data-bs-toggle="modal" data-bs-target="#modal-add-nonboard-type3">
+                                                    Plan Non-Boards <i class="fa-solid fa-circle-plus text-success"></i>
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type3 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType3" aria-controls="filterOffCanvasType3">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-modal-dummy" data-bs-toggle="modal" data-bs-target="#modal-add-nonboard-type3">Plan Non-Boards <i class="fa-solid fa-circle-plus text-success"></i></button>
-                                                </div>
                                                 <div class="modal fade zoom" id="modal-add-nonboard-type3" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
                                                     <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                                                         <div class="modal-content">
@@ -673,12 +768,19 @@ $has_delinquent_t2 = 0;
                                                         </div>
                                                     </div>
                                                 </div>
-
-                                                <hr class="mb-2">
                                             </div>
-                                            <div class="col-lg-12 mt-3 mb-3">
-                                                <div class="d-flex justify-content-end btn-delete-type3-container d-none">
-                                                    <button type="button" class="btn btn-danger btn-delete-type3-all">Delete All Non-Boards</button>
+                                            <div class="col-lg-12">
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type3" tab-type="type-3" export-type="copy">Copy   <i class="fa-solid fa-copy"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type3" tab-type="type-3" export-type="csv">CSV     <i class="fa-solid fa-file-csv"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type3" tab-type="type-3" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type3" tab-type="type-3" export-type="pdf">PDF     <i class="fa-solid fa-file-pdf"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type3" tab-type="type-3" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                    </div>
+                                                    <div class="btn-delete-type3-container d-none">
+                                                        <button type="button" class="btn btn-danger btn-delete-type3-all">Delete All Non-Boards</button>
+                                                    </div>
                                                 </div>
                                                 <table class="table table-test-type3 table-bordered table-hover  h-100">
                                                     <thead>
@@ -1107,6 +1209,50 @@ $has_delinquent_t2 = 0;
                         <div>
                             <button type="button" class="btn btn-outline-danger btn-close-upload-type2" process-type="type2" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- --------------------------------------------------------------------------------EXPORT MODAL------------------------------------------------------------------------------------- -->
+        <div class="modal fade zoom" id="modal-export" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title fs-5" id="staticBackdropLabel">Export HW Override Data - <span class="export-type-title"></span></h4>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <span style="display: none!important;" class="text-danger export-error">File name is required!</span>
+                        <input type="hidden" id="export-type">
+                        <div class="input-group mb-3">
+                        <span class="input-group-text">BRAIN_</span>
+                            <div class="form-floating">
+                                <input type="text" class="form-control" id="export-filename" placeholder="">
+                                <label for="export-filename">File Name</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-success btn-sm btn-export">Export <i class="fa-solid fa-file-export"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- -------------------------------------------------------------------------------------CONFIRM DIALOG/MODAL-------------------------------------------------------------------------------------- -->
+         <div class="modal fade zoom" id="modal-switch-tab" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <span>Are you sure you want to switch to the: <br><span class="tab-name-switch fw-bold"></span> tab? <br>Your active filters will be cleared if you continue.</span>
+                    </div>
+                    <div class="modal-footer d-flex justify-content-end">
+                        <button type="button" class="btn btn-danger btn-sm btn-cancel-switch" data-bs-dismiss="modal" aria-label="Close">Cancel <i class="fa-solid fa-x"></i></button>
+                        <button type="button" class="btn btn-success btn-sm btn-continue-switch">Continue <i class="fa-solid fa-arrow-right"></i></button>
                     </div>
                 </div>
             </div>

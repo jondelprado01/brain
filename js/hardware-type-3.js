@@ -1,10 +1,110 @@
 $(document).ready(function(){
 
+    //initialize multiple select2
+    $(".select2-type3").each(function(){
+        let elem_id = $(this).attr("id");
+        let has_tags = (elem_id.includes("hw-name")) ? true : false;
+
+        $("#"+elem_id).select2({
+            tags: has_tags,
+            theme: 'bootstrap-5',
+            allowClear: true
+        });
+    });
+
+    var file_name_type_3 = "";
+
+    //exclude columns in datatable export
+    function exportButtonType3(type) {
+        let cols = [];
+        let title_object = {};
+        for (var i = 1; i <= 5; i++) {
+            cols.push(i);
+        }
+
+        if (type == 'print') {
+            title_object = {
+                customize: function (win) {
+                    win.document.title = 'HW Override [Type 3 - Plan Non-Boards]';
+                }
+            }
+        }
+        else{
+            title_object = {title: 'BRAIN - HW Override [Type 3 - Plan Non-Boards]'};
+            if (type == "pdf") {
+                title_object.customize = function(doc){
+                    doc.content[1].table.widths =
+                    Array(doc.content[1].table.body[0].length + 1).join('*').split('');
+                }
+            }
+        }
+
+        let config_object = {
+            extend: type,
+            filename: function () {
+                return file_name_type_3;
+            },
+            className: 'd-none buttons-' + type +'-type-3',
+            exportOptions: {
+                columns: cols
+            },
+            ...title_object,
+        }
+
+        return config_object;
+    }
+
     var table_type_3 = $(".table-test-type3").DataTable({
         // bPaginate: false,
-        scrollY: 'calc(100vh - 650px)',
+        scrollY: 'calc(100vh - 550px)',
         bSort: false,
         responsive: true,
+        layout: {
+            topStart: "pageLength",
+            top2Start: {
+                buttons: [exportButtonType3('copy'), exportButtonType3('csv'), exportButtonType3('excel'), exportButtonType3('pdf'), exportButtonType3('print')],
+            },
+            bottomStart: "info"
+        }
+    });
+
+    // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
+    $(".btn-export-process-type3").on("click", function(){
+        let export_type = $(this).attr("export-type");
+        let tab_type = $(this).attr("tab-type");
+
+        if (table_type_3.rows().count() == 0) {
+            showToast("No data available to export.", "warning");
+            return;
+        }
+
+        $(".btn-export").attr("tab-type", tab_type);
+        
+        if ($.inArray(export_type, ["copy", "print"]) === -1) {
+            $(".export-type-title").text(export_type.toUpperCase());
+            $("#export-type").val(export_type);
+            $("#modal-export").modal("show");
+        }
+        else{
+            table_type_3.button(".buttons-"+export_type+"-"+tab_type).trigger();
+        }
+    });
+
+    $(".btn-export").on("click", function(){
+
+        let export_type = $("#export-type").val();
+        let filename = $("#export-filename").val();
+        let tab_type = $(this).attr("tab-type");
+
+        if (tab_type == "type-3") {
+            if (filename != "") {
+                file_name_type_3 = "BRAIN_"+filename;
+                table_type_3.button(".buttons-"+export_type+"-"+tab_type).trigger();
+            }
+            else{
+                $(".export-error").fadeIn();
+            }
+        }
     });
 
     var table_nonboard = $(".table-nonboard-type3").DataTable({
@@ -249,6 +349,149 @@ function preFillElementsType3(data){
 
 function dateFormatterType3(date){
     return $.datepicker.formatDate('M dd, yy', new Date(date));
+}
+
+// -----------------------------------------------------------------------------------FILTERS------------------------------------------------------------------------------
+$(document).ready(function(){
+
+    //prefill values first
+    preFillInputFiltersType3();
+
+    $(".btn-clear-type3").on("click", function(){
+        $(".hwo-inputs-type3").val('').trigger('change');
+        $(".hwo-checks-type3").prop("checked", false);
+    });
+
+    $(".btn-remove-type3").on("click", function(){
+        let curr_url = window.location.href;
+        let pos = curr_url.indexOf("&");
+        window.location.href = (pos !== -1) ? curr_url.substring(0, pos) : curr_url;
+    });
+
+    $('.input-hms-count').on('input', function () {
+        let value = $(this).val();
+        // Remove non-numeric characters except dot
+        value = value.replace(/[^0-9.]/g, '');
+        // Remove negative values
+        if (parseFloat(value) < 0) {
+            value = '';
+        }
+        $(this).val(value);
+    });
+
+    $(".btn-set-type3").on("click", function(){
+
+        let user = user_details['emp_name'];
+        let var_arr = {
+            HW_NAME: "",
+            SITE_NUM: "",
+            RES_AREA: "",
+            HMS_COUNT: "",
+            HW_TYPE: "",
+            CREATED_BY: ""
+        };
+        
+        let param_arr = [];
+        $(".hwo-inputs-type3").each(function(){
+
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            
+            if (typeof input_val === "object" && input_val.length > 0) {
+                var_arr['HW_NAME'] += (input_id == "hw-name-type3") ? input_val.join(",") : "";
+                var_arr['SITE_NUM'] += (input_id == "site-num-type3") ? input_val.join(",") : "";
+                var_arr['RES_AREA'] += (input_id == "res-area-type3") ? input_val.join(",") : "";
+                var_arr['HW_TYPE'] += (input_id == "hw-type-type3") ? input_val.join(",") : "";
+            }
+            else if (typeof input_val === "string" && input_val != "") {
+                if (input_id == "hms-count-min") {
+                    var_arr['HMS_COUNT'] += input_val;
+                }
+                if (input_id == "hms-count-max") {
+                    var_arr['HMS_COUNT'] += ","+input_val;
+                }
+            }
+            // console.log(input_val);
+        });
+
+        $(".hwo-checks-type3").each(function(){
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            if ($(this).is(":checked")) {
+                if (input_val == "MY_RECORDS") {
+                    var_arr['CREATED_BY'] += user;
+                }
+                else{
+                    if (input_id.includes("-dates") === false) {
+                        var_arr['CREATED_BY'] += input_val;
+                    }
+                }
+            }
+        });
+        
+        $.each(var_arr, function(key, item){
+            if (item != "") {
+                if ($.inArray(key, ["HMS_COUNT"]) !== -1) {
+                    item = (item.trim().startsWith(",")) ? "0"+item : item;
+                }
+                param_arr.push(key+"="+item.toUpperCase());
+            }
+        });
+
+        if (param_arr.length > 0) { 
+            let curr_url = window.location.href;
+            let pos = curr_url.indexOf("&");
+            
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasTab = (urlParams.has("tab")) ? "" : "?tab=type-3";
+
+            window.location.href = (pos !== -1) ? curr_url.substring(0, pos)+hasTab+"&"+param_arr.join("&") : curr_url+hasTab+"&"+param_arr.join("&");
+        }
+        else{
+            showToast("Please enter at least one filter value.", "error");
+        }
+    });
+});
+
+function preFillInputFiltersType3(){
+    
+    const params = Object.fromEntries(new URLSearchParams(window.location.search));
+    if (params.tab != "type-3") return;
+    delete params.tab;
+    
+    $.each(params, function(index, item){
+        if ($.inArray(index, ["HMS_COUNT"]) !== -1) {
+            let range_val = item.split(",");
+            let num_field_int = (range_val.length > 1) ? ["MIN", "MAX"] : ["MIN"];
+            let num_field_date = (range_val.length > 1) ? ["FROM", "TO"] : ["FROM"];;
+            let first_val;
+            let second_val;
+            
+            $.each(num_field_int, function(idx, itm){
+                $('[input-name="'+index+'_'+itm+'"]').val(range_val[idx]);
+            });
+        }
+        else if($.inArray(index, ["CREATED_BY"]) !== -1){
+            let param_val = item.split("_")[0];
+            
+            if (index == "CREATED_BY") {
+                param_val = ($.inArray(item, ["OTHERS", "ALL"]) === -1) ? "MY" : item.split("_")[0];
+            }
+            
+            $('[input-name="'+index+'_'+param_val+'"]').prop("checked", true);
+        }
+        else{
+            if (index == "HW_NAME") {
+                $.each(item.split(","), function(idx, itm){
+                    $('[input-name="'+index+'"]').append(new Option(itm, itm, true, true)).trigger('change');
+                });
+            }
+            else{
+                $('[input-name="'+index+'"]').val(item.split(",")).trigger('change');
+            }
+        }
+    });
+
 }
 
 function showGenericAlertType3(icon, title){
