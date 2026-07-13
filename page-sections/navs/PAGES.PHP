@@ -20,6 +20,7 @@
     $am = '';
     $cl = '';
     $pr = '';
+    $rp = '';
     $url = explode("/", $_SERVER['REQUEST_URI']);
     if (strpos($_SERVER['REQUEST_URI'], 'modules') !== false) {
         switch ($url[$index]) {
@@ -45,6 +46,10 @@
 
             case 'change-log':
                 $am = 'active';
+                break;
+
+            case 'reports':
+                $rp = 'active';
                 break;
         }
     }
@@ -89,7 +94,7 @@
                 </li>
                 <li class="nav-item me-4">
                     <a class="nav-link <?php echo $da; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/default-atom/INDEX.PHP">
-                        <i class="fa-solid fa-link"></i>
+                        <i class="fa-solid fa-atom"></i>
                         DEFAULT ATOM
                     </a>
                 </li>
@@ -115,15 +120,22 @@
 
                 <li class="nav-item me-4">
                     <a class="nav-link <?php echo $na." ".$hwm_status; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/nonate/INDEX.PHP">
-                        <i class="fa-solid fa-memory"></i>
+                        <i class="fa-solid fa-fire-burner"></i>
                         NONATE
                     </a>
                 </li>
 
                 <li class="nav-item me-4">
                     <a class="nav-link" aria-current="page" href="<?php echo $subdomain; ?>/modules/index-time/INDEX.PHP">
-                        <i class="fa-solid fa-timeline"></i>
+                        <i class="fa-solid fa-right-left"></i>
                         INDEX TIME
+                    </a>
+                </li>
+
+                <li class="nav-item me-4">
+                    <a class="nav-link <?php echo $rp; ?>" aria-current="page" href="<?php echo $subdomain; ?>/modules/reports/INDEX.PHP">
+                        <i class="fa-solid fa-eye"></i>
+                        REPORTS
                     </a>
                 </li>
 
