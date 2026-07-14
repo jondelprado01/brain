@@ -235,7 +235,20 @@ $has_delinquent_t2 = 0;
                                                 <button type="button" class="btn btn-link btn-filter btn-filter-type1 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType1" aria-controls="filterOffCanvasType1">
                                                     Filters <i class="fa-solid fa-filter"></i>
                                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
                                                     </span>
                                                 </button>
                                             </div>
@@ -425,7 +438,20 @@ $has_delinquent_t2 = 0;
                                                 <button type="button" class="btn btn-link btn-filter btn-filter-type2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType2" aria-controls="filterOffCanvasType2">
                                                     Filters <i class="fa-solid fa-filter"></i>
                                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
                                                     </span>
                                                 </button>
                                             </div>
@@ -692,7 +718,20 @@ $has_delinquent_t2 = 0;
                                                 <button type="button" class="btn btn-link btn-filter btn-filter-type3 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasType3" aria-controls="filterOffCanvasType3">
                                                     Filters <i class="fa-solid fa-filter"></i>
                                                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                                                        <?php unset($_GET['tab'], $_GET['EMP_NAME']); echo count($_GET);?>
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
                                                     </span>
                                                 </button>
                                             </div>

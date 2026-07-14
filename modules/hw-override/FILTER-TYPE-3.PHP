@@ -8,11 +8,28 @@
         <div class="mb-3">
             <span>Active Filters:</span><br>
             <?php
-                unset($_GET['tab'], $_GET['EMP_NAME']);
-                $active_filters = $_GET;
+                unset($_GET['tab']);
+                $active_filters = [];
                 if (count($_GET) > 0) {
                     foreach ($_GET as $key => $value) {
-                        echo '<span class="badge text-bg-secondary">'.$key.'</span> ';
+                        if ($key != "EMP_NAME") {
+                            if ($key == "CREATED_BY" || $key == "DATE_STATUS") {
+                                if ($_GET[$key] == "ALL") {
+                                    continue;
+                                }
+                            }
+                            array_push($active_filters, $key);
+                        }
+                        else{
+                            if (!isset($_GET['CREATED_BY']) || ($_GET['CREATED_BY'] != "ALL" && $_GET['CREATED_BY'] != "OTHERS")) {
+                                array_push($active_filters, "CREATED_BY");
+                            }
+                        }
+                    }
+                }
+                if (count($active_filters) > 0) {
+                    foreach (array_unique($active_filters) as $key => $value) {
+                       echo '<span class="badge text-bg-secondary">'.$value.'</span> ';
                     }
                 }
             ?>
@@ -86,7 +103,7 @@
         <hr>
 
         <div class="d-flex justify-content-between">
-            <a href="#" class="text-danger btn-remove-type3">Remove Filters <i style="font-size: 13px!important;" class="fa-solid fa-x"></i></a>
+            <a href="#" class="btn-remove-type3">Reset to Default <i style="font-size: 13px!important;" class="fa-solid fa-arrow-rotate-left"></i></a>
             <div class="d-flex gap-2">
                 <button type="button" class="btn btn-secondary btn-sm btn-clear-type3">Clear <i class="fa-solid fa-eraser"></i></button>
                 <button type="button" class="btn btn-primary btn-sm btn-set-type3">Apply <i class="fa-solid fa-filter"></i></button>
