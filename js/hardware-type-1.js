@@ -2879,12 +2879,12 @@ $(document).ready(function(){
     });
 
     //for prefilled fyyww inputs (enable to inputs if there's a prefilled value and is valid)
-    if ($('#eff-start-from-type2').inputmask('unmaskedvalue').length > 0) {
-        $("#eff-start-to-type2").prop("disabled", false);
+    if ($('#eff-start-from-type1').inputmask('unmaskedvalue').length > 0) {
+        $("#eff-start-to-type1").prop("disabled", false);
     }
 
-    if ($('#eff-end-from-type2').inputmask('unmaskedvalue').length > 0) {
-        $("#eff-end-to-type2").prop("disabled", false);
+    if ($('#eff-end-from-type1').inputmask('unmaskedvalue').length > 0) {
+        $("#eff-end-to-type1").prop("disabled", false);
     }
 
     $('.eff-date').on('input', function () {
