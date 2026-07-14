@@ -19,10 +19,12 @@ if (!isset($_SESSION['SYSTEM'])) {
 include_once("../../assets/LIST.PHP");
 include_once("../../requests/API.PHP");
 $assets = RENDER_ASSETS("module");
-$response = API_REQUEST('nonate-tool');
-$existing_burnin = $response['TYPE_1'];
-$existing_socket = $response['TYPE_2'];
-$existing_capacity = $response['TYPE_3'];
+$_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
+$response = API_REQUEST('nonate-tool', json_encode($_GET));
+// echo "<pre>", var_dump($response['TYPE_2']), "</pre>";
+$existing_burnin = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
+$existing_socket = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
+$existing_capacity = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
 $weeks = $response['WEEKS'];
 ?>
 <!DOCTYPE html>
@@ -53,6 +55,14 @@ $weeks = $response['WEEKS'];
         ?>
         <link rel="stylesheet" href="../../css/plugins/dataTables.dataTables.2.3.2.min.css"/>
         <script src="../../js/plugins/dataTables.2.3.2.min.js"></script>
+        <script src="../../js/plugins/dataTables.buttons.js"></script>
+        <script src="../../js/plugins/buttons.dataTables.js"></script>
+        <script src="../../js/plugins/jszip.min.js"></script>
+        <script src="../../js/plugins/pdfmake.min.js"></script>
+        <script src="../../js/plugins/vfs_fonts.js"></script>
+        <script src="../../js/plugins/buttons.html5.min.js"></script>
+        <script src="../../js/plugins/buttons.print.min.js"></script>
+        <script src="../../js/plugins/jquery.inputmask.min.js"></script>
         <script src="../../js/nonate-type-1.js"></script>
         <script src="../../js/nonate-type-2.js"></script>
         <script src="../../js/nonate-type-3.js"></script>
@@ -71,6 +81,32 @@ $weeks = $response['WEEKS'];
                         console.log(xhr);
                     }
                 });
+            }
+            function showToast(message, type){
+                switch (type) {
+                    case "error":
+                        type = "bg-danger-subtle border-danger";
+                        break;
+                    case "warning":
+                        type = "bg-warning-subtle border-warning";
+                        break;
+                    case "info":
+                        type = "bg-info-subtle border-info";
+                        break;
+                    case "success":
+                        type = "bg-success-subtle border-success";
+                        break;
+                    default:
+                        break;
+                }
+                $("#notif-toast")
+                    .removeClass(function(i, c) {
+                        return c.split(" ").filter(function(cls) {return cls !== "toast";}).join(" ");
+                    })
+                    .addClass(type);
+                $("#notif-toast .toast-body").text(message);
+                var toast = new bootstrap.Toast($("#notif-toast")[0]);
+                toast.show();
             }
         </script>
 
@@ -91,7 +127,15 @@ $weeks = $response['WEEKS'];
         ?>
 
         <div class="container-sm p-4">
-
+            <div class="toast-container position-fixed top-0 end-0 p-3">
+                <div id="notif-toast" class="toast" role="alert">
+                <div class="toast-header">
+                    <strong class="me-auto">Notification</strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+                </div>
+                <div class="toast-body"></div>
+                </div>
+            </div>
             <div class="card">
                 <div class="card-header">
                     <h3 class="card-title text-center">NONATE</h3>
@@ -120,13 +164,23 @@ $weeks = $response['WEEKS'];
                                     }
                                 }
                                 else {$active_type1 = 'active';}
+
+                                require('FILTER-TYPE-1.PHP');
+                                require('FILTER-TYPE-2.PHP');
+                                require('FILTER-TYPE-3.PHP');
                             ?>
 
                             <nav class="pt-3">
                                 <div class="nav nav-tabs d-flex justify-content-evenly" id="nav-tab" role="tablist">
-                                    <button tab-name="type-1" class="nav-link nonate-link <?php echo $active_type1; ?>" id="nav-type1-tab" data-bs-toggle="tab" data-bs-target="#nav-type1" type="button" role="tab" aria-controls="nav-type1" aria-selected="false">Type 1</button>
-                                    <button tab-name="type-2" class="nav-link nonate-link <?php echo $active_type2; ?>" id="nav-type2-tab" data-bs-toggle="tab" data-bs-target="#nav-type2" type="button" role="tab" aria-controls="nav-type2" aria-selected="false">Type 2</button>
-                                    <button tab-name="type-3" class="nav-link nonate-link <?php echo $active_type3; ?>" id="nav-type3-tab" data-bs-toggle="tab" data-bs-target="#nav-type3" type="button" role="tab" aria-controls="nav-type3" aria-selected="false">Type 3</button>
+                                    <button tab-name="type-1" class="nav-link nonate-link <?php echo $active_type1; ?>" id="nav-type1-tab" data-bs-toggle="tab" data-bs-target="#nav-type1" type="button" role="tab" aria-controls="nav-type1" aria-selected="false">
+                                        <i class="fa-solid fa-download"></i> Type 1 - Load/Unload Hours
+                                    </button>
+                                    <button tab-name="type-2" class="nav-link nonate-link <?php echo $active_type2; ?>" id="nav-type2-tab" data-bs-toggle="tab" data-bs-target="#nav-type2" type="button" role="tab" aria-controls="nav-type2" aria-selected="false">
+                                        <i class="fa-solid fa-percent"></i> Type 2 - Socket Efficiency
+                                    </button>
+                                    <button tab-name="type-3" class="nav-link nonate-link <?php echo $active_type3; ?>" id="nav-type3-tab" data-bs-toggle="tab" data-bs-target="#nav-type3" type="button" role="tab" aria-controls="nav-type3" aria-selected="false">
+                                        <i class="fa-solid fa-calendar-week"></i> Type 3 - Capacity Override
+                                    </button>
                                 </div>
                             </nav>
                             
@@ -134,48 +188,65 @@ $weeks = $response['WEEKS'];
 
                                 <div class="tab-pane w-100 fade <?php echo ($active_type1 != '') ? 'show ' : ''; echo $active_type1;?>" id="nav-type1" role="tabpanel" aria-labelledby="nav-type1-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2 pb-3">
+                                            <div class="row g-3 align-items-center">
+                                                <div class="col-auto">
+                                                    <input type="text" id="search-board-field-type1" class="form-control" placeholder="SEARCH BOARD/PART:">
+                                                </div>
+                                                <div class="col-auto">
+                                                    <span id="search-board-inline-type1" class="form-text">
+                                                    Must be 5-10 characters long.
+                                                    </span>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <button style="display: none;" class="btn btn-outline-secondary btn-message btn-loader" type="button" disabled>
+                                                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                                        <span role="status">Retrieving data... Please wait.</span>
+                                                    </button>
+
+                                                    <button style="display: none;" class="btn btn-outline-danger btn-message btn-no-result" type="button" disabled>
+                                                        <span role="status">No results found for your search. Please try a different keyword.</span>
+                                                    </button>
+                                                </div>
+                                                <!-- <input type="file" name="mass-insert-type1" id="mass-insert-type1">
+                                                <button id="btn-mass-insert-type1">upload</button> -->
+                                            </div>
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-download"></i> Type 1</h5>
-                                                <small>BI - Load / Unload Hours</small>
+                                                <button class="btn btn-outline-info btn-reload-default-type1">
+                                                    <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type1" aria-hidden="true"></span>
+                                                    Reload Default Data <i class="fa-regular fa-window-restore"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type1 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasNonateType1" aria-controls="filterOffCanvasNonateType1">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <!-- <div class="d-flex justify-content-between"> -->
-                                                    <div class="row g-3 mb-3 mt-0 align-items-center">
-                                                        <div class="col-auto">
-                                                            <label for="search-board-field-type1" class="col-form-label fw-bold">SEARCH BOARD / PART:</label>
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <input type="text" id="search-board-field-type1" class="form-control">
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <span id="search-board-inline-type1" class="form-text">
-                                                            Must be 5-10 characters long.
-                                                            </span>
-                                                        </div>
-                                                        <div class="col-auto">
-                                                            <button style="display: none;" class="btn btn-outline-secondary btn-message btn-loader" type="button" disabled>
-                                                                <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                                                                <span role="status">Retrieving data... Please wait.</span>
-                                                            </button>
-
-                                                            <button style="display: none;" class="btn btn-outline-danger btn-message btn-no-result" type="button" disabled>
-                                                                <span role="status">No results found for your search. Please try a different keyword.</span>
-                                                            </button>
-                                                        </div>
-                                                        <!-- <input type="file" name="mass-insert-type1" id="mass-insert-type1">
-                                                        <button id="btn-mass-insert-type1">upload</button> -->
-                                                    </div>
-                                                    <!-- <button type="button" class="btn btn-success btn-save-type1">Save <i class="fa-regular fa-floppy-disk"></i></button> -->
-                                                <!-- </div> -->
-                                                <hr>
                                                 <div class="d-flex justify-content-between">
-                                                    <button class="btn btn-outline-info btn-reload-default-type1">
-                                                        <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type1" aria-hidden="true"></span>
-                                                        Reload Default Data <i class="fa-regular fa-window-restore"></i>
-                                                    </button>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type1" tab-type="type-1" export-type="copy">Copy <i class="fa-solid fa-copy"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type1" tab-type="type-1" export-type="csv">CSV <i class="fa-solid fa-file-csv"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type1" tab-type="type-1" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type1" tab-type="type-1" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type1" tab-type="type-1" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                    </div>
                                                     <button type="button" class="btn btn-success btn-save-burnin" disabled>Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                 </div>
                                                 <table class="table table-non-type1 table-bordered table-hover h-100">
@@ -200,43 +271,63 @@ $weeks = $response['WEEKS'];
 
                                 <div class="tab-pane w-100 fade <?php echo ($active_type2 != '') ? 'show ' : ''; echo $active_type2;?>" id="nav-type2" role="tabpanel" aria-labelledby="nav-type2-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2 pb-3">
+                                            <div class="row g-3 align-items-center">
+                                                <div class="col-auto">
+                                                    <input type="text" id="search-board-field-type2" class="form-control" placeholder="SEARCH BOARD:">
+                                                </div>
+                                                <div class="col-auto">
+                                                    <span id="search-board-inline-type2" class="form-text">
+                                                    Must be 5-10 characters long.
+                                                    </span>
+                                                </div>
+                                                <div class="col-auto">
+                                                    <button style="display: none;" class="btn btn-outline-secondary btn-message-type2 btn-loader-type2" type="button" disabled>
+                                                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+                                                        <span role="status">Retrieving data... Please wait.</span>
+                                                    </button>
+
+                                                    <button style="display: none;" class="btn btn-outline-danger btn-message-type2 btn-no-result-type2" type="button" disabled>
+                                                        <span role="status">No results found for your search. Please try a different keyword.</span>
+                                                    </button>
+                                                </div>
+                                            </div>
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-percent"></i> Type 2</h5>
-                                                <small>Override Socket Efficiency</small>
+                                                <button class="btn btn-outline-info btn-reload-default-type2">
+                                                    <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type2" aria-hidden="true"></span>
+                                                    Reload Default Data <i class="fa-regular fa-window-restore"></i>
+                                                </button>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type2 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasNonateType2" aria-controls="filterOffCanvasNonateType2">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="row g-3 mb-3 mt-0 align-items-center">
-                                                    <div class="col-auto">
-                                                        <label for="search-board-field-type2" class="col-form-label fw-bold">SEARCH BOARD:</label>
-                                                    </div>
-                                                    <div class="col-auto">
-                                                        <input type="text" id="search-board-field-type2" class="form-control">
-                                                    </div>
-                                                    <div class="col-auto">
-                                                        <span id="search-board-inline-type2" class="form-text">
-                                                        Must be 5-10 characters long.
-                                                        </span>
-                                                    </div>
-                                                    <div class="col-auto">
-                                                        <button style="display: none;" class="btn btn-outline-secondary btn-message-type2 btn-loader-type2" type="button" disabled>
-                                                            <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                                                            <span role="status">Retrieving data... Please wait.</span>
-                                                        </button>
-
-                                                        <button style="display: none;" class="btn btn-outline-danger btn-message-type2 btn-no-result-type2" type="button" disabled>
-                                                            <span role="status">No results found for your search. Please try a different keyword.</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <hr>
                                                 <div class="d-flex justify-content-between">
-                                                    <button class="btn btn-outline-info btn-reload-default-type2">
-                                                        <span style="display: none;" class="spinner-border spinner-border-sm default-spinner-type2" aria-hidden="true"></span>
-                                                        Reload Default Data <i class="fa-regular fa-window-restore"></i>
-                                                    </button>
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type2" tab-type="type-2" export-type="copy">Copy <i class="fa-solid fa-copy"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type2" tab-type="type-2" export-type="csv">CSV <i class="fa-solid fa-file-csv"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type2" tab-type="type-2" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type2" tab-type="type-2" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type2" tab-type="type-2" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                    </div>
                                                     <button type="button" class="btn btn-success btn-save-socket" disabled>Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                 </div>
                                                 <table class="table table-non-type2 table-bordered table-hover h-100">
@@ -257,20 +348,48 @@ $weeks = $response['WEEKS'];
 
                                 <div class="tab-pane w-100 fade <?php echo ($active_type3 != '') ? 'show ' : ''; echo $active_type3;?>" id="nav-type3" role="tabpanel" aria-labelledby="nav-type3-tab" tabindex="0">
                                     <div class="card border border-start-0 border-end-0">
-                                        <div class="card-header d-flex justify-content-between">
+                                        <div style="background-color: transparent!important;" class="card-header d-flex justify-content-between mt-2">
                                             <div>
-                                                <h5 class="card-title"><i class="fa-solid fa-microchip"></i> Type 3</h5>
-                                                <small>Hardware Capacity Override</small>
+                                                <button type="button" class="btn btn-link btn-modal-non" data-bs-toggle="modal" data-bs-target="#modal-add-non-type3">
+                                                    HW Capacity Override <i class="fa-solid fa-circle-plus text-success"></i>
+                                                </button>
+                                            </div>
+                                            <div>
+                                                <span style="display: none!important;" class="delinquent-container-type3"><small>Delinquents</small> - <mark class="delinquent-type3 fw-bold bg-danger-subtle"></mark></span>
+                                                <button type="button" class="btn btn-link btn-filter btn-filter-type3 position-relative" data-bs-toggle="offcanvas" data-bs-target="#filterOffCanvasNonateType3" aria-controls="filterOffCanvasNonateType3">
+                                                    Filters <i class="fa-solid fa-filter"></i>
+                                                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                                        <?php
+                                                            unset($_GET['tab']);
+                                                            if(isset($_GET['CREATED_BY'])){
+                                                                unset($_GET['EMP_NAME']);
+                                                            };
+                                                            foreach (["CREATED_BY", "DATE_STATUS"] as $value) {
+                                                                if(isset($_GET[$value])){
+                                                                    if ($_GET[$value] == "ALL") {
+                                                                        unset($_GET[$value]);
+                                                                    }
+                                                                };
+                                                            }
+                                                            echo count($_GET);
+                                                        ?>
+                                                    </span>
+                                                </button>
                                             </div>
                                         </div>
                                         <div class="card-body">
                                             <div class="row">
-                                                <div class="col-lg-6 mb-3 text-center">
-                                                    <button type="button" class="btn btn-link btn-modal-non" data-bs-toggle="modal" data-bs-target="#modal-add-non-type3">HW Capacity Override <i class="fa-solid fa-circle-plus text-success"></i></button>
-                                                </div>
-                                                <hr class="mb-2">
-                                                <div class="d-flex justify-content-end btn-delete-type3-container d-none">
-                                                    <button type="button" class="btn btn-danger btn-delete-type3-all">Delete All Overrides</button>
+                                                <div class="d-flex justify-content-between">
+                                                    <div class="d-flex gap-2">
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type3" tab-type="type-3" export-type="copy">Copy <i class="fa-solid fa-copy"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type3" tab-type="type-3" export-type="csv">CSV <i class="fa-solid fa-file-csv"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type3" tab-type="type-3" export-type="excel">Excel <i class="fa-solid fa-file-excel"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type3" tab-type="type-3" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
+                                                        <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-nonate-type3" tab-type="type-3" export-type="print">Print <i class="fa-solid fa-print"></i></button>
+                                                    </div>
+                                                    <div class="d-flex justify-content-end btn-delete-type3-container d-none">
+                                                        <button type="button" class="btn btn-danger btn-delete-type3-all">Delete All Overrides</button>
+                                                    </div>
                                                 </div>
                                                 <table class="table table-non-type3 table-bordered table-hover h-100">
                                                     <thead>
@@ -511,6 +630,69 @@ $weeks = $response['WEEKS'];
                         <div class="modal-footer bg-success-subtle">
                             <button type="button" class="btn btn-danger btn-close-modal-type3" process-type="type3" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                             <button type="button" class="btn btn-success btn-save-type3" process-type="type3">Save <i class="fa-regular fa-floppy-disk"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- --------------------------------------------------------------------------------EXPORT MODAL------------------------------------------------------------------------------------- -->
+            <div class="modal fade zoom" id="modal-export" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h4 class="modal-title fs-5" id="staticBackdropLabel">Export NONATE Data - <span class="export-type-title"></span></h4>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <span style="display: none!important;" class="text-danger export-error">File name is required!</span>
+                            <input type="hidden" id="export-type">
+                            <div class="input-group mb-3">
+                            <span class="input-group-text">BRAIN_</span>
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" id="export-filename" placeholder="">
+                                    <label for="export-filename">File Name</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-end">
+                            <button type="button" class="btn btn-success btn-sm btn-export">Export <i class="fa-solid fa-file-export"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- -------------------------------------------------------------------------------------CONFIRM DIALOG/MODAL-------------------------------------------------------------------------------------- -->
+            <div class="modal fade zoom" id="modal-switch-tab" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6>Switch Tab?</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <span>Are you sure you want to switch to the: <br><span class="tab-name-switch fw-bold"></span> tab? <br>Your active filters will be cleared if you continue.</span>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm btn-cancel-switch" data-bs-dismiss="modal" aria-label="Close">Cancel <i class="fa-solid fa-x"></i></button>
+                            <button type="button" class="btn btn-success btn-sm btn-continue-switch">Continue <i class="fa-solid fa-arrow-right"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade zoom" id="modal-reload-data" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h6>Reload Default Data?</h6>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body text-center">
+                            <span>Are you sure you want to reload the default data? This will clear all changes and active filters.</span>
+                        </div>
+                        <div class="modal-footer d-flex justify-content-end">
+                            <button type="button" class="btn btn-danger btn-sm btn-cancel-reload" data-bs-dismiss="modal" aria-label="Close">Cancel <i class="fa-solid fa-x"></i></button>
+                            <button type="button" class="btn btn-success btn-sm btn-continue-reload">Continue <i class="fa-solid fa-arrow-right"></i></button>
                         </div>
                     </div>
                 </div>

@@ -1,5 +1,52 @@
 $(document).ready(function(){
 
+    //initialize multiple select2
+    $(".select2-nonate-type2").each(function(){
+        let elem_id = $(this).attr("id");
+        let has_tags = (elem_id.includes("board-name")) ? true : false;
+
+        $("#"+elem_id).select2({
+            tags: has_tags,
+            theme: 'bootstrap-5',
+            allowClear: true
+        });
+    });
+
+    var file_name_nonate_type_2= "";
+
+    //exclude columns in datatable export
+    function exportButtonNonateType2(type) {
+        let cols = [];
+        let title_object = {};
+        for (var i = 0; i <= 2; i++) {
+            cols.push(i);
+        }
+
+        if (type == 'print') {
+            title_object = {
+                customize: function (win) {
+                    win.document.title = 'NONATE [Type 2 - Socket Efficiency]';
+                }
+            }
+        }
+        else{
+            title_object = {title: 'BRAIN - NONATE [Type 2 - Socket Efficiency]'};
+        }
+
+        let config_object = {
+            extend: type,
+            filename: function () {
+                return file_name_nonate_type_2;
+            },
+            className: 'd-none buttons-' + type +'-nonate-type-2',
+            exportOptions: {
+                columns: cols
+            },
+            ...title_object,
+        }
+        return config_object;
+    }
+
     //SET CURRENT TAB IN THE URL
     $(".nonate-link").on("click", function(){
         let url = new URL($(location).attr('href'));
@@ -10,7 +57,7 @@ $(document).ready(function(){
 
     //DATATABLES
      var table_type_2 = $(".table-non-type2").DataTable({
-        scrollY: 'calc(100vh - 650px)',
+        scrollY: 'calc(100vh - 550px)',
         bSort: false,
         responsive: true,
         autoWidth: false,
@@ -33,7 +80,53 @@ $(document).ready(function(){
             $(row).attr('default-state-type2', JSON.stringify(data));
             $(row).attr('db-id-type2', data[4]);
             $(row).attr('row-id-type2', data[3]);
+        },
+        layout: {
+            topStart: "pageLength",
+            top2Start: {
+                buttons: [exportButtonNonateType2('copy'), exportButtonNonateType2('csv'), exportButtonNonateType2('excel'), exportButtonNonateType2('pdf'), exportButtonNonateType2('print')]
+            },
+            bottomStart: "info"
         }
+    });
+
+    // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
+    $(".btn-export-process-nonate-type2").on("click", function(){
+        let export_type = $(this).attr("export-type");
+        let tab_type = $(this).attr("tab-type");
+        
+        if (table_type_2.rows().count() == 0) {
+            showToast("No data available to export.", "warning");
+            return;
+        }
+
+        $(".btn-export").attr("tab-type", tab_type);
+        
+        if ($.inArray(export_type, ["copy", "print"]) === -1) {
+            $(".export-type-title").text(export_type.toUpperCase());
+            $("#export-type").val(export_type);
+            $("#modal-export").modal("show");
+        }
+        else{
+            table_type_2.button(".buttons-"+export_type+"-nonate-type-2").trigger();
+        }
+    });
+
+    $(".btn-export").on("click", function(){
+        let export_type = $("#export-type").val();
+        let filename = $("#export-filename").val();
+        let tab_type = $(this).attr("tab-type");
+        
+        if (tab_type == "type-2") {
+            if (filename != "") {
+                file_name_nonate_type_2 = "BRAIN_"+filename;
+                table_type_2.button(".buttons-"+export_type+"-nonate-"+tab_type).trigger();
+            }
+            else{
+                $(".export-error").fadeIn();
+            }
+        }
+
     });
 
     $('.nonate-link').on('shown.bs.tab', function (e) {
@@ -42,17 +135,29 @@ $(document).ready(function(){
 
     //PRELOAD EXISTING OVERRIDE SOCKET EFFICIENCY
     preloadSocket(existing_socket, table_type_2);
-
+    
     $(document).delegate(".btn-reload-default-type2", "click", function(){
-        $(".default-spinner-type2").show();
-        $(this).prop("disabled", true);
 
-        setTimeout(function(){
-            $("#dt-search-1").val("").trigger('input');
-            preloadSocket(existing_socket, table_type_2);
-            $(".btn-reload-default-type2").prop("disabled", false);
-            $(".default-spinner-type2").hide();
-        }, 1000);
+        $("#modal-reload-data").modal("show");
+
+        $(".btn-continue-reload").on("click", function(){
+            var url = window.location.href;
+            var needle = 'tab=type-2';
+            var pos = url.indexOf(needle);
+            if (pos !== -1) {
+                window.location.href = url.substring(0, pos + needle.length);
+            }
+        });
+
+        // $(".default-spinner-type2").show();
+        // $(this).prop("disabled", true);
+
+        // setTimeout(function(){
+        //     $("#dt-search-1").val("").trigger('input');
+        //     preloadSocket(existing_socket, table_type_2);
+        //     $(".btn-reload-default-type2").prop("disabled", false);
+        //     $(".default-spinner-type2").hide();
+        // }, 1000);
     });
 
 
@@ -342,3 +447,136 @@ function updateExistingData(){
         }
     });
 }
+
+$(document).ready(function(){
+    // -----------------------------------------------------------------------------------------------FILTERS-------------------------------------------------------------------------------
+    preFillInputFiltersNonateType2();
+    $(".btn-clear-nonate-type2").on("click", function(){
+        $(".hwo-inputs-nonate-type2").val('').trigger('change');
+        $(".hwo-checks-nonate-type2").prop("checked", false);
+    });
+
+    $(".btn-remove-nonate-type2").on("click", function(){
+        let curr_url = window.location.href;
+        let pos = curr_url.indexOf("&");
+        window.location.href = (pos !== -1) ? curr_url.substring(0, pos) : curr_url;
+    });
+
+    $(".input-socket-efficiency").on('input', function () {
+        let value = $(this).val();
+        // Remove non-numeric characters except dot
+        value = value.replace(/[^0-9.]/g, '');
+        // Remove negative values
+        if (parseFloat(value) < 0) {
+            value = '';
+        }
+        $(this).val(value);
+    });
+
+    $(".btn-set-nonate-type2").on("click", function(){
+
+        let user = user_details['emp_name'];
+        let var_arr = {
+            BOARD: "",
+            HW_TYPE: "",
+            SOCKET_EFFICIENCY: "",
+            CREATED_BY: ""
+        };
+        
+        let param_arr = [];
+        $(".hwo-inputs-nonate-type2").each(function(){
+
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            
+            if (typeof input_val === "object" && input_val.length > 0) {
+                var_arr['BOARD']   += (input_id == "board-name-nonate-type2")   ? input_val.join(",") : "";
+                var_arr['HW_TYPE']      += (input_id == "hw-type-nonate-type2")      ? input_val.join(",") : "";
+            }
+            else if (typeof input_val === "string" && input_val != "") {
+                if (input_id == "socket-efficiency-min") {
+                    var_arr['SOCKET_EFFICIENCY'] += input_val;
+                }
+                if (input_id == "socket-efficiency-max") {
+                    var_arr['SOCKET_EFFICIENCY'] += ","+input_val;
+                }
+            }
+        });
+
+        $(".hwo-checks-nonate-type2").each(function(){
+            let input_id = $(this).attr("id");
+            let input_val = $(this).val();
+            if ($(this).is(":checked")) {
+                if (input_val == "MY_RECORDS") {
+                    var_arr['CREATED_BY'] += user;
+                }
+                else{
+                    if (input_id.includes("-dates") === false) {
+                        var_arr['CREATED_BY'] += input_val;
+                    }
+                }
+            }
+        });
+        
+        $.each(var_arr, function(key, item){
+            if (item != "") {
+                if ($.inArray(key, ["SOCKET_EFFICIENCY"]) !== -1) {
+                    item = (item.trim().startsWith(",")) ? "0"+item : item;
+                }
+                param_arr.push(key+"="+item.toUpperCase());
+            }
+        });
+        
+        if (param_arr.length > 0) { 
+            let curr_url = window.location.href;
+            let pos = curr_url.indexOf("&");
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const hasTab = (urlParams.has("tab")) ? "" : "?tab=type-2"; 
+
+            window.location.href = (pos !== -1) ? curr_url.substring(0, pos)+hasTab+"&"+param_arr.join("&") : curr_url+hasTab+"&"+param_arr.join("&");
+        }
+        else{
+            showToast("Please enter at least one filter value.", "error");
+        }
+    });
+
+    function preFillInputFiltersNonateType2(){
+
+        const params = Object.fromEntries(new URLSearchParams(window.location.search));
+        if (params.tab != "type-2") return;
+        delete params.tab;
+        
+        $.each(params, function(index, item){
+            if ($.inArray(index, ["SOCKET_EFFICIENCY"]) !== -1) {
+                let range_val = item.split(",");
+                let num_field_int = (range_val.length > 1) ? ["MIN", "MAX"] : ["MIN"];
+                let first_val;
+                let second_val;
+                $.each(num_field_int, function(idx, itm){
+                    $('[input-name="'+index+'_'+itm+'"]').val(range_val[idx]);
+                });
+            }
+            else if($.inArray(index, ["CREATED_BY"]) !== -1){
+                let param_val = item.split("_")[0];
+                
+                if (index == "CREATED_BY") {
+                    param_val = ($.inArray(item, ["OTHERS", "ALL"]) === -1) ? "MY" : item.split("_")[0];
+                }
+                
+                $('[input-name="'+index+'_'+param_val+'"]').prop("checked", true);
+            }
+            else{
+                if ($.inArray(index, ["BOARD"]) !== -1) {
+                    $.each(item.split(","), function(idx, itm){
+                        $('[input-name="'+index+'"]').append(new Option(itm, itm, true, true)).trigger('change');
+                    });
+                }
+                else{
+                    $('[input-name="'+index+'"]').val(item.split(",")).trigger('change');
+                }
+            }
+        });
+
+    }
+});
