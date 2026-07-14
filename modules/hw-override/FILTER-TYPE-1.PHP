@@ -8,7 +8,7 @@
         <div class="mb-3">
             <span>Active Filters:</span><br>
             <?php
-                unset($_GET['tab']);
+                unset($_GET['tab'], $_GET['EMP_NAME']);
                 $active_filters = $_GET;
                 if (count($_GET) > 0) {
                     foreach ($_GET as $key => $value) {
