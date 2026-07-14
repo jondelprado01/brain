@@ -170,6 +170,24 @@ $(document).ready(function(){
         }
     });
 
+    $(".input-hw-name-type3").on("keypress", function(e){
+        if(e.which == 13){
+            let limit_val = $(".input-limit-type3").val();
+            let hw_name_val = $(this).val();
+            if (hw_name_val == '') {
+                showGenericAlertType3("error", "Search Field Empty");
+                return;
+            }
+            else if(hw_name_val.length < 5){
+                showGenericAlertType3("error", "Must be 5-10 characters long.");
+                return;
+            }
+            else{
+                searchDataType3(hw_name_val, limit_val, table_nonboard);
+            }
+        }
+    });
+
     //SAVE NON-BOARDS - INCLUDE TO ALL PARTS
     $(".btn-save-type3").on("click", function(){
         if (table_nonboard.rows('.selected').data().length > 0) {
