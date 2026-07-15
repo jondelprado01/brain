@@ -3285,7 +3285,8 @@ function setOEE(common_data){
                 HANDLER:        common_data['HANDLER'],
                 TEMP_CLASS:     common_data['TEMP_CLASS'],
                 OEE_FIELD:      common_data['OEE_FIELD']
-            }
+            },
+            user_details: user_details['emp_name']
         },
         beforeSend: function(){
             showLoader('Modifying OEE Override... \n Please Wait!');
