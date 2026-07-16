@@ -323,8 +323,8 @@ $has_delinquent_t2 = 0;
                                                             <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="pdf">PDF <i class="fa-solid fa-file-pdf"></i></button>
                                                             <button type="button" class="btn btn-outline-secondary btn-sm btn-export-process-type1" tab-type="type-1" export-type="print">Print <i class="fa-solid fa-print"></i></button>
                                                         </div>
-                                                        <div class="btn-delete-type2-container d-none">
-                                                            <button type="button" class="btn btn-danger btn-sm btn-delete-type2-all">Delete All Overrides</button>
+                                                        <div class="btn-delete-hw-container d-none">
+                                                            <button type="button" class="btn btn-danger btn-sm btn-delete-hw-all">Delete All Overrides</button>
                                                         </div>
                                                     </div>
                                                     <table class="table table-dummy-type1 table-bordered table-hover h-100">
