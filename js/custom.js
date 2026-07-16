@@ -10,6 +10,7 @@ var selected_hardware_alt   = [];
 var selected_hardware_prm   = [];
 var plannable_setups        = [];
 var oee_onchange            = 0;
+var oee_save_events         = 0;
 var data_set = [];
 var group_header = [];
 const has_params = new URLSearchParams(window.location.search);
@@ -1740,6 +1741,7 @@ $(document).ready(function(){
                 if (more_than_1 == 0) {
                     common_data['OEE_FIELD'] = main_data;
                     setOEE(common_data);
+                    oee_save_events++;
                 }
                 else{
                     showGenericAlert("error", 'Invalid Override Value!  \n (Max: 1)');
@@ -1752,6 +1754,19 @@ $(document).ready(function(){
         }
         else{
             showGenericAlert("error", "No Changes Detected!");
+        }
+    });
+
+    $(".btn-close-oee-modal").on("click", function(e){
+        e.preventDefault();
+        if (oee_save_events > 0) {
+            showLoader("Updating Main Display, \nPlease wait...");
+            setTimeout(function(){
+                location.reload();
+            }, 1500);
+        }
+        else{
+            $("#oeeModal").modal("hide");
         }
     });
 
