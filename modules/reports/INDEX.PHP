@@ -21,21 +21,21 @@ $assets = RENDER_ASSETS("module");
 
 //LIVE TIMEPHASING SCHEDULE DATASET (retrieved once, filtered client-side)
 include_once("DATA_TIMEPHASING.PHP");
-// $timephasing = GET_TIMEPHASING_SCHEDULES();
-$timephasing = [];
+include_once("DATA_OEE.PHP");
+$timephasing = GET_TIMEPHASING_SCHEDULES();
 
 
 //AD name of the logged-in user (same personnel.v_workday_memory the listing uses),
 //used to default the username filter to the current user.
-// $current_username = GET_USERNAME_FOR_EMPLOYEE(isset($_SESSION["EMP_NO"]) ? $_SESSION["EMP_NO"] : "");
-$current_username = [];
+$current_username = GET_USERNAME_FOR_EMPLOYEE(isset($_SESSION["EMP_NO"]) ? $_SESSION["EMP_NO"] : "");
 
 
 //current week's FYWW (FY##_W##), shown in the FYWW column header so the
 //delinquent/current badges have a visible reference point.
-// $current_fyww = GET_CURRENT_FYWW();
-$current_fyww = [];
+$current_fyww = GET_CURRENT_FYWW();
 
+//all oee override data with history log attached - jon
+$oee_data = GET_OEE_DATA();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -77,8 +77,11 @@ $current_fyww = [];
             var current_username = <?php echo json_encode($current_username); ?>;
             //current week's FYWW (FY##_W##), shown in the FYWW column header.
             var current_fyww = <?php echo json_encode($current_fyww); ?>;
+            //all oee override data with history log attached - jon
+            var oee_data = <?php echo json_encode($oee_data); ?>;
         </script>
         <script src="../../js/report-timephasing.js"></script>
+        <script src="../../js/report-oee.js"></script>
         <style>
             /* per-column filter inputs sit directly under each header label */
             #tpScheduleTable thead .column-filter {
@@ -190,6 +193,48 @@ $current_fyww = [];
             .tp-sort-controls select {
                 font-size: 13px;
             }
+            
+            #dt-length-0, #dt-length-1{
+                margin-right: 5px!important;
+            }
+
+            .tree-timeline {
+                position: relative;
+                margin-left: 20px;
+            }
+
+            .tree-item {
+                position: relative;
+                padding-left: 40px;
+                padding-bottom: 25px;
+            }
+
+            /* Vertical line */
+            .tree-item::before {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 0;
+                bottom: -25px;
+                width: 2px;
+                background: #adb5bd;
+            }
+
+            /* Horizontal connector */
+            .tree-item::after {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 22px;
+                width: 20px;
+                height: 2px;
+                background: #adb5bd;
+            }
+
+            /* Stop the vertical line after the last item */
+            .tree-item:last-child::before {
+                bottom: calc(100% - 22px);
+            }
         </style>
     </head>
 
@@ -197,9 +242,30 @@ $current_fyww = [];
         <?php
             //NAVBAR
             require('../../page-sections/navs/PAGES.PHP');
+
+            $active_timephasing = '';
+            $active_oee = '';
+            $active_new_parts = '';
+
+            if (isset($_REQUEST['tab'])) {
+                switch ($_REQUEST['tab']) {
+                    case 'timephasing':
+                        $active_timephasing = 'active';
+                        break;
+
+                    case 'oee':
+                        $active_oee = 'active';
+                        break;
+
+                    case 'new-parts':
+                        $active_new_parts = 'active';
+                        break;
+                }
+            }
+            else {$active_timephasing = 'active';}
         ?>
 
-        <div class="container-sm p-4">
+        <div class="container-fluid p-4">
 
             <div class="card h-100">
                 <div class="card-header">
@@ -210,22 +276,25 @@ $current_fyww = [];
                     <!-- REPORT TABS: Timephasing (live) + placeholders for OEE / New Parts -->
                     <ul class="nav nav-tabs" id="reportTab" role="tablist">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="timephasing-tab" data-bs-toggle="tab"
+                            <button class="nav-link <?php echo $active_timephasing; ?>" id="timephasing-tab" data-bs-toggle="tab"
                                     data-bs-target="#timephasing-pane" type="button" role="tab"
+                                    tab-name="timephasing"
                                     aria-controls="timephasing-pane" aria-selected="true">
                                 <i class="fa-solid fa-timeline"></i> Timephasing
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="oee-tab" data-bs-toggle="tab"
+                            <button class="nav-link <?php echo $active_oee; ?>" id="oee-tab" data-bs-toggle="tab"
                                     data-bs-target="#oee-pane" type="button" role="tab"
+                                    tab-name="oee"
                                     aria-controls="oee-pane" aria-selected="false">
                                 <i class="fa-solid fa-gauge"></i> OEE
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="new-parts-tab" data-bs-toggle="tab"
+                            <button class="nav-link <?php echo $active_new_parts; ?>" id="new-parts-tab" data-bs-toggle="tab"
                                     data-bs-target="#new-parts-pane" type="button" role="tab"
+                                    tab-name="new-parts"
                                     aria-controls="new-parts-pane" aria-selected="false">
                                 <i class="fa-solid fa-cube"></i> New Parts
                             </button>
@@ -235,7 +304,7 @@ $current_fyww = [];
                     <div class="tab-content pt-3" id="reportTabContent">
 
                         <!-- TIMEPHASING -->
-                        <div class="tab-pane fade show active" id="timephasing-pane" role="tabpanel"
+                        <div class="tab-pane fade <?php echo ($active_timephasing != '') ? 'show ' : ''; echo $active_timephasing;?>" id="timephasing-pane" role="tabpanel"
                              aria-labelledby="timephasing-tab" tabindex="0">
 
                             <!-- customizable ordering controls (built/populated by report-timephasing.js) -->
@@ -294,15 +363,90 @@ $current_fyww = [];
                         </div>
 
                         <!-- OEE (placeholder) -->
-                        <div class="tab-pane fade" id="oee-pane" role="tabpanel"
+                        <div class="tab-pane fade <?php echo ($active_oee != '') ? 'show ' : ''; echo $active_oee;?>" id="oee-pane" role="tabpanel"
                              aria-labelledby="oee-tab" tabindex="0">
-                            <div class="alert alert-secondary text-center my-3" role="alert">
-                                <i class="fa-solid fa-screwdriver-wrench"></i> OEE report coming soon.
+
+                            <div class="tp-sort-controls">
+                                <?php $col_arr = ["", "SITE_NUM", "RES_AREA", "TESTER", "HANDLER", "TEMP_CLASS", "MFG_PART_NUM", "CHANGE_USER"]; ?>
+                                <div>
+                                    <label class="form-label" for="oee-first-column">Sort by</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-first-column">
+                                        <?php
+                                            foreach ($col_arr as $key => $col) {
+                                                if ($key > 0) {
+                                                    $selected = ($key == 1) ? "selected" : "";
+                                                    echo '<option value="'.$key.'" '.$selected.'>'.$col.'</option>';
+                                                }
+                                            }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-first-direction">Direction</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-first-direction">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-second-column">Then by</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-second-column">
+                                        <option value="">(none)</option>
+                                        <?php
+                                            foreach ($col_arr as $key => $col) {
+                                                if ($key > 0) {
+                                                    $selected = ($key == 2) ? "selected" : "";
+                                                    echo '<option value="'.$key.'" '.$selected.'>'.$col.'</option>';
+                                                }
+                                            }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-second-direction">Direction</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-second-direction">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="oee-reset-sort">
+                                        Reset to default
+                                    </button>
+                                </div>
                             </div>
+
+                            <table class="table table-bordered table-hover table-striped display compact" id="table-oee-report">
+                                <thead>
+                                    <tr>
+                                        <th>HISTORY</th>
+                                        <th>SITE_NUM</th>
+                                        <th>RES_AREA</th>
+                                        <th>TESTER</th>
+                                        <th>HANDLER</th>
+                                        <th>TEMP_CLASS</th>
+                                        <th>MFG_PART_NUM</th>
+                                        <th>OEE</th>
+                                        <th>CHANGE_USER</th>
+                                    </tr>
+                                    <tr>
+                                        <th>&nbsp;</th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter SITE_NUM"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter RES_AREA"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter TESTER"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter HANDLER"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter TEMP_CLASS"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter MFG_PART_NUM"></th>
+                                        <th><input type="number" class="form-control form-control-sm" placeholder="Filter OEE"></th>
+                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter CHANGE_USER"></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
 
                         <!-- NEW PARTS (placeholder) -->
-                        <div class="tab-pane fade" id="new-parts-pane" role="tabpanel"
+                        <div class="tab-pane fade <?php echo ($active_new_parts != '') ? 'show ' : ''; echo $active_new_parts;?>" id="new-parts-pane" role="tabpanel"
                              aria-labelledby="new-parts-tab" tabindex="0">
                             <div class="alert alert-secondary text-center my-3" role="alert">
                                 <i class="fa-solid fa-screwdriver-wrench"></i> New Parts report coming soon.
