@@ -438,7 +438,7 @@ $oee_data = GET_OEE_DATA();
                                         <th><input type="text" class="form-control form-control-sm" placeholder="Filter TEMP_CLASS"></th>
                                         <th><input type="text" class="form-control form-control-sm" placeholder="Filter MFG_PART_NUM"></th>
                                         <th><input type="number" class="form-control form-control-sm" placeholder="Filter OEE"></th>
-                                        <th><input type="text" class="form-control form-control-sm" placeholder="Filter CHANGE_USER"></th>
+                                        <th><input type="text" class="form-control form-control-sm change-user-filter" placeholder="Filter CHANGE_USER" value="<?php echo $_SESSION["EMP_NAME"]; ?>"></th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>

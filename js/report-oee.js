@@ -67,18 +67,6 @@ $(document).ready(function(){
         window.history.pushState('state', 'title', url.href);
     });
 
-
-    $('#table-oee-report thead tr:eq(1) th').each(function (i) {
-        $('input', this).on('keyup change', function () {
-            if (oee_report_table.column(i).search() !== this.value) {
-                oee_report_table
-                    .column(i)
-                    .search(this.value)
-                    .draw();
-            }
-        });
-    });
-
     renderOEERows(oee_report_table);
 
     oee_report_table.on('click', 'tbody td.dt-control', function (e) {
@@ -114,6 +102,21 @@ $(document).ready(function(){
             $("#"+split[0]).val(split[1]).trigger("change");
         });
     });
+
+    $('#table-oee-report thead tr:eq(1) th').each(function (i) {
+        $('input', this).on('keyup change', function () {
+            if (oee_report_table.column(i).search() !== this.value) {
+                console.log(i);
+                
+                oee_report_table
+                    .column(i)
+                    .search(this.value)
+                    .draw();
+            }
+        });
+    });
+
+    oee_report_table.column(8).search($(".change-user-filter").val()).draw();
 
 });
 
