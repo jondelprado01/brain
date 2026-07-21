@@ -18,6 +18,35 @@
  * so a single connection can join across them with fully-qualified names.
  */
 
+if (!function_exists('DMCLS_REFRESH_MEMORY')) {
+
+    /**
+     * App rule: shared.check_dmcls_memory() MUST be called before reading
+     * shared.dmcls_memory (it refreshes/validates the fiscal calendar). Call this
+     * right after opening a connection, before any SELECT that touches
+     * shared.dmcls_memory.
+     *
+     * The proc may emit zero or more result sets; we flush whatever it returns so
+     * the next query on the same mysqli connection doesn't fail with
+     * "commands out of sync".
+     *
+     * @param mysqli $con open connection (from Open_ILink)
+     */
+    function DMCLS_REFRESH_MEMORY($con) {
+        $rs = ExecuteIQuery("CALL shared.check_dmcls_memory();", $con);
+        if ($rs instanceof mysqli_result) {
+            mysqli_free_result($rs);
+        }
+        // drain any further result sets the CALL produced
+        while (mysqli_more_results($con) && mysqli_next_result($con)) {
+            $extra = mysqli_store_result($con);
+            if ($extra instanceof mysqli_result) {
+                mysqli_free_result($extra);
+            }
+        }
+    }
+}
+
 if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
 
     /**
@@ -30,7 +59,21 @@ if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
 
         include_once("/var/www/html/MYSQLI_COMMON_FUNCTIONS.PHP");
 
-        $con = Open_ILink("localhost");
+        $iConBRAIN = Open_ILink("localhost");
+
+        //required before reading shared.DMCLS_MEMORY (used by the fyww_status subquery)
+        DMCLS_REFRESH_MEMORY($iConBRAIN);
+
+        $strSQL = "
+        	SELECT
+        	MFG_YEAR*100+WEEK_NUMBER FYWW
+        	FROM shared.DMCLS_MEMORY
+        	WHERE MFG_DATE = DATE_FORMAT(NOW(),'%Y-%m-%d');";
+        $RSMain = ExecuteIQuery($strSQL,$iConBRAIN);
+        $intCurrFYWW = null;
+        while ($LineMain = mysqli_fetch_assoc($RSMain)) {
+        	$intCurrFYWW = $LineMain["FYWW"];
+        }
 
         /*
          * - INNER JOIN tp_instance_data enforces "at least one step = live".
@@ -57,65 +100,102 @@ if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
          * - Instances whose fyww is NULL/0 are a data error; the WHERE clause drops
          *   them entirely rather than showing a malformed FYWW.
          */
-        $sql = "
-            SELECT
-                GROUP_CONCAT(DISTINCT d.mfg_part_num ORDER BY d.mfg_part_num SEPARATOR ', ') AS mfg_part_num,
-                CONCAT('FY', RIGHT(FLOOR(m.fyww / 100), 2), '_W', LPAD(m.fyww MOD 100, 2, '0')) AS fyww,
-                m.process_type AS process_type,
-                m.notes AS notes,
-                m.change_dt AS change_dt,
-                wm.ad_name AS username,
-                CASE
-                    WHEN m.fyww < (
-                        SELECT MAX(c.MFG_YEAR * 100 + c.WEEK_NUMBER)
-                        FROM shared.DMCLS_MEMORY c
-                        WHERE c.mfg_date <= CURDATE()
-                    ) THEN 'delinquent'
-                    WHEN m.fyww = (
-                        SELECT MAX(c.MFG_YEAR * 100 + c.WEEK_NUMBER)
-                        FROM shared.DMCLS_MEMORY c
-                        WHERE c.mfg_date <= CURDATE()
-                    ) THEN 'current'
-                    ELSE ''
-                END AS fyww_status
-            FROM brain.tp_instance_main m
-            JOIN brain.tp_instance_data d
-                  ON d.tpi_id = m.tpi_id
-            LEFT JOIN (
-                SELECT h.tpi_id, h.change_user
-                FROM brain.tp_instance_hist_master h
-                JOIN (
-                    SELECT tpi_id, MAX(tph_master_id) AS max_id
-                    FROM brain.tp_instance_hist_master
-                    GROUP BY tpi_id
-                ) mx ON mx.tpi_id = h.tpi_id AND mx.max_id = h.tph_master_id
-            ) lh ON lh.tpi_id = m.tpi_id
-            LEFT JOIN personnel.v_workday_memory wm
-                  ON wm.employee_no = lh.change_user
-            WHERE m.fyww IS NOT NULL AND m.fyww > 0
-            GROUP BY m.tpi_id, m.fyww, m.process_type, m.notes, m.change_dt, wm.ad_name
-            ORDER BY m.change_dt DESC;";
+        $strSQL = "
+			SELECT
+			M.TPI_ID,
+			MAX(D.MFG_PART_NUM) MFG_PART_NUM,
+            GROUP_CONCAT(DISTINCT D.GENERIC ORDER BY D.GENERIC) GENERIC,
+			MAX(M.FYWW) FYWW,			
+			MAX(M.SAP_RTE_ID) SAP_RTE_ID,
+			MAX(M.PROCESS_TYPE) PROCESS_TYPE,
+			MAX(M.NOTES) NOTES
+			FROM BRAIN.TP_INSTANCE_MAIN M
+			INNER JOIN BRAIN.TP_INSTANCE_DATA D ON M.TPI_ID = D.TPI_ID
+			WHERE FYWW IS NOT NULL AND FYWW > 0
+			GROUP BY M.TPI_ID
+			ORDER BY FYWW, MFG_PART_NUM;";
+		$RSMain = ExecuteIQuery($strSQL,$iConBRAIN);
+		$aryMain = array();
+		$aryTPIIDTemp = array();
+		$aryReturn = array();
 
-        $rs = ExecuteIQuery($sql, $con);
+		while ($LineMain = mysqli_fetch_assoc($RSMain)) {
+			$intTPIID = $LineMain["TPI_ID"];
+			$aryTemp = $LineMain;
+			unset($aryTemp["TPI_ID"]);
 
-        $rows = array();
-        if ($rs) {
-            while ($line = mysqli_fetch_assoc($rs)) {
-                $rows[] = array(
-                    "mfg_part_num" => $line["mfg_part_num"],
-                    "fyww"         => $line["fyww"],
-                    "process_type" => $line["process_type"],
-                    "notes"        => $line["notes"],
-                    "change_dt"    => $line["change_dt"],
-                    "username"     => $line["username"],
-                    "fyww_status"  => $line["fyww_status"],
-                );
+			$aryMain[$intTPIID] = $aryTemp;
+			$aryTPIIDTemp[] = mysqli_real_escape_string($iConBRAIN,$intTPIID);
+		}
+
+        $aryHist = array();
+		if(count($aryTPIIDTemp) > 0) {
+			$strSQL = "
+				SELECT
+				HM.TPI_ID,
+				HM.HIST_TYPE,
+				HM.HIST_DT,
+				HM.CHANGE_USER,
+				IFNULL(WD.AD_NAME,HM.CHANGE_USER) USERNAME
+				FROM BRAIN.TP_INSTANCE_HIST_MASTER HM
+				INNER JOIN 
+				(
+					SELECT
+					MAX(TPH_MASTER_ID) TPH_MASTER_ID
+					FROM BRAIN.TP_INSTANCE_HIST_MASTER
+					GROUP BY TPI_ID
+				) HM_MAX ON HM.TPH_MASTER_ID = HM_MAX.TPH_MASTER_ID
+				LEFT JOIN PERSONNEL.V_WORKDAY_MEMORY WD ON HM.CHANGE_USER = WD.EMPLOYEE_NO
+				WHERE HM.TPI_ID IN (".implode(",",$aryTPIIDTemp).");";
+			$RSMain = ExecuteIQuery($strSQL,$iConBRAIN);
+			while ($LineMain = mysqli_fetch_assoc($RSMain)) {
+				$intTPIID = $LineMain["TPI_ID"];
+				$aryTemp = $LineMain;
+                unset($aryTemp["TPI_ID"]);
+                $aryHist[$intTPIID] = $aryTemp;
+			}
+		}
+
+		mysqli_close($iConBRAIN);
+
+        foreach($aryMain as $intTPIID => $aryMainTemp) {
+        	$intFYWW = $aryMainTemp["FYWW"];
+            $strFYWW = "FY".substr(floor($intFYWW/100),-2)."_W".str_pad($intFYWW % 100,2,"0",STR_PAD_LEFT);
+
+            $aryHistTemp = array(
+            	"HIST_TYPE"=>null,
+            	"HIST_DT"=>null,
+            	"USERNAME"=>null
+            );
+            if(isset($aryHist[$intTPIID])) {
+            	$aryHistTemp = $aryHist[$intTPIID];
             }
-        }
 
-        mysqli_close($con);
+			$aryTemp = array(
+				"mfg_part_num"=>$aryMainTemp["MFG_PART_NUM"],
+				"generic"=>$aryMainTemp["GENERIC"],
+				"fyww"=>$strFYWW,
+				"process_type"=>$aryMainTemp["PROCESS_TYPE"],
+				"notes"=>$aryMainTemp["NOTES"],
+				"hist_type"=>$aryHistTemp["HIST_TYPE"],
+				"change_dt"=>$aryHistTemp["HIST_DT"],
+				"username"=>$aryHistTemp["USERNAME"],
+				'fyww_status'=>''
+			);
 
-        return $rows;
+			switch (true) {
+				case $intFYWW < $intCurrFYWW:
+					$aryTemp["fyww_status"] = "delinquent";
+					break;
+				case $intFYWW == $intCurrFYWW:
+					$aryTemp['fyww_status'] = 'current';
+					break;
+			}
+
+			$aryReturn[] = $aryTemp;
+		}
+
+        return $aryReturn;
     }
 }
 
@@ -135,6 +215,9 @@ if (!function_exists('GET_CURRENT_FYWW')) {
         include_once("/var/www/html/MYSQLI_COMMON_FUNCTIONS.PHP");
 
         $con = Open_ILink("localhost");
+
+        //required before reading shared.DMCLS_MEMORY
+        DMCLS_REFRESH_MEMORY($con);
 
         $sql = "
             SELECT CONCAT('FY', RIGHT(cur.cur_fyww DIV 100, 2),
@@ -156,6 +239,57 @@ if (!function_exists('GET_CURRENT_FYWW')) {
         mysqli_close($con);
 
         return ($fyww === null) ? "" : $fyww;
+    }
+}
+
+if (!function_exists('GET_FYWW_ORDINALS')) {
+
+    /**
+     * Chronological ordinal for every FYWW in the fiscal calendar: each week's
+     * Sunday (mfg_date) ranked oldest->newest, so consecutive weeks differ by 1
+     * REGARDLESS of fiscal-year boundaries (unlike MFG_YEAR*100+WEEK_NUMBER, where
+     * FY26_W52 -> FY27_W01 looks like a ~49-week jump). The Timephasing density
+     * fishbone uses this to space ribs by true week-distance.
+     *
+     * Keyed by the SAME display string the rows use (FY##_W##) so the JS can look
+     * up an ordinal directly by the fyww it already has.
+     *
+     * @return array assoc map { "FY##_W##" => int ordinal (0-based) }
+     */
+    function GET_FYWW_ORDINALS() {
+
+        include_once("/var/www/html/MYSQLI_COMMON_FUNCTIONS.PHP");
+
+        $con = Open_ILink("localhost");
+
+        //required before reading shared.DMCLS_MEMORY
+        DMCLS_REFRESH_MEMORY($con);
+
+        //one row per FYWW (calendar has one mfg_date/Sunday per week); order by the
+        //week's date so the ordinal is true chronological rank.
+        $sql = "
+            SELECT CONCAT('FY', RIGHT(c.MFG_YEAR, 2),
+                          '_W', LPAD(c.WEEK_NUMBER, 2, '0')) AS fyww
+            FROM shared.DMCLS_MEMORY c
+            GROUP BY c.MFG_YEAR, c.WEEK_NUMBER
+            ORDER BY MIN(c.mfg_date) ASC;";
+
+        $rs = ExecuteIQuery($sql, $con);
+
+        $ordinals = array();
+        if ($rs) {
+            $i = 0;
+            while ($line = mysqli_fetch_assoc($rs)) {
+                if ($line["fyww"] !== null && $line["fyww"] !== "") {
+                    $ordinals[$line["fyww"]] = $i;
+                    $i++;
+                }
+            }
+        }
+
+        mysqli_close($con);
+
+        return $ordinals;
     }
 }
 
@@ -199,6 +333,62 @@ if (!function_exists('GET_USERNAME_FOR_EMPLOYEE')) {
         mysqli_close($con);
 
         return ($username === null) ? "" : $username;
+    }
+}
+
+if (!function_exists('GET_MULTI_RTE_EXCEPTIONS')) {
+
+    /**
+     * Exception report: MFG_PART_NUMs that map to MORE THAN ONE distinct sap_rte_id
+     * for the SAME site_num. A given part at a given site should resolve to a single
+     * SAP routing; more than one is a data anomaly worth surfacing at the top of the
+     * report.
+     *
+     * mfg_part_num + site_num come from brain.tp_instance_data; sap_rte_id from
+     * brain.tp_instance_main, joined on tpi_id. We count DISTINCT non-null sap_rte_id
+     * per (mfg_part_num, site_num) and keep only groups with >1, listing the routes.
+     *
+     * @return array List of assoc rows:
+     *               mfg_part_num, site_num, rte_count, sap_rte_ids (comma list)
+     */
+    function GET_MULTI_RTE_EXCEPTIONS() {
+
+        include_once("/var/www/html/MYSQLI_COMMON_FUNCTIONS.PHP");
+
+        $con = Open_ILink("localhost");
+
+        $sql = "
+            SELECT
+                d.mfg_part_num AS mfg_part_num,
+                d.site_num     AS site_num,
+                COUNT(DISTINCT m.sap_rte_id) AS rte_count,
+                GROUP_CONCAT(DISTINCT m.sap_rte_id ORDER BY m.sap_rte_id SEPARATOR ', ') AS sap_rte_ids
+            FROM brain.tp_instance_data d
+            JOIN brain.tp_instance_main m
+                  ON m.tpi_id = d.tpi_id
+            WHERE d.mfg_part_num IS NOT NULL AND d.mfg_part_num <> ''
+              AND m.sap_rte_id  IS NOT NULL AND m.sap_rte_id  <> ''
+            GROUP BY d.mfg_part_num, d.site_num
+            HAVING COUNT(DISTINCT m.sap_rte_id) > 1
+            ORDER BY d.mfg_part_num, d.site_num;";
+
+        $rs = ExecuteIQuery($sql, $con);
+
+        $rows = array();
+        if ($rs) {
+            while ($line = mysqli_fetch_assoc($rs)) {
+                $rows[] = array(
+                    "mfg_part_num" => $line["mfg_part_num"],
+                    "site_num"     => $line["site_num"],
+                    "rte_count"    => $line["rte_count"],
+                    "sap_rte_ids"  => $line["sap_rte_ids"],
+                );
+            }
+        }
+
+        mysqli_close($con);
+
+        return $rows;
     }
 }
 ?>
