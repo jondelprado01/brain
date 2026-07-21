@@ -50,15 +50,15 @@ else{
     // $_SESSION["EMP_ROLE"]         = "User";
     // $_SESSION["EMP_USER_GROUP"]   = ['Production Planning'];
 
-    $_SESSION["SYSTEM"]           = "BRAIN";
-    $_SESSION["EMP_NO"]           = "2008473";
-    $_SESSION["EMP_NAME"]         = "Jonathan Del Prado";
-    $_SESSION["EMP_EMAIL"]        = "Jonathan.Delprado@analog.com";
-    $_SESSION["EMP_ROLE"]         = "Administrator";
-    $_SESSION["EMP_USER_GROUP"]   = [];
+    // $_SESSION["SYSTEM"]           = "BRAIN";
+    // $_SESSION["EMP_NO"]           = "2008473";
+    // $_SESSION["EMP_NAME"]         = "Jonathan Del Prado";
+    // $_SESSION["EMP_EMAIL"]        = "Jonathan.Delprado@analog.com";
+    // $_SESSION["EMP_ROLE"]         = "Administrator";
+    // $_SESSION["EMP_USER_GROUP"]   = [];
     
-    header("Location: INDEX.PHP");
-    return;
+    // header("Location: INDEX.PHP");
+    // return;
 
     require('../../SSO/nusoap/lib/nusoap.php');
     $l_oClient = new nusoap_client('http://ds2.maxim-ic.com/singlesignon/userauth.php');
