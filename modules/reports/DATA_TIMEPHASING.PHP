@@ -124,6 +124,13 @@ if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
 			$aryTemp = $LineMain;
 			unset($aryTemp["TPI_ID"]);
 
+            #202607-21 RM force something for generic when not found
+            if(!is_null($aryTemp["GENERIC"]) && trim($aryTemp["GENERIC"]) != "") {
+                #do nothing
+            }else{
+                $aryTemp["GENERIC"] = "NO_GENERIC";
+            }
+
 			$aryMain[$intTPIID] = $aryTemp;
 			$aryTPIIDTemp[] = mysqli_real_escape_string($iConBRAIN,$intTPIID);
 		}
@@ -136,7 +143,11 @@ if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
 				HM.HIST_TYPE,
 				HM.HIST_DT,
 				HM.CHANGE_USER,
-				IFNULL(WD.AD_NAME,HM.CHANGE_USER) USERNAME
+				CASE TRUE
+                    WHEN BUA.EMP_NAME IS NOT NULL THEN BUA.EMP_NAME
+                    WHEN WD.AD_NAME IS NOT NULL THEN WD.AD_NAME
+                    ELSE HM.CHANGE_USER
+                END USERNAME
 				FROM BRAIN.TP_INSTANCE_HIST_MASTER HM
 				INNER JOIN 
 				(
@@ -145,6 +156,7 @@ if (!function_exists('GET_TIMEPHASING_SCHEDULES')) {
 					FROM BRAIN.TP_INSTANCE_HIST_MASTER
 					GROUP BY TPI_ID
 				) HM_MAX ON HM.TPH_MASTER_ID = HM_MAX.TPH_MASTER_ID
+                LEFT JOIN BRAIN.USER_ACCOUNT BUA ON HM.CHANGE_USER = BUA.EMP_ID
 				LEFT JOIN PERSONNEL.V_WORKDAY_MEMORY WD ON HM.CHANGE_USER = WD.EMPLOYEE_NO
 				WHERE HM.TPI_ID IN (".implode(",",$aryTPIIDTemp).");";
 			$RSMain = ExecuteIQuery($strSQL,$iConBRAIN);
@@ -296,13 +308,25 @@ if (!function_exists('GET_FYWW_ORDINALS')) {
 if (!function_exists('GET_USERNAME_FOR_EMPLOYEE')) {
 
     /**
-     * Resolve a single employee_no to its ad_name (the "username" used in the
-     * schedule listing), from the same personnel.v_workday_memory view the main
-     * query joins against. Used to default the Timephasing username filter to the
-     * logged-in user so they see their own schedules first.
+     * Resolve a single employee_no to the SAME "username" string the schedule
+     * listing shows for rows that employee edited, so the Timephasing username
+     * filter can default to the logged-in user and actually match their rows.
+     *
+     * This MUST mimic the cascade the main GET_TIMEPHASING_SCHEDULES() history
+     * query uses to build USERNAME (its CASE over the two LEFT JOINs on
+     * HM.CHANGE_USER), or the default filter value won't equal the displayed
+     * name and the user sees an empty grid:
+     *   1. BRAIN.USER_ACCOUNT.EMP_NAME       (keyed EMP_ID = employee_no)
+     *   2. PERSONNEL.V_WORKDAY_MEMORY.AD_NAME (keyed EMPLOYEE_NO = employee_no)
+     *   3. else the raw employee_no itself
+     * "IS NOT NULL" semantics are matched: a present-but-null EMP_NAME falls
+     * through to the workday name, exactly as the SQL CASE does.
+     *
+     * Per the app's query convention we don't reproduce the JOINs here; we run
+     * two targeted PK/index lookups and resolve the precedence in PHP.
      *
      * @param  string|int $employee_no  the logged-in user's EMP_NO
-     * @return string                    ad_name, or "" if not found / no input
+     * @return string                    the resolved username, or "" if no input
      */
     function GET_USERNAME_FOR_EMPLOYEE($employee_no) {
 
@@ -317,22 +341,37 @@ if (!function_exists('GET_USERNAME_FOR_EMPLOYEE')) {
         //employee_no comes from the session (set at login), but escape defensively.
         $safe_emp = mysqli_real_escape_string($con, $employee_no);
 
+        //1) BRAIN.USER_ACCOUNT.EMP_NAME — first preference (EMP_ID = employee_no).
+        $username = null;
         $sql = "
-            SELECT wm.ad_name AS username
-            FROM personnel.v_workday_memory wm
-            WHERE wm.employee_no = '".$safe_emp."'
+            SELECT ua.EMP_NAME AS username
+            FROM BRAIN.USER_ACCOUNT ua
+            WHERE ua.EMP_ID = '".$safe_emp."'
             LIMIT 1;";
-
         $rs = ExecuteIQuery($sql, $con);
-
-        $username = "";
         if ($rs && ($line = mysqli_fetch_assoc($rs))) {
-            $username = $line["username"];
+            $username = $line["username"];   //null if the column is NULL -> fall through
+        }
+
+        //2) PERSONNEL.V_WORKDAY_MEMORY.AD_NAME — second preference
+        //   (EMPLOYEE_NO = employee_no). Only consulted when EMP_NAME was NULL.
+        if ($username === null) {
+            $sql = "
+                SELECT wm.ad_name AS username
+                FROM personnel.v_workday_memory wm
+                WHERE wm.employee_no = '".$safe_emp."'
+                LIMIT 1;";
+            $rs = ExecuteIQuery($sql, $con);
+            if ($rs && ($line = mysqli_fetch_assoc($rs))) {
+                $username = $line["username"];
+            }
         }
 
         mysqli_close($con);
 
-        return ($username === null) ? "" : $username;
+        //3) fallback: the raw employee_no, mirroring the CASE's ELSE HM.CHANGE_USER
+        //   so the default filter still matches rows resolved to the bare emp_no.
+        return ($username === null) ? $employee_no : $username;
     }
 }
 

@@ -85,6 +85,20 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
         </script>
         <script src="../../js/report-timephasing.js"></script>
         <style>
+            /* shrink the main table so wide rows stay in bounds: smaller cell text
+               + tighter horizontal padding across header labels and body cells. */
+            #tpScheduleTable,
+            #tpScheduleTable th,
+            #tpScheduleTable td {
+                font-size: 13px;
+            }
+            #tpScheduleTable th,
+            #tpScheduleTable td {
+                padding-top: 4px;
+                padding-bottom: 4px;
+                padding-left: 6px;
+                padding-right: 6px;
+            }
             /* per-column filter inputs sit directly under each header label */
             #tpScheduleTable thead .column-filter {
                 width: 100%;
@@ -114,6 +128,103 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
             }
             #tpScheduleTable thead .column-filter-clear:hover {
                 color: #dc3545;
+            }
+            /* ---- custom filter dropdown (checkbox exact-set / operator compare) ---- */
+            /* the popover hangs off the wrapped filter input; sits above the sticky
+               header and scrolls internally when the value list is long. */
+            #tpScheduleTable thead .tp-filter-menu {
+                position: absolute;
+                z-index: 30;
+                top: 100%;
+                left: 0;
+                min-width: 220px;
+                max-width: 360px;
+                max-height: 280px;
+                overflow-y: auto;
+                margin-top: 2px;
+                padding: 6px;
+                background: #fff;
+                border: 1px solid #6c9bd2;
+                border-radius: 4px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+                font-weight: normal;
+                white-space: nowrap;
+            }
+            /* the menu's option rows: block labels with a checkbox/radio + value */
+            #tpScheduleTable thead .tp-filter-menu-list {
+                display: block;
+            }
+            #tpScheduleTable thead .tp-filter-opt {
+                display: flex;
+                align-items: baseline;
+                gap: 6px;
+                margin: 0;
+                padding: 2px 4px;
+                font-size: 12px;
+                cursor: pointer;
+                border-radius: 3px;
+            }
+            #tpScheduleTable thead .tp-filter-opt:hover {
+                background: #eef4fb;
+            }
+            /* keyboard highlight: the option whose checkbox/radio has focus (arrow-key
+               navigation). Highlighted but NOT checked until Space is pressed. */
+            #tpScheduleTable thead .tp-filter-opt:focus-within {
+                background: #dce8f7;
+                outline: 2px solid #6c9bd2;
+                outline-offset: -2px;
+            }
+            /* the native focus ring on the tiny input is redundant with the row
+               highlight; hide it so the row outline reads as the single indicator */
+            #tpScheduleTable thead .tp-filter-opt input:focus {
+                outline: none;
+            }
+            #tpScheduleTable thead .tp-filter-opt > span {
+                white-space: normal;
+                word-break: break-word;
+            }
+            #tpScheduleTable thead .tp-filter-opt input {
+                margin-top: 2px;
+                flex: 0 0 auto;
+            }
+            /* Select all / Clear action row */
+            #tpScheduleTable thead .tp-filter-menu-actions {
+                display: flex;
+                justify-content: space-between;
+                gap: 10px;
+                padding: 0 4px 6px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid #e2ecf7;
+            }
+            #tpScheduleTable thead .tp-filter-menu-actions a {
+                font-size: 11px;
+                text-decoration: none;
+                color: #6c9bd2;
+            }
+            #tpScheduleTable thead .tp-filter-menu-actions a:hover {
+                text-decoration: underline;
+            }
+            /* operator (=,>,>=,<,<=) row for FYWW / CHANGE DATE */
+            #tpScheduleTable thead .tp-filter-op-row {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                padding: 0 4px 6px;
+                margin-bottom: 4px;
+                border-bottom: 1px solid #e2ecf7;
+            }
+            #tpScheduleTable thead .tp-filter-op {
+                width: auto;
+                font-size: 12px;
+            }
+            #tpScheduleTable thead .tp-filter-op-hint {
+                font-size: 11px;
+                color: #888;
+            }
+            #tpScheduleTable thead .tp-filter-empty {
+                font-size: 12px;
+                color: #888;
+                padding: 4px;
             }
             /* keep the header label + its filter box stacked */
             #tpScheduleTable thead th {
@@ -153,6 +264,10 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
             #tpScheduleTable .all-db-btn,
             #tpScheduleTable .pa-btn {
                 white-space: nowrap;
+                /* shrink the PA / ALL DB buttons to hug the row text height */
+                font-size: 11px;
+                line-height: 1.1;
+                padding: 3px 6px;
             }
             /* grouped MFG_PART_NUM (a part with >1 schedule): shade the block and
                box it with top/bottom borders so the group reads as one unit.
@@ -217,6 +332,11 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
             .tp-whatsnew [aria-expanded="true"] .tp-wn-chevron {
                 transform: rotate(180deg);
             }
+            /* exceptions banner chevron (collapsed by default, same behavior) */
+            .tp-exc-chevron { transition: transform 0.15s ease; }
+            .tp-exceptions-wrap [aria-expanded="true"] .tp-exc-chevron {
+                transform: rotate(180deg);
+            }
             /* ---- FYWW herringbone (schedule density) --------------------- */
             /* Horizontal spine: a flex row of per-week columns. Each week has a
                center spine node (FYWW + badge) with one "bone" card either above
@@ -247,14 +367,43 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
             /* vertical-orientation variant: same PNG rotated 90deg clockwise */
             .tp-hb-icon-rot { transform: rotate(90deg); }
             #tpHerringbone { overflow: visible; padding: 16px 24px; }
-            /* summary counts (delinquent / risk / OK) above the diagram */
-            .tp-hb-summarybar {
+            /* Floating control panel: the Group by toggle + delinquent/risk/OK
+               counts. Sticky on BOTH axes (relative to the scrolling modal) so it
+               stays pinned to the top-left corner while the user scrolls a large
+               fishbone in either orientation. Solid background + shadow so it reads
+               cleanly over the diagram; high z-index so bones scroll underneath. */
+            .tp-hb-float {
                 position: sticky;
+                top: 0;
                 left: 0;
+                z-index: 20;
+                display: inline-flex;
+                flex-direction: column;
+                gap: 10px;
+                width: fit-content;
+                width: -moz-fit-content;
+                margin-bottom: 14px;
+                padding: 10px 12px;
+                background: rgba(255, 255, 255, 0.96);
+                border: 1px solid #d0d7de;
+                border-radius: 8px;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+            }
+            /* the group-by toggle inside the floating panel */
+            .tp-hb-groupby { align-items: center; }
+            .tp-hb-groupby-label {
+                align-self: center;
+                margin-right: 8px;
+                font-size: 12px;
+                font-weight: 600;
+                color: #6c757d;
+                white-space: nowrap;
+            }
+            /* summary counts (delinquent / risk / OK) */
+            .tp-hb-summarybar {
                 display: flex;
                 gap: 18px;
                 align-items: center;
-                margin-bottom: 14px;
                 font-size: 13px;
                 font-weight: 600;
             }
@@ -542,6 +691,16 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                                 <div class="collapse mt-2" id="tpWhatsNew">
                                     <div class="card card-body tp-wn-body">
                                         <div class="tp-wn-release">
+                                            <div class="tp-wn-date">2026-07-21</div>
+                                            <ul class="tp-wn-list">
+                                                <li><strong>Exceptions banner is now collapsible</strong> and collapsed by default, showing <em>&ldquo;Exceptions: X&rdquo;</em> &mdash; click to expand the details.</li>
+                                                <li><strong>Column filters &mdash; multi-select &amp; exact match:</strong> MFG PART NUM, GENERIC, PROCESS TYPE, NOTES and USERNAME filters now open a dropdown where you can <strong>check multiple exact values</strong> (an OR list) instead of a single wildcard &mdash; e.g. show only <em>&ldquo;platform migration - no sus&rdquo;</em> and <em>&ldquo;platform migration - no sus|primary platform update&rdquo;</em> and nothing else. The search box inside the dropdown narrows the choices; leaving everything unchecked keeps the old type-to-filter behavior.</li>
+                                                <li><strong>FYWW and CHANGE DATE comparisons:</strong> filter these columns with <strong>=, &gt;, &gt;=, &lt;, &lt;=</strong> against a chosen value (e.g. FYWW &ge; a given week).</li>
+                                                <li><strong>Schedule Density fishbone &mdash; Group by</strong> toggle: within each fiscal-week bone you can now cluster the schedules by <strong>Username</strong> (default) or by <strong>Generic</strong>.</li>
+                                                <li>Initial Filter now uses BRAIN internal tables as primary reference for emp_no &rarr; name. Fails over to Workday ad_name when not found.</li>
+                                            </ul>
+                                        </div>
+                                        <div class="tp-wn-release">
                                             <div class="tp-wn-date">2026-07-20</div>
                                             <ul class="tp-wn-list">
                                                 <li>New <strong>GENERIC</strong> column, shown right after MFG PART NUM (filterable and sortable like any other column).</li>
@@ -567,52 +726,78 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                                 </div>
                             </div>
 
-                            <!-- EXCEPTION REPORT: MFG_PART_NUMs with >1 sap_rte_id for the same SITE_NUM.
-                                 Rendered server-side; only shown when anomalies exist. -->
-                            <?php if (!empty($multi_rte_exceptions)) { ?>
-                                <div class="alert alert-warning tp-exceptions" role="alert">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <i class="fa-solid fa-triangle-exclamation me-2"></i>
-                                        <strong>
-                                            Exceptions: <?php echo count($multi_rte_exceptions); ?>
-                                            MFG PART NUM / SITE with more than one SAP_RTE_ID
-                                        </strong>
+                            <!-- EXCEPTION REPORT: data anomalies surfaced for the user.
+                                 Collapsed by default; the toggle shows the TOTAL count across
+                                 all exception categories. Currently one category (MFG_PART_NUM
+                                 with >1 sap_rte_id for the same SITE_NUM); as more are added,
+                                 include their counts in $tp_exception_count and add a section
+                                 inside the collapse body. Only rendered when something exists. -->
+                            <?php
+                                //total exceptions across all categories (extend as categories are added)
+                                $tp_exception_count = count($multi_rte_exceptions);
+                            ?>
+                            <?php if ($tp_exception_count > 0) { ?>
+                                <div class="tp-exceptions-wrap mb-3">
+                                    <button class="btn btn-sm btn-warning" type="button"
+                                            data-bs-toggle="collapse" data-bs-target="#tpExceptions"
+                                            aria-expanded="false" aria-controls="tpExceptions">
+                                        <i class="fa-solid fa-triangle-exclamation"></i>
+                                        Exceptions: <?php echo $tp_exception_count; ?>
+                                        <i class="fa-solid fa-chevron-down tp-exc-chevron"></i>
+                                    </button>
+                                    <div class="collapse mt-2" id="tpExceptions">
+                                        <div class="alert alert-warning tp-exceptions mb-0" role="alert">
+                                            <div class="d-flex align-items-center mb-2">
+                                                <i class="fa-solid fa-triangle-exclamation me-2"></i>
+                                                <strong>
+                                                    <?php echo count($multi_rte_exceptions); ?>
+                                                    MFG PART NUM / SITE with more than one SAP_RTE_ID
+                                                </strong>
+                                            </div>
+                                            <div class="mb-2 fst-italic">
+                                                Please report this to your local BRAIN admin.
+                                            </div>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm table-bordered mb-0 tp-exceptions-table">
+                                                    <thead>
+                                                        <tr>
+                                                            <th>MFG PART NUM</th>
+                                                            <th>SITE NUM</th>
+                                                            <th># RTE</th>
+                                                            <th>SAP_RTE_IDs</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <?php foreach ($multi_rte_exceptions as $ex) {
+                                                            //click-to-jump to Planning Assumptions for this part,
+                                                            //same navigation as the report's per-row PA button
+                                                            //(root INDEX.PHP?partnum[0]=<part> into the reused
+                                                            //"brain_pa" tab).
+                                                            $ex_href = "../../INDEX.PHP?partnum[0]=" . rawurlencode($ex["mfg_part_num"]);
+                                                        ?>
+                                                            <tr>
+                                                                <td>
+                                                                    <a href="<?php echo htmlspecialchars($ex_href); ?>"
+                                                                       target="brain_pa"
+                                                                       title="Load Planning Assumptions for this part"><?php echo htmlspecialchars($ex["mfg_part_num"]); ?></a>
+                                                                </td>
+                                                                <td><?php echo htmlspecialchars($ex["site_num"]); ?></td>
+                                                                <td><?php echo htmlspecialchars($ex["rte_count"]); ?></td>
+                                                                <td><?php echo htmlspecialchars($ex["sap_rte_ids"]); ?></td>
+                                                            </tr>
+                                                        <?php } ?>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div class="mb-2 fst-italic">
-                                        Please report this to your local BRAIN admin.
-                                    </div>
-                                    <div class="table-responsive">
-                                        <table class="table table-sm table-bordered mb-0 tp-exceptions-table">
-                                            <thead>
-                                                <tr>
-                                                    <th>MFG PART NUM</th>
-                                                    <th>SITE NUM</th>
-                                                    <th># RTE</th>
-                                                    <th>SAP_RTE_IDs</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php foreach ($multi_rte_exceptions as $ex) {
-                                                    //click-to-jump to Planning Assumptions for this part,
-                                                    //same navigation as the report's per-row PA button
-                                                    //(root INDEX.PHP?partnum[0]=<part> into the reused
-                                                    //"brain_pa" tab).
-                                                    $ex_href = "../../INDEX.PHP?partnum[0]=" . rawurlencode($ex["mfg_part_num"]);
-                                                ?>
-                                                    <tr>
-                                                        <td>
-                                                            <a href="<?php echo htmlspecialchars($ex_href); ?>"
-                                                               target="brain_pa"
-                                                               title="Load Planning Assumptions for this part"><?php echo htmlspecialchars($ex["mfg_part_num"]); ?></a>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($ex["site_num"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($ex["rte_count"]); ?></td>
-                                                        <td><?php echo htmlspecialchars($ex["sap_rte_ids"]); ?></td>
-                                                    </tr>
-                                                <?php } ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
+                                </div>
+                            <?php } else { ?>
+                                <div class="tp-exceptions-wrap mb-3">
+                                    <span class="btn btn-sm btn-success disabled" aria-disabled="true">
+                                        <i class="fa-solid fa-circle-check"></i>
+                                        Exceptions: none
+                                    </span>
                                 </div>
                             <?php } ?>
 
@@ -670,14 +855,18 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                                         <th>USERNAME</th>
                                         <th class="no-export"><i class="fa-solid fa-frog"></i> LINKS</th>
                                     </tr>
+                                    <!-- Filter row. data-filter-kind drives the widget report-timephasing.js
+                                         builds: "text" = search box + checkbox exact-match set; "cmp" =
+                                         operator (=,>,>=,<,<=) + one reference value; "notes" = legacy
+                                         wildcard box + native datalist. -->
                                     <tr class="tp-filter-row">
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="0" placeholder="Filter MFG PART NUM"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="1" placeholder="Filter GENERIC"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="2" placeholder="Filter FYWW"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="3" placeholder="Filter PROCESS TYPE"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="4" placeholder="Filter NOTES"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="5" placeholder="Filter CHANGE DATE"></th>
-                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="6" placeholder="Filter USERNAME"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="0" data-filter-kind="text" placeholder="Filter MFG PART NUM"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="1" data-filter-kind="text" placeholder="Filter GENERIC"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="2" data-filter-kind="cmp" placeholder="Compare FYWW"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="3" data-filter-kind="text" placeholder="Filter PROCESS TYPE"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="4" data-filter-kind="text" placeholder="Filter NOTES"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="5" data-filter-kind="cmp" placeholder="Compare CHANGE DATE"></th>
+                                        <th><input type="text" class="form-control form-control-sm column-filter" data-col="6" data-filter-kind="text" placeholder="Filter USERNAME"></th>
                                         <th class="no-export"></th>
                                     </tr>
                                 </thead>
@@ -718,7 +907,11 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                         <h5 class="modal-title" id="tpHerringboneLabel">
                             <img src="../../img/fishbone_285_139.png" alt="Fishbone" class="tp-hb-title-icon"> Timephasing Density by FYWW
                         </h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <!-- The Group by toggle + delinquent/risk/OK counts render as a
+                             floating panel INSIDE the diagram (report-timephasing.js
+                             hbFloatPanel) so they stay pinned while scrolling a large
+                             fishbone in either orientation. -->
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
                         <div id="tpHerringbone" class="tp-herringbone">
