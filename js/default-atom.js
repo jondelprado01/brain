@@ -125,7 +125,10 @@ function getDefaultAtom(table_default_atom) {
                     item['DA_ID']
                 ]);
             });
-            table_default_atom.draw(false);
+            setTimeout(function(){
+                $(".loading-alert").fadeOut();
+                table_default_atom.draw(false);
+            },1500);
         },
         complete: function(){
             $('.modal').modal('hide');

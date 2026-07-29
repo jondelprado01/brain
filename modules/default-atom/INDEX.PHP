@@ -69,6 +69,9 @@ include_once("../../requests/API.PHP");
                     <h3 class="card-title text-center">DEFAULT ATOM</h3>
                 </div>
                 <div class="card-body">
+                    <div class="alert alert-light loading-alert" role="alert">
+                        <span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Loading data, please wait... 
+                    </div>
                     <div class="row">
                         <div class="col-lg-12">
                             <table class="table table-bordered table-hover table-striped table-default-atom">
