@@ -9,7 +9,7 @@ function GET_OEE_DATA(){
     try {
         $curl = curl_init();
         curl_setopt_array($curl, array(
-            CURLOPT_URL => 'http://MXHTAFOT01L.maxim-ic.com/TEST/OEE_OVERRIDE_TEST.PHP?PROCESS_TYPE=GET_OEE_FOR_REPORT',
+            CURLOPT_URL => 'http://MXHTAFOT01L.maxim-ic.com/TEST/OEE_OVERRIDE.PHP?PROCESS_TYPE=GET_OEE_FOR_REPORT',
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_ENCODING => '',
             CURLOPT_MAXREDIRS => 10,

@@ -21,6 +21,7 @@ $assets = RENDER_ASSETS("module");
 
 //LIVE TIMEPHASING SCHEDULE DATASET (retrieved once, filtered client-side)
 include_once("DATA_TIMEPHASING.PHP");
+include_once("DATA_OEE.PHP");
 $timephasing = GET_TIMEPHASING_SCHEDULES();
 
 //AD name of the logged-in user (same personnel.v_workday_memory the listing uses),
@@ -38,6 +39,9 @@ $fyww_ordinals = GET_FYWW_ORDINALS();
 //exception report data: MFG_PART_NUMs with >1 distinct sap_rte_id for the same
 //site_num (a data anomaly), shown at the top of the Timephasing pane.
 $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
+
+//all oee override data with history log attached - jon
+$oee_data = GET_OEE_DATA();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -82,8 +86,11 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
             //chronological ordinal per FYWW, for proportional rib spacing in the
             //density fishbone (correct across fiscal-year boundaries).
             var fyww_ordinals = <?php echo json_encode($fyww_ordinals); ?>;
+            //all oee override data with history log attached - jon
+            var oee_data = <?php echo json_encode($oee_data); ?>;
         </script>
         <script src="../../js/report-timephasing.js"></script>
+        <script src="../../js/report-oee.js"></script>
         <style>
             /* shrink the main table so wide rows stay in bounds: smaller cell text
                + tighter horizontal padding across header labels and body cells. */
@@ -627,6 +634,62 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                 background: #f8f9fa;
                 z-index: 1;
             }
+
+            #dt-length-0, #dt-length-1{
+                margin-right: 5px!important;
+            }
+
+            .tree-timeline {
+                position: relative;
+                margin-left: 20px;
+            }
+
+            .tree-item {
+                position: relative;
+                padding-left: 40px;
+                padding-bottom: 25px;
+            }
+
+            /* Vertical line */
+            .tree-item::before {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 0;
+                bottom: -25px;
+                width: 2px;
+                background: #adb5bd;
+            }
+
+            /* Horizontal connector */
+            .tree-item::after {
+                content: "";
+                position: absolute;
+                left: 10px;
+                top: 22px;
+                width: 20px;
+                height: 2px;
+                background: #adb5bd;
+            }
+
+            /* Stop the vertical line after the last item */
+            .tree-item:last-child::before {
+                bottom: calc(100% - 22px);
+            }
+
+            #table-oee-report.dataTable thead .dt-column-order {
+                display: none !important;
+            }
+            
+            #table-oee-report.dataTable .form-control-sm{
+               font-size: 0.75rem!important;
+            }
+
+            #table-oee-report.dataTable input[type="number"]::-webkit-outer-spin-button,
+            #table-oee-report.dataTable input[type="number"]::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
         </style>
     </head>
 
@@ -876,9 +939,84 @@ $multi_rte_exceptions = GET_MULTI_RTE_EXCEPTIONS();
                         <!-- OEE (placeholder) -->
                         <div class="tab-pane fade" id="oee-pane" role="tabpanel"
                              aria-labelledby="oee-tab" tabindex="0">
-                            <div class="alert alert-secondary text-center my-3" role="alert">
-                                <i class="fa-solid fa-screwdriver-wrench"></i> OEE report coming soon.
+                             
+                             <div class="tp-sort-controls">
+                                <?php $col_arr = ["", "SITE_NUM", "RES_AREA", "TESTER", "HANDLER", "TEMP_CLASS", "MFG_PART_NUM", "CHANGE_USER"]; ?>
+                                <div>
+                                    <label class="form-label" for="oee-first-column">Sort by</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-first-column">
+                                        <?php
+                                            foreach ($col_arr as $key => $col) {
+                                                if ($key > 0) {
+                                                    $selected = ($key == 1) ? "selected" : "";
+                                                    echo '<option value="'.$key.'" '.$selected.'>'.$col.'</option>';
+                                                }
+                                            }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-first-direction">Direction</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-first-direction">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-second-column">Then by</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-second-column">
+                                        <option value="">(none)</option>
+                                        <?php
+                                            foreach ($col_arr as $key => $col) {
+                                                if ($key > 0) {
+                                                    $selected = ($key == 4) ? "selected" : "";
+                                                    echo '<option value="'.$key.'" '.$selected.'>'.$col.'</option>';
+                                                }
+                                            }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="form-label" for="oee-second-direction">Direction</label>
+                                    <select class="form-select form-select-sm dropdown-sort" id="oee-second-direction">
+                                        <option value="asc">Ascending</option>
+                                        <option value="desc">Descending</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary" id="oee-reset-sort">
+                                        Reset to default
+                                    </button>
+                                </div>
                             </div>
+
+                            <table class="table table-bordered table-hover table-striped display compact" id="table-oee-report">
+                                <thead>
+                                    <tr>
+                                        <th>HISTORY</th>
+                                        <th>SITE_NUM</th>
+                                        <th>RES_AREA</th>
+                                        <th>TESTER</th>
+                                        <th>HANDLER</th>
+                                        <th>TEMP_CLASS</th>
+                                        <th>MFG_PART_NUM</th>
+                                        <th>OEE</th>
+                                        <th>CHANGE_USER</th>
+                                    </tr>
+                                    <tr>
+                                        <th>&nbsp;</th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter SITE_NUM"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter RES_AREA"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter TESTER"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter HANDLER"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter TEMP_CLASS"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter MFG_PART_NUM"></th>
+                                        <th><input  type="search" class="form-control form-control-sm" placeholder="Filter OEE"></th>
+                                        <th><input  type="search" class="form-control form-control-sm change-user-filter" placeholder="Filter CHANGE_USER" value="<?php echo $_SESSION["EMP_NAME"]; ?>"></th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
                         </div>
 
                         <!-- NEW PARTS (placeholder) -->
