@@ -27,8 +27,10 @@ $(document).ready(function(){
     function exportButtonType1(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 1; i <= 8; i++) {
-            cols.push(i);
+        for (var i = 1; i <= 11; i++) {
+            if ($.inArray(i, [9, 10]) === -1) {
+                cols.push(i);
+            }
         }
 
         if (type == 'print') {
@@ -40,6 +42,10 @@ $(document).ready(function(){
         }
         else{
             title_object = {title: 'BRAIN - HW Override [Type 1 - Hardware Mapping]'};
+            if (type == "pdf") {
+                title_object.orientation = 'landscape';
+                title_object.pageSize = 'A4';
+            }
         }
 
         let config_object = {
@@ -78,6 +84,10 @@ $(document).ready(function(){
             {
                 targets: [0,1,8,9,10],
                 orderable: false
+            },
+            {
+                targets: 11,
+                visible: false
             }
         ],
         responsive: true,
@@ -108,7 +118,7 @@ $(document).ready(function(){
             $("#modal-export").modal("show");
         }
         else{
-            hw_override_table.button(".buttons-"+export_type+"-type1").trigger();
+            hw_override_table.button(".buttons-"+export_type+"-"+tab_type).trigger();
         }
     });
 

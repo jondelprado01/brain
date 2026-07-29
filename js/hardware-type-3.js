@@ -18,8 +18,10 @@ $(document).ready(function(){
     function exportButtonType3(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 1; i <= 5; i++) {
-            cols.push(i);
+        for (var i = 1; i <= 7; i++) {
+            if (i != 6) {
+                cols.push(i);
+            }
         }
 
         if (type == 'print') {
@@ -59,6 +61,12 @@ $(document).ready(function(){
         scrollY: 'calc(100vh - 550px)',
         bSort: false,
         responsive: true,
+        columnDefs: [
+            {
+                targets: 7,
+                visible: false
+            }
+        ],
         layout: {
             topStart: "pageLength",
             top2Start: {

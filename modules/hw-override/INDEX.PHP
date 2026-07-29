@@ -23,7 +23,7 @@ $assets = RENDER_ASSETS("module");
 //include user's name for querying their own records (type 1,2,3)
 $_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
 $response = API_REQUEST('hw-override-tool', json_encode($_GET));
-// echo "<pre>", var_dump($response['TYPE_3']), "</pre>";
+// echo "<pre>", var_dump($response['TYPE_2']), "</pre>";
 
 $existing_mapping = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_capacity = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
@@ -411,6 +411,7 @@ $has_delinquent_t2 = 0;
                                                                                 </ul>
                                                                             </div>
                                                                         </td>
+                                                                        <td><?php echo $mapping['CREATED_BY']; ?></td>
                                                                     </tr>
                                                                 <?php
                                                                 }
@@ -689,6 +690,7 @@ $has_delinquent_t2 = 0;
                                                                                 </ul>
                                                                             </div>
                                                                         </td>
+                                                                        <td><?php echo $capacity['CREATED_BY']; ?></td>
                                                                     </tr>
                                                                 <?php
                                                                 }
@@ -857,6 +859,7 @@ $has_delinquent_t2 = 0;
                                                                             <i class="fa-solid fa-eye"></i> View
                                                                         </button>
                                                                     </td>
+                                                                    <td><?php echo $nonboard['CREATED_BY']; ?></td>
                                                                 </tr>
                                                             <?php
                                                             }

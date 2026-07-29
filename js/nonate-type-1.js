@@ -18,7 +18,7 @@ $(document).ready(function(){
     function exportButtonNonateType1(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 0; i <= 6; i++) {
+        for (var i = 0; i <= 7; i++) {
             cols.push(i);
         }
 
@@ -92,9 +92,16 @@ $(document).ready(function(){
                 }
             },
             {
-            targets: 6, // first displayed column
+                targets: 6, // first displayed column
                 render: function(data, type, row, meta) {
                     return row[8];
+                }
+            },
+            {
+                targets: 7,
+                visible: false,
+                render: function(data, type, row, meta) {
+                    return row[9];
                 }
             }
         ],
@@ -156,6 +163,45 @@ $(document).ready(function(){
 
     $('.nonate-link').on('shown.bs.tab', function (e) {
         table_type_1.columns.adjust().draw();
+    });
+
+    //SET CURRENT TAB IN THE URL
+    $('button.nonate-link[data-bs-toggle="tab"]').on('show.bs.tab', function (e) {
+        
+        const url = new URL(window.location.href);
+        let tab = $(this).attr("tab-name");
+        let tab_title = "";
+
+        switch (tab) {
+            case "type-1":
+                tab_title = "Type 1 - Load/Unload Hours";
+                break;
+            case "type-2":
+                tab_title = "Type 2 - Socket Efficiency";
+                break;
+            default:
+                tab_title = "Type 3 - Capacity Override";
+                break;
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        params.delete("tab");
+        
+        if (params.toString()) {
+            e.preventDefault();
+            $(".tab-name-switch").text(tab_title);
+            $("#modal-switch-tab").modal('show');
+            $(".btn-continue-switch").on("click", function(){
+                url.search = ''; // Clear all query parameters
+                url.searchParams.set('tab', tab);
+                window.location.href = url.toString();
+            });
+        }
+        else{
+            url.searchParams.set("tab", tab);
+            window.history.pushState('state', 'title', url.href);
+            $(".btn-export").attr("tab-type", tab);
+        }
     });
 
     preloadBurnin(existing_burnin, table_type_1);
@@ -453,7 +499,8 @@ function preloadBurnin(board, table_type_1){
                     parseFloat(168 / load_unload).toFixed(2),
                     item['HASH'],
                     item['ID'],
-                    item['HW_TYPE']
+                    item['HW_TYPE'],
+                    (item['UPDATED_BY'] != "" && item['UPDATED_BY'] != null) ? item['UPDATED_BY'] : item['CREATED_BY']
                 ]);
             // }
         });
@@ -493,6 +540,7 @@ function getBoardsBurnin(board, table_type_1){
                         let load_hours = (item['BURNIN_TYPE'] != "TCVOS") ? 10 : 0;
                         let load_unload;
                         let id = "UNCHANGED";
+                        let user = "";
         
                         if ($.inArray(item['BID'], existing_cell_id) !== -1) {
                             $.each(JSON.parse(existing_burnin), function(idx, itm){
@@ -500,6 +548,7 @@ function getBoardsBurnin(board, table_type_1){
                                     id = itm['ID'];
                                     load_hours = itm['LOAD_HOURS'];
                                     load_unload = parseFloat(itm['BI_HOURS']) + parseFloat(itm['LOAD_HOURS']);
+                                    user = (itm['UPDATED_BY'] != "" && itm['UPDATED_BY'] != null) ? itm['UPDATED_BY'] : itm['CREATED_BY'];
                                 }
                             });
                         }
@@ -516,7 +565,8 @@ function getBoardsBurnin(board, table_type_1){
                             parseFloat(168 / load_unload).toFixed(2),
                             item['BID'],
                             id,
-                            item['BURNIN_TYPE']
+                            item['BURNIN_TYPE'],
+                            user
                         ]);
                     });
         

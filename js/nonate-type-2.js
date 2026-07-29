@@ -18,7 +18,7 @@ $(document).ready(function(){
     function exportButtonNonateType2(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 0; i <= 2; i++) {
+        for (var i = 0; i <= 3; i++) {
             cols.push(i);
         }
 
@@ -74,6 +74,13 @@ $(document).ready(function(){
                     $(td).attr("cell-id-type2", rowData[3]);
                 }
             },
+            {
+                targets: 3,
+                visible: false,
+                render: function(data, type, row, meta) {
+                    return row[5];
+                }
+            }
         ],
         createdRow: function (row, data, index) {
             data[2] = parseFloat((data[2].replace("%", "") / 100).toFixed(3));
@@ -322,6 +329,7 @@ function preloadSocket(board, table_type_2){
                     parseFloat((item['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%',
                     item['HASH'],
                     item['ID'],
+                    (item['UPDATED_BY'] != "" && item['UPDATED_BY'] != null) ? item['UPDATED_BY'] : item['CREATED_BY']
                 ]);
             }
         });
@@ -360,12 +368,14 @@ function getBoardsSocket(board, table_type_2){
                     $.each(se_boards, function(index, item){
                         let socket_efficiency = 95;
                         let id = "UNCHANGED";
+                        let user = "";
                         
                         if ($.inArray(item['SEID'], existing_cell_id) !== -1) {
                             $.each(JSON.parse(existing_socket), function(idx, itm){
                                 if (item['SEID'] == itm['HASH']) {
                                     id = itm['ID'];
                                     socket_efficiency = parseFloat((itm['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%';
+                                    user = (itm['UPDATED_BY'] != "" && itm['UPDATED_BY'] != null) ? itm['UPDATED_BY'] : itm['CREATED_BY'];
                                 }
                             });
                         }
@@ -378,7 +388,8 @@ function getBoardsSocket(board, table_type_2){
                             item['HW_TYPE'],
                             socket_efficiency,
                             item['SEID'],
-                            id
+                            id,
+                            user
                         ]);
                     });
         

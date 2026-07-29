@@ -28,8 +28,10 @@ $(document).ready(function(){
     function exportButtonType2(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 1; i <= 9; i++) {
-            cols.push(i);
+        for (var i = 1; i <= 11; i++) {
+            if (i != 10) {
+                cols.push(i);
+            }
         }
 
         if (type == 'print') {
@@ -80,6 +82,10 @@ $(document).ready(function(){
             {
                 targets: '_all',
                 orderable: false
+            },
+            {
+                targets: 11,
+                visible: false
             }
         ],
         responsive: true,
@@ -111,7 +117,7 @@ $(document).ready(function(){
             $("#modal-export").modal("show");
         }
         else{
-            table_type_2.button(".buttons-"+export_type+"-type2").trigger();
+            table_type_2.button(".buttons-"+export_type+"-"+tab_type).trigger();
         }
     });
 
