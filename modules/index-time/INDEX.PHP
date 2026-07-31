@@ -195,7 +195,13 @@ $assets = RENDER_ASSETS("module");
                                                 <small>Fixed Index Time</small>
                                             </div>
                                             <div class="d-flex align-items-center">
-                                                <button type="button" class="btn btn-sm btn-primary" id="io-add-fixed">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-2 io-bulk-ups-open <?php echo $disable_btn; ?>" data-io-ups-type="fixed" data-bs-toggle="modal" data-bs-target="#ioBulkUpsertModal">
+                                                    <i class="fa-solid fa-table-list"></i> Bulk Add/Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger me-2 io-bulk-del-open <?php echo $disable_btn; ?>" data-io-del-type="fixed" data-bs-toggle="modal" data-bs-target="#ioBulkDeleteModal">
+                                                    <i class="fa-solid fa-trash"></i> Bulk Delete
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-primary <?php echo $disable_btn; ?>" id="io-add-fixed">
                                                     <i class="fa-solid fa-plus"></i> Add Index Time
                                                 </button>
                                             </div>
@@ -215,7 +221,7 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"mainTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>Matches</th><th>Edit</th></tr>";
+                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Tray/Tube Qty</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPI</th><th>Matches</th><th>Edit</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
@@ -225,6 +231,7 @@ $assets = RENDER_ASSETS("module");
                                                                     $aryLine = array(
                                                                         "HANDLER"=>$aryFITTemp["HANDLER"],
                                                                         "PKG_TYPE"=>$aryFITTemp["PKG_TYPE"],
+                                                                        "TRAY_TUBE_QTY"=>$aryFITTemp["TRAY_TUBE_QTY"],
                                                                         "BODY_SIZE"=>$aryFITTemp["BODY_SIZE"],
                                                                         "LEAD_COUNT_MIN"=>$aryFITTemp["LEAD_COUNT_MIN"],
                                                                         "LEAD_COUNT_MAX"=>$aryFITTemp["LEAD_COUNT_MAX"],
@@ -245,12 +252,13 @@ $assets = RENDER_ASSETS("module");
                                                                     echo "<td>".$intISDID."</td>";
                                                                     echo "<td>".$aryLine["HANDLER"]."</td>";
                                                                     echo "<td>".$aryLine["PKG_TYPE"]."</td>";
+                                                                    echo "<td>".$aryLine["TRAY_TUBE_QTY"]."</td>";
                                                                     echo "<td>".$aryLine["BODY_SIZE"]."</td>";
                                                                     echo "<td>".$aryLine["LEAD_COUNT_MIN"]."</td>";
                                                                     echo "<td>".$aryLine["LEAD_COUNT_MAX"]."</td>";
                                                                     echo "<td>".$aryLine["TEMP_CLASS"]."</td>";
                                                                     echo "<td>".$aryLine["UTPI"]."</td>";
-                                                                    echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
+                                                                    echo "<td>".number_format($aryLine["FIXED_ITPU"],5)."</td>";
                                                                     echo "<td class=\"scx-matches-cell\" data-isd-id=\"".$intISDID."\" data-handler=\"".htmlspecialchars($aryLine["HANDLER"], ENT_QUOTES)."\">View</td>";
                                                                     echo "<td class=\"io-edit-cell\" data-row=\"".htmlspecialchars(json_encode(IO_EDIT_ROW($intISDID, $aryFITTemp, 'fixed')), ENT_QUOTES)."\"><a href=\"#\" class=\"io-edit-link\">Edit</a></td>";
                                                                     echo "</tr>";
@@ -278,6 +286,7 @@ $assets = RENDER_ASSETS("module");
                                                                 LEAD_COUNT_MAX,
                                                                 TEMP_CLASS,
                                                                 UTPI,
+                                                                TRAY_TUBE_QTY,
                                                                 INDEX_VALUE,
                                                                 TTPI_THRESHOLD,
                                                                 COEFFICIENT,
@@ -321,7 +330,13 @@ $assets = RENDER_ASSETS("module");
                                                 <small>Variable Index Time</small>
                                             </div>
                                             <div class="d-flex align-items-center">
-                                                <button type="button" class="btn btn-sm btn-primary" id="io-add-variable">
+                                                <button type="button" class="btn btn-sm btn-outline-primary me-2 io-bulk-ups-open <?php echo $disable_btn; ?>" data-io-ups-type="variable" data-bs-toggle="modal" data-bs-target="#ioBulkUpsertModal">
+                                                    <i class="fa-solid fa-table-list"></i> Bulk Add/Edit
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-outline-danger me-2 io-bulk-del-open <?php echo $disable_btn; ?>" data-io-del-type="variable" data-bs-toggle="modal" data-bs-target="#ioBulkDeleteModal">
+                                                    <i class="fa-solid fa-trash"></i> Bulk Delete
+                                                </button>
+                                                <button type="button" class="btn btn-sm btn-primary <?php echo $disable_btn; ?>" id="io-add-variable">
                                                     <i class="fa-solid fa-plus"></i> Add Index Time
                                                 </button>
                                             </div>
@@ -336,7 +351,7 @@ $assets = RENDER_ASSETS("module");
                                                             echo "<table id=\"variableTable\" class=\"display compact h-100 cell-border\">";
                                                             #echo "<TABLE ID=\"tblFixed\" class=\"table table-striped\" BORDER=1 CELLSPACING=0 CELLPADDING=1>";
                                                             echo "<THEAD BGCOLOR=SILVER>";
-                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Soak Time</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPU</th><th>TTPI Threshold</th><th>Threshold Formula</th><th>Action</th><th>Matches</th><th>Edit</th></tr>";
+                                                            echo "<tr><th>ISD ID</th><th>Handler</th><th>Package Type</th><th>Soak Time</th><th>Body Size</th><th>Leads Min</th><th>Leads Max</th><th>Temp Class</th><th>UTPI</th><th>Fixed ITPI</th><th>TTPI Threshold</th><th>Threshold Formula</th><th>Action</th><th>Matches</th><th>Edit</th></tr>";
                                                             echo "</THEAD><TBODY CLASS=B1 BGCOLOR=#FFFFFF>";
 
                                                             $intCtr = 0;
@@ -373,9 +388,9 @@ $assets = RENDER_ASSETS("module");
                                                                         echo "<td>".$aryLine["LEAD_COUNT_MAX"]."</td>";
                                                                         echo "<td>".$aryLine["TEMP_CLASS"]."</td>";
                                                                         echo "<td>".$aryLine["UTPI"]."</td>";
-                                                                        echo "<td>".number_format($aryLine["FIXED_ITPU"],3)."</td>";
+                                                                        echo "<td>".number_format($aryLine["FIXED_ITPU"],5)."</td>";
                                                                         if(!is_null($aryLine["TTPI_THRESHOLD"])) {
-                                                                            echo "<td>".number_format($aryLine["TTPI_THRESHOLD"],3)."</td>";
+                                                                            echo "<td>".number_format($aryLine["TTPI_THRESHOLD"],5)."</td>";
                                                                         }else{
                                                                             echo "<td></td>";                                                                
                                                                         }                                                                
@@ -429,7 +444,7 @@ $assets = RENDER_ASSETS("module");
                                         <th>Leads Max</th>
                                         <th>Temp Class</th>
                                         <th>UTPI</th>
-                                        <th>Fixed ITPU</th>
+                                        <th>Fixed ITPI</th>
                                         <th>TTPI Threshold</th>
                                         <th>Threshold Formula</th>
                                     </tr>
@@ -563,6 +578,11 @@ $assets = RENDER_ASSETS("module");
                         </div>
                         <div class="modal-body">
 
+                            <div class="alert alert-warning py-2 mb-3">
+                                <i class="fa-solid fa-triangle-exclamation"></i>
+                                Changes are applied <strong>immediately to the LIVE database</strong>.
+                            </div>
+
                             <!-- hidden identity fields (edit mode) -->
                             <input type="hidden" id="io-isd-id" value="">
                             <input type="hidden" id="io-ism-id" value="">
@@ -590,10 +610,15 @@ $assets = RENDER_ASSETS("module");
                                     <label class="form-label" for="io-package">Package Type</label>
                                     <input type="text" class="form-control io-combo" id="io-package">
                                 </div>
+                                <div class="col-md-4 io-fixed-only">
+                                    <label class="form-label" for="io-tray-tube-qty">Tray/Tube Qty</label>
+                                    <input type="text" class="form-control io-combo" id="io-tray-tube-qty">
+                                    <div class="invalid-feedback">Must be a positive integer (or blank).</div>
+                                </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="io-soak-time">Soak Time</label>
                                     <input type="text" class="form-control io-combo" id="io-soak-time">
-                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                    <div class="invalid-feedback">Must be a positive integer (or blank).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="io-body-size">Body Size</label>
@@ -606,12 +631,12 @@ $assets = RENDER_ASSETS("module");
                                 <div class="col-md-4">
                                     <label class="form-label" for="io-lead-min">Leads Min</label>
                                     <input type="text" class="form-control io-combo" id="io-lead-min">
-                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                    <div class="invalid-feedback">Must be a positive integer (or blank).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="io-lead-max">Leads Max</label>
                                     <input type="text" class="form-control io-combo" id="io-lead-max">
-                                    <div class="invalid-feedback">Must be a number &gt; 0 (or blank).</div>
+                                    <div class="invalid-feedback">Must be a positive integer (or blank).</div>
                                 </div>
                                 <div class="col-md-4">
                                     <label class="form-label" for="io-utpi">UTPI</label>
@@ -674,6 +699,77 @@ $assets = RENDER_ASSETS("module");
             </div>
         </div>
 
+        <!-- ===== Batch Delete modal ===================================== -->
+        <div class="modal fade" id="ioBulkDeleteModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ioBulkDeleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="ioBulkDeleteModalLabel"><i class="fa-solid fa-trash"></i> Batch Delete Index Times</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger py-2 mb-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Deletions are applied <strong>immediately to the LIVE database</strong> and are <strong>PERMANENT and IRREVERSIBLE</strong>.
+                        </div>
+                        <input type="hidden" id="io-bulk-del-type" value="fixed">
+                        <div class="alert alert-secondary io-bulk-del-required py-2 mb-2"></div>
+                        <p class="small text-muted mb-2">
+                            Paste rows copied straight from the index-time export. The paste must match the layout for the tab you opened this from:
+                        </p>
+                        <ul class="small text-muted">
+                            <li class="io-bulk-del-fmt-fixed"><strong>Fixed (10 cols):</strong> ISD ID, Handler, Package Type, Tray/Tube Qty, Body Size, Leads Min, Leads Max, Temp Class, UTPI, Fixed ITPI</li>
+                            <li class="io-bulk-del-fmt-variable"><strong>Variable (12 cols):</strong> ISD ID, Handler, Package Type, Soak Time, Body Size, Leads Min, Leads Max, Temp Class, UTPI, Fixed ITPI, TTPI Threshold, Threshold Formula</li>
+                        </ul>
+                        <p class="small text-muted mb-2">Each pasted row must still match the database on every column, or the whole batch is blocked (all-or-nothing).</p>
+                        <textarea class="form-control" id="io-bulk-del-paste" rows="8" style="font-family:monospace;font-size:12px;" placeholder="Paste rows here (a header row is allowed and skipped)"></textarea>
+                        <div class="io-bulk-del-message mt-3"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-outline-primary" id="io-bulk-del-validate">Validate</button>
+                        <button type="button" class="btn btn-danger <?php echo $disable_btn; ?>" id="io-bulk-del-run" disabled>Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== Batch Add/Edit modal ================================== -->
+        <div class="modal fade" id="ioBulkUpsertModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="ioBulkUpsertModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="ioBulkUpsertModalLabel"><i class="fa-solid fa-table-list"></i> Batch Add / Edit Index Times</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="alert alert-danger py-2 mb-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            Add/edit changes are applied <strong>immediately to the LIVE database</strong> and are <strong>PERMANENT and IRREVERSIBLE</strong>.
+                        </div>
+                        <input type="hidden" id="io-bulk-ups-type" value="fixed">
+                        <div class="alert alert-secondary io-bulk-ups-required py-2 mb-2"></div>
+                        <p class="small text-muted mb-2">
+                            Paste a block of rows. <strong>An empty ISD ID cell &mdash; or the word <code>NEW</code> &mdash; = add (insert); a present ISD ID = edit (update).</strong>
+                            Add and edit rows can be mixed in the same paste. The paste must match the layout for the tab you opened this from:
+                        </p>
+                        <ul class="small text-muted">
+                            <li class="io-bulk-ups-fmt-fixed"><strong>Fixed (10 cols):</strong> ISD ID, Handler, Package Type, Tray/Tube Qty, Body Size, Leads Min, Leads Max, Temp Class, UTPI, Fixed ITPI</li>
+                            <li class="io-bulk-ups-fmt-variable"><strong>Variable (14 cols):</strong> ISD ID, Handler, Package Type, Soak Time, Body Size, Leads Min, Leads Max, Temp Class, UTPI, Fixed ITPI, TTPI Threshold, Threshold Formula <em>(ignored &mdash; recomputed)</em>, Coefficient, Constant</li>
+                        </ul>
+                        <p class="small text-muted mb-2">Collisions (against the DB or between pasted rows), type switches, and invalid values block the whole batch (all-or-nothing).</p>
+                        <textarea class="form-control" id="io-bulk-ups-paste" rows="8" style="font-family:monospace;font-size:12px;" placeholder="Paste rows here (a header row is allowed and skipped)"></textarea>
+                        <div class="io-bulk-ups-message mt-3"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-outline-primary" id="io-bulk-ups-validate">Validate</button>
+                        <button type="button" class="btn btn-primary <?php echo $disable_btn; ?>" id="io-bulk-ups-run" disabled>Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </body>
 </html>
 
@@ -697,6 +793,7 @@ $assets = RENDER_ASSETS("module");
             "LEAD_COUNT_MAX" => isset($aryTemp["LEAD_COUNT_MAX"]) ? $aryTemp["LEAD_COUNT_MAX"] : null,
             "TEMP_CLASS"     => isset($aryTemp["TEMP_CLASS"]) ? $aryTemp["TEMP_CLASS"] : null,
             "UTPI"           => isset($aryTemp["UTPI"]) ? $aryTemp["UTPI"] : null,
+            "TRAY_TUBE_QTY"  => isset($aryTemp["TRAY_TUBE_QTY"]) ? $aryTemp["TRAY_TUBE_QTY"] : null,
             "INDEX_VALUE"    => isset($aryTemp["INDEX_VALUE"]) ? $aryTemp["INDEX_VALUE"] : null,
             "TTPI_THRESHOLD" => isset($aryTemp["TTPI_THRESHOLD"]) ? $aryTemp["TTPI_THRESHOLD"] : null,
             "COEFFICIENT"    => isset($aryTemp["COEFFICIENT"]) ? $aryTemp["COEFFICIENT"] : null,
