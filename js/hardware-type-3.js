@@ -407,7 +407,7 @@ $(document).ready(function(){
 
     $(".btn-set-type3").on("click", function(){
 
-        //check range values (eff_dates, jda_feed)
+        //check range values (hms_count)
         let hc1_val = $(".hwo-inputs-type3#hms-count-min").val();
         let hc2_val = $(".hwo-inputs-type3#hms-count-max").val();
 

@@ -673,6 +673,28 @@ $(document).ready(function(){
 
     $(".btn-set-nonate-type1").on("click", function(){
 
+        //check range values (bi_hours, load_unload, total_bi)
+        let range_arr = ["#bi-hours-min|#bi-hours-max|BI_HOURS", "#load-unload-min|#load-unload-max|LOAD_UNLOAD_HOURS", "#total-bi-min|#total-bi-max|TOTAL_BI_HOURS"];
+        let invalid_count = 0;
+
+        $.each(range_arr, function(index, item){
+            let split = item.split("|");
+            let rf1 = $(split[0]).val();
+            let rf2 = $(split[1]).val();
+            let rft = split[2];
+
+            if (rf1 != "" && rf2 != "") {
+                if (parseFloat(rf1) > parseFloat(rf2)) {
+                    showToast(""+rft+": MIN cannot exceed MAX.", "error");
+                    invalid_count++;
+                }
+            }
+        });
+
+        if (invalid_count > 0) {
+            return;
+        }
+
         let user = user_details['emp_name'];
         let var_arr = {
             MFG_PART_NUM: "",

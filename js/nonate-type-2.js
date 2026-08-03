@@ -486,6 +486,17 @@ $(document).ready(function(){
 
     $(".btn-set-nonate-type2").on("click", function(){
 
+        //check range values (socket_efficiency)
+        let se1_val = $("#socket-efficiency-min").val();
+        let se2_val = $("#socket-efficiency-max").val();
+
+        if (se1_val != "" && se2_val != "") {
+            if (parseFloat(se1_val) > parseFloat(se2_val)) {
+                showToast("SOCKET_EFFICIENCY: MIN cannot exceed MAX.", "error");
+                return;
+            }
+        }
+
         let user = user_details['emp_name'];
         let var_arr = {
             BOARD: "",

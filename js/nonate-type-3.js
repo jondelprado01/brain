@@ -1019,6 +1019,44 @@ $(document).ready(function(){
 
     $(".btn-set-nonate-type3").on("click", function(){
 
+        //check range values (eff_dates, override_cap, hms_count)
+        let esf_val = $("#eff-start-from-nonate-type3").val();
+        let est_val = $("#eff-start-to-nonate-type3").val();
+        let eef_val = $("#eff-end-from-nonate-type3").val();
+        let eet_val = $("#eff-end-to-nonate-type3").val();
+        let oc1_val = $("#override-cap-min").val();
+        let oc2_val = $("#override-cap-max").val();
+        let hc1_val = $("#hms-count-min").val();
+        let hc2_val = $("#hms-count-max").val();
+
+        if (esf_val != "" && est_val != "") {
+            if (parseInt(esf_val.replace("_W", "")) > parseInt(est_val.replace("_W", ""))) {
+                showToast("Please select a valid EFF_START fyww range.", "error");
+                return;
+            }
+        }
+
+        if (eef_val != "" && eet_val != "") {
+            if (parseInt(eef_val.replace("_W", "")) > parseInt(eet_val.replace("_W", ""))) {
+                showToast("Please select a valid EFF_START fyww range.", "error");
+                return;
+            }
+        }
+
+        if (oc1_val != "" && oc2_val != "") {
+            if (parseFloat(oc1_val) > parseFloat(oc2_val)) {
+                showToast("OVERRIDE_CAP: MIN cannot exceed MAX.", "error");
+                return;
+            }
+        }
+
+        if (hc1_val != "" && hc2_val != "") {
+            if (parseFloat(hc1_val) > parseFloat(hc2_val)) {
+                showToast("HMS_COUNT: MIN cannot exceed MAX.", "error");
+                return;
+            }
+        }
+
         let user = user_details['emp_name'];
         let var_arr = {
             HW_NAME: "",

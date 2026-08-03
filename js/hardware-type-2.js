@@ -2021,7 +2021,7 @@ $(document).ready(function(){
 
     $(".btn-set-type2").on("click", function(){
 
-        //check range values (eff_dates, jda_feed)
+        //check range values (eff_dates, override_cap, hms_count)
         let esf_val = $("#eff-start-from-type2").val();
         let est_val = $("#eff-start-to-type2").val();
         let eef_val = $("#eff-end-from-type2").val();
