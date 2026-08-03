@@ -1038,7 +1038,7 @@ $(document).ready(function(){
 
         if (eef_val != "" && eet_val != "") {
             if (parseInt(eef_val.replace("_W", "")) > parseInt(eet_val.replace("_W", ""))) {
-                showToast("Please select a valid EFF_START fyww range.", "error");
+                showToast("Please select a valid EFF_END fyww range.", "error");
                 return;
             }
         }
