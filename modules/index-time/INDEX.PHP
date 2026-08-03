@@ -425,7 +425,7 @@ $assets = RENDER_ASSETS("module");
         <!-- VARIABLE INDEX TIME CALCULATION MODAL -->
          <div class="modal fade zoom" id="variableIndexModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="variableIndexModalLabel">
             <div class="modal-dialog modal-dialog-centered modal-xl" style="min-width:90%;">
-                <div class="modal-content">
+                <div class="modal-content pb-2">
                     <div class="modal-header">
                         <h1 class="modal-title fs-5" id="variableIndexModalLabel">Variable Index Time Calculation - <span class="vit-handler"></span></h1>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -488,7 +488,7 @@ $assets = RENDER_ASSETS("module");
                                         ?>
                                     </tr>
                                     <tr>
-                                        <td><b>UTPI:</b></td>
+                                        <td><b>Test Time:</b></td>
                                         <?php
                                             for ($i=0.2; $i <= 10; $i+= 0.2) {
                                                 $i = round($i, 1);
@@ -530,7 +530,7 @@ $assets = RENDER_ASSETS("module");
 
                                 <!-- X-axis title -->
                                 <div class="text-center mt-2">
-                                    <b>UTPI</b>
+                                    <b>Test Time</b>
                                 </div>
                             </div>
                         </div>
