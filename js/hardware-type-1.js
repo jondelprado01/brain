@@ -2930,6 +2930,35 @@ $(document).ready(function(){
 
     $(".btn-set-type1").on("click", function(){
 
+        //check range values (eff_dates, jda_feed)
+        let esf_val = $("#eff-start-from-type1").val();
+        let est_val = $("#eff-start-to-type1").val();
+        let eef_val = $("#eff-end-from-type1").val();
+        let eet_val = $("#eff-end-to-type1").val();
+        let jf1_val = $("#jda-feed-min").val();
+        let jf2_val = $("#jda-feed-max").val();
+
+        if (esf_val != "" && est_val != "") {
+            if (parseInt(esf_val.replace("_W", "")) > parseInt(est_val.replace("_W", ""))) {
+                showToast("Please select a valid EFF_START fyww range.", "error");
+                return;
+            }
+        }
+
+        if (eef_val != "" && eet_val != "") {
+            if (parseInt(eef_val.replace("_W", "")) > parseInt(eet_val.replace("_W", ""))) {
+                showToast("Please select a valid EFF_START fyww range.", "error");
+                return;
+            }
+        }
+
+        if (jf1_val != "" && jf2_val != "") {
+            if (parseFloat(jf1_val) > parseFloat(jf2_val)) {
+                showToast("JDA_FEED: MIN cannot exceed MAX.", "error");
+                return;
+            }
+        }
+        
         let user = user_details['emp_name'];
         let var_arr = {
             MFG_PART_NUM: "",

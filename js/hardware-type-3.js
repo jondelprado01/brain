@@ -407,6 +407,17 @@ $(document).ready(function(){
 
     $(".btn-set-type3").on("click", function(){
 
+        //check range values (eff_dates, jda_feed)
+        let hc1_val = $(".hwo-inputs-type3#hms-count-min").val();
+        let hc2_val = $(".hwo-inputs-type3#hms-count-max").val();
+
+        if (hc1_val != "" && hc2_val != "") {
+            if (parseFloat(hc1_val) > parseFloat(hc2_val)) {
+                showToast("HMS_COUNT: MIN cannot exceed MAX.", "error");
+                return;
+            }
+        }
+
         let user = user_details['emp_name'];
         let var_arr = {
             HW_NAME: "",
