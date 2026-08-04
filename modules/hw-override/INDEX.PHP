@@ -74,6 +74,12 @@ $has_delinquent_t2 = 0;
         <script src="../../js/hardware-type-3.js"></script>
 
         <script>
+            $(document).ready(function(){
+                $('#modal-export').on('hidden.bs.modal', function () {
+                    resetExportModal();
+                });
+            });
+
             // FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES)
             function addChangeLog(payload, user_details, module, old_data = []){
                 $.ajax({
@@ -87,6 +93,12 @@ $has_delinquent_t2 = 0;
                         console.log(xhr);
                     }
                 });
+            }
+
+            function resetExportModal(){
+                $('#modal-export.show').modal('hide');
+                $('#modal-export').find('input').val('');
+                $('.export-error').hide();
             }
 
             function showToast(message, type){

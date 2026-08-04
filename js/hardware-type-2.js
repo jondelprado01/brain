@@ -131,6 +131,7 @@ $(document).ready(function(){
             if (filename != "") {
                 file_name_type_2 = "BRAIN_"+filename;
                 table_type_2.button(".buttons-"+export_type+"-"+tab_type).trigger();
+                resetExportModal();
             }
             else{
                 $(".export-error").fadeIn();

@@ -69,6 +69,12 @@ $weeks = $response['WEEKS'];
 
         <!-- FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES) -->
         <script>
+            $(document).ready(function(){
+                $('#modal-export').on('hidden.bs.modal', function () {
+                    resetExportModal();
+                });
+            });
+
             function addChangeLog(payload, user_details, module, old_data = []){
                 $.ajax({
                     type: 'post',
@@ -82,6 +88,13 @@ $weeks = $response['WEEKS'];
                     }
                 });
             }
+
+            function resetExportModal(){
+                $('#modal-export.show').modal('hide');
+                $('#modal-export').find('input').val('');
+                $('.export-error').hide();
+            }
+
             function showToast(message, type){
                 switch (type) {
                     case "error":

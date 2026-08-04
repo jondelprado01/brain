@@ -128,6 +128,7 @@ $(document).ready(function(){
             if (filename != "") {
                 file_name_nonate_type_2 = "BRAIN_"+filename;
                 table_type_2.button(".buttons-"+export_type+"-nonate-"+tab_type).trigger();
+                resetExportModal();
             }
             else{
                 $(".export-error").fadeIn();
