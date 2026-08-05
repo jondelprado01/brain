@@ -64,7 +64,7 @@ $(document).ready(function(){
         // bPaginate: false,
         scrollY: 'calc(100vh - 590px)',
         // bSort: false,
-        order: [[ 5, "asc" ]],
+        order: [[ 5, "asc" ], [ 6, "asc" ]],
         columnDefs: [
             {
                 targets: 5,

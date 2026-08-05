@@ -31,6 +31,7 @@ $existing_nonboard = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
 $weeks = $response['WEEKS'];
 $has_delinquent_t1 = 0;
 $has_delinquent_t2 = 0;
+$has_delinquent_end_t2 = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -636,9 +637,14 @@ $has_delinquent_t2 = 0;
                                                                     
                                                                     $current_fyww = (int)str_replace("_W", "", $weeks[0]);
                                                                     $current_hw_start = "20".$hw_start;
+                                                                    $current_hw_end = "20".$hw_end;
                                                                     $delinquent_code = ($current_fyww > $current_hw_start) ? "bg-danger-subtle" : "";
+                                                                    $delinquent_code_end = ($current_fyww > $current_hw_end) ? "bg-danger-subtle" : "";
                                                                     if ($delinquent_code != "") {
                                                                         $has_delinquent_t2++;
+                                                                    }
+                                                                    if ($delinquent_code_end != "") {
+                                                                        $has_delinquent_end_t2++;
                                                                     }
                                                                 ?>
                                                                     <tr>
@@ -658,7 +664,7 @@ $has_delinquent_t2 = 0;
                                                                         <td><?php echo $capacity['SITE_NUM']?></td>
                                                                         <td><?php echo $capacity['RES_AREA']?></td>
                                                                         <td class="<?php echo $delinquent_code; ?>"><?php echo $capacity['EFF_START']?></td>
-                                                                        <td><?php echo $capacity['EFF_END']?></td>
+                                                                        <td class="<?php echo $delinquent_code_end; ?>"><?php echo $capacity['EFF_END']?></td>
                                                                         <td><?php echo $capacity['OVERRIDE_CAP']?></td>
                                                                         <td>
                                                                         <?php
@@ -1319,4 +1325,5 @@ $has_delinquent_t2 = 0;
 <script>
     var has_delinquent_t1 = '<?php echo json_encode($has_delinquent_t1); ?>';
     var has_delinquent_t2 = '<?php echo json_encode($has_delinquent_t2); ?>';
+    var has_delinquent_end_t2 = '<?php echo json_encode($has_delinquent_end_t2); ?>';
 </script>
