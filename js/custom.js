@@ -3452,6 +3452,56 @@ function getTesterHandler(table_data, table_row, table_dedication, module_type =
         }
     });
 }
+// 2026-08-11 RM (AI: Claude Code): "?" diagnostic launcher next to the Selection header. Opens DEDICATIONS_SNIFFER.PHP (on mxhD, the same
+// host the dropdowns are fetched from) in a nested modal that sits in front of #dedicationsModal. Reads the current setup
+// straight from the .td-* fields renderDedications() already populated, so it always reflects the row the user opened.
+$(document).on("click", ".btn-dedication-sniffer", function(e){
+    e.preventDefault();
+    // There is one set of .td-* fields PER STEP (e.g. FT1_FT + QC1_FT), so a bare $(".td-etester").text() concatenates BOTH
+    // rows (=> "ETS364B_C4TETS364B_C4T"). Only the active step's fields are visible, so filter(":visible") — same idiom the
+    // save path uses at curr_atom_tester/handler above — to read just the row the user is looking at.
+    let engr_tester  = $(".td-etester").filter(":visible").first().text().trim();
+    let engr_handler = $(".td-ehandler").filter(":visible").first().text().trim();
+    let atom_tester  = $(".td-atester").filter(":visible").first().text().trim();
+    let atom_handler = $(".td-ahandler").filter(":visible").first().text().trim();
+    let site         = $(".td-site").filter(":visible").first().text().trim();
+    let res_area     = $(".td-res").filter(":visible").first().text().trim();
+    // Mirror getTesterHandler's module_type: "DEDICATION" only when the timephase-instance URL param is present.
+    let module_type  = new URLSearchParams(window.location.search).has('timephase-instance') ? "DEDICATION" : "";
+
+    let qs = $.param({
+        FORMAT: "HTML", ENGR_TESTER: engr_tester, ENGR_HANDLER: engr_handler,
+        ATOM_TESTER: atom_tester, ATOM_HANDLER: atom_handler,
+        SITE: site, RES_AREA: res_area, MODULE_TYPE: module_type,
+        _ts: Date.now()   // cache-buster: the same setup yields the same URL, so without this the iframe reuses a stale render
+    });
+    $(".dedication-sniffer-frame").attr("src", "http://MXHDAFOT01L.maxim-ic.com/API/DEDICATIONS_SNIFFER.PHP?" + qs);
+    $("#dedicationSnifferModal").modal("show");
+});
+// 2026-08-11 RM (AI: Claude Code): Bootstrap 5.3 does not reliably stack a second modal's backdrop above the first, so the
+// diagnostic can render BEHIND #dedicationsModal. On show, lift this modal and the last-added backdrop above the parent.
+$(document).on("shown.bs.modal", "#dedicationSnifferModal", function(){
+    var parentZ = parseInt($("#dedicationsModal").css("z-index"), 10) || 1055;
+    $(this).css("z-index", parentZ + 20);
+    $(".modal-backdrop").last().css("z-index", parentZ + 10);
+});
+// Clear the iframe on dismiss (X or Esc) so the in-flight trace is dropped and the next open starts fresh. Also restore
+// the parent's scroll lock: closing a stacked child removes .modal-open, so re-add it while #dedicationsModal is still up.
+$(document).on("hidden.bs.modal", "#dedicationSnifferModal", function(){
+    $(".dedication-sniffer-frame").attr("src", "about:blank");
+    if ($("#dedicationsModal").hasClass("show")) { $("body").addClass("modal-open"); }
+});
+// 2026-08-11 RM (AI: Claude Code): the sniffer runs in a CROSS-ORIGIN iframe (mxhD) inside a parent modal (mxhT). Once focus
+// is inside that iframe, Bootstrap's Esc handler (bound on the parent document) never sees the keypress, so Esc looked dead.
+// Fix, two ways: (1) the sniffer page posts a message on Esc — we catch it here and close; (2) a parent-side keydown covers
+// the window before the user has clicked into the iframe. data-bs-keyboard still handles Esc while the parent has focus.
+window.addEventListener("message", function(ev){
+    if (ev && ev.data && ev.data.type === "DEDICATION_SNIFFER_ESC") { $("#dedicationSnifferModal").modal("hide"); }
+});
+$(document).on("keydown", function(e){
+    if (e.key === "Escape" && $("#dedicationSnifferModal").hasClass("show")) { $("#dedicationSnifferModal").modal("hide"); }
+});
+
 // FINISH SET DEDICATION, REMOVE DEDICATION - (DELETE DEDICATION FROM PRIO LIST, REMOVE UPDATE PRIO_CD), FINISH DEDICATION AS PRIMARY AND THEN IF IT'S DELETED (UPDATE PRIO_CD LIST)
 function setDedication(payload, details, user_details){
     let is_done = 0;

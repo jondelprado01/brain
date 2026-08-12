@@ -157,8 +157,13 @@
                     </div>
                     <div class="col-lg-7">
                         <div class="card mb-3">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <span class="card-title fw-bold">Selection</span>
+                                <!-- 2026-08-11 RM (AI: Claude Code): diagnostic "?" launches DEDICATIONS_SNIFFER.PHP (why can/can't a stored ATOM be pre-selected). -->
+                                <a href="#" class="btn-dedication-sniffer text-decoration-none" role="button"
+                                   title="Why are these dropdowns showing (or not showing) the saved ATOM? Run the diagnostic.">
+                                    <i class="fa-solid fa-circle-question"></i>
+                                </a>
                             </div>
                             <div class="card-body">
                                 <div class="row">
@@ -276,6 +281,24 @@
                         </div>
                     </div> -->
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 2026-08-11 RM (AI: Claude Code): nested diagnostic modal — sits IN FRONT of #dedicationsModal, dismissable via top-right X or <esc>.
+     keyboard=true so Esc closes just this child; z-index bumped above the parent modal + its backdrop. Body is an
+     iframe pointing at DEDICATIONS_SNIFFER.PHP (on mxhD, same host the dropdowns are fetched from). -->
+<div class="modal fade" id="dedicationSnifferModal" tabindex="-1" data-bs-keyboard="true" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl" style="min-width:80%;">
+        <div class="modal-content" style="height:85vh;">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5"><i class="fa-solid fa-circle-question"></i> Dropdown diagnostic &mdash; can the saved ATOM be pre-selected?</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0" style="overflow:hidden;">
+                <iframe class="dedication-sniffer-frame" src="about:blank" title="Dedications dropdown diagnostic"
+                        style="border:0;width:100%;height:100%;"></iframe>
             </div>
         </div>
     </div>
