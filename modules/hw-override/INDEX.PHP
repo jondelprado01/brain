@@ -310,7 +310,7 @@ $has_delinquent_end_t2 = 0;
                                                                         <div class="col-lg-4">
                                                                             <button class="btn btn-outline-secondary d-none loader-hms-type1" type="button" disabled>
                                                                                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
-                                                                                    <span role="status">Calculating HMS Count, Please Wait...</span>
+                                                                                    <span role="status">Calculating HMS PLANNABLE COUNT, Please Wait...</span>
                                                                             </button>
                                                                         </div>
                                                                         <hr>
@@ -552,7 +552,7 @@ $has_delinquent_end_t2 = 0;
                                                                 <th>EFF_START</th>
                                                                 <th>EFF_END</th>
                                                                 <th>OVERRIDE CAP</th>
-                                                                <th>HMS COUNT</th>
+                                                                <th>HMS PLANNABLE COUNT</th>
                                                                 <th>HW_TYPE</th>
                                                                 <th>ACTIONS</th>
                                                             </tr>
@@ -717,7 +717,7 @@ $has_delinquent_end_t2 = 0;
                                                     </table>
                                                     <hr>
                                                     <div class="d-flex justify-content-end gap-2">
-                                                        <span class="badge rounded-pill text-bg-info">HMS COUNT</span>
+                                                        <span class="badge rounded-pill text-bg-info">HMS PLANNABLE COUNT</span>
                                                         <span class="badge rounded-pill text-bg-warning">JDA FEED</span>
                                                         <span class="badge rounded-pill text-bg-success">REMAINING CAPACITY</span>
                                                     </div>
@@ -811,7 +811,7 @@ $has_delinquent_end_t2 = 0;
                                                                                     <th>HW TYPE HMS</th>
                                                                                     <th>HW TYPE SUS</th>
                                                                                     <th>HW NAME</th>
-                                                                                    <th>HMS COUNT</th>
+                                                                                    <th>HMS PLANNABLE COUNT</th>
                                                                                 </tr>
                                                                             </thead>
                                                                             <tbody>
@@ -853,7 +853,7 @@ $has_delinquent_end_t2 = 0;
                                                             <th>RES_AREA</th>
                                                             <th>HW TYPE</th>
                                                             <th>HW NAME</th>
-                                                            <th>HMS COUNT</th>
+                                                            <th>HMS PLANNABLE COUNT</th>
                                                             <th>ACTION</th>
                                                         </tr>
                                                     </thead>
@@ -916,7 +916,7 @@ $has_delinquent_end_t2 = 0;
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-end"></strong></p><small>EFF_END</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-capacity-container"><p class="lead m-0"><strong class="view-capacity"></strong></p><small>JDA FEED</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-override-container"><p class="lead m-0"><strong class="view-override"></strong></p><small>OVERRIDE CAPACITY</small></div>
-                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container"><p class="lead m-0"><strong class="view-current"></strong></p><small>HMS COUNT</small></div>
+                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container"><p class="lead m-0"><strong class="view-current"></strong></p><small>HMS PLANNABLE COUNT</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-hw-type"></strong></p><small>HW_TYPE</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-site-num-container"><p class="lead m-0"><strong class="view-site-num"></strong></p><small>SITE_NUM</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-res-area-container"><p class="lead m-0"><strong class="view-res-area"></strong></p><small>RES_AREA</small></div>
@@ -948,7 +948,7 @@ $has_delinquent_end_t2 = 0;
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-start-type2"></strong></p><small>EFF_START</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-end-type2"></strong></p><small>EFF_END</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-override-container-type2"><p class="lead m-0"><strong class="view-override-type2"></strong></p><small>OVERRIDE CAPACITY</small></div>
-                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container-type2"><p class="lead m-0"><strong class="view-current-type2"></strong></p><small>HMS COUNT</small></div>
+                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container-type2"><p class="lead m-0"><strong class="view-current-type2"></strong></p><small>HMS PLANNABLE COUNT</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-site-num-container-type2"><p class="lead m-0"><strong class="view-site-num-type2"></strong></p><small>SITE_NUM</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-res-area-container-type2"><p class="lead m-0"><strong class="view-res-area-type2"></strong></p><small>RES_AREA</small></div>
                             <hr>
@@ -976,7 +976,7 @@ $has_delinquent_end_t2 = 0;
                         <div class="row">
                             <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-site-type3"></strong></p><small>SITE_NUM</small></div>
                             <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-area-type3"></strong></p><small>RES_AREA</small></div>
-                            <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-cap-type3"></strong></p><small>HMS COUNT</small></div>
+                            <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-cap-type3"></strong></p><small>HMS PLANNABLE COUNT</small></div>
                             <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-name-type3"></strong></p><small>HW_NAME</small></div>
                             <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-hms-type3"></strong></p><small>HW_TYPE_HMS</small></div>
                             <div class="col-sm-4 text-center mb-4"><p class="lead m-0"><strong class="view-sus-type3"></strong></p><small>HW_TYPE_SUS</small></div>
@@ -1052,7 +1052,7 @@ $has_delinquent_end_t2 = 0;
                             <div style="display: none!important;" class="col-lg-6 edit-current-container-type2">
                                 <div class="form-floating mb-3">
                                     <input  class="form-control edit-data-type2 edit-current-type2" type="number" step="0.1" placeholder="" readonly>
-                                    <label class="label-type">HMS COUNT</label>
+                                    <label class="label-type">HMS PLANNABLE COUNT</label>
                                 </div>
                             </div>
                             <div class="col-lg-6">
@@ -1116,7 +1116,7 @@ $has_delinquent_end_t2 = 0;
                             <div class="col-lg-6 edit-end-container"><div class="form-floating mb-3"><select class="form-select  edit-data edit-end edit-week" placeholder=""></select><label class="label-type label-end"><i class="fa-solid fa-asterisk"></i> EFF END</label></div></div>
                             <div style="display: none!important;" class="col-lg-6 edit-capacity-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-capacity" type="number" step="0.1" placeholder=""><label class="label-type"><i class="fa-solid fa-asterisk"></i> JDA FEED</label></div></div>
                             <div style="display: none!important;" class="col-lg-6 edit-override-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-override" type="number" step="0.1" placeholder=""><label class="label-type"><i class="fa-solid fa-asterisk"></i> OVERRIDE CAP</label></div></div>
-                            <div style="display: none!important;" class="col-lg-6 edit-current-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-current" type="number" step="0.1" placeholder="" readonly><label class="label-type">HMS COUNT</label></div></div>
+                            <div style="display: none!important;" class="col-lg-6 edit-current-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-current" type="number" step="0.1" placeholder="" readonly><label class="label-type">HMS PLANNABLE COUNT</label></div></div>
                             <div class="col-lg-6"><div class="form-floating mb-3"><input  class="form-control edit-data edit-hw-type" type="text"  placeholder="" readonly><label class="label-type">HW_TYPE</label></div></div>
                             <hr>
                             <div class="col-lg-4 text-center">
@@ -1246,7 +1246,7 @@ $has_delinquent_end_t2 = 0;
                                             <th>EFF_START</th>
                                             <th>EFF_END</th>
                                             <th>OVERRIDE CAP</th>
-                                            <th>HMS COUNT</th>
+                                            <th>HMS PLANNABLE COUNT</th>
                                             <th>HW_TYPE</th>
                                             <th>ACTION</th>
                                             <th>TARGET_ID</th>

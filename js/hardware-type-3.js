@@ -414,7 +414,7 @@ $(document).ready(function(){
 
         if (hc1_val != "" && hc2_val != "") {
             if (parseFloat(hc1_val) > parseFloat(hc2_val)) {
-                showToast("HMS_COUNT: MIN cannot exceed MAX.", "error");
+                showToast("HMS PLANNABLE COUNT: MIN cannot exceed MAX.", "error");
                 return;
             }
         }

@@ -878,7 +878,7 @@ function renderInputsType2(data, start_options, end_options){
     let current_field = '<div class="col-lg-2 col-md-4 col-sm-6">'+
                             '<div class="form-floating mb-3">'+
                                 '<input identifier="input-type2-'+rand_class+'" readonly="" type="text" class="form-control input-current-type2 input-type2 border border-success" value="'+data[2]+'" placeholder="">'+
-                                '<label class="label-type">HMS COUNT</label>'+
+                                '<label class="label-type">HMS PLANNABLE COUNT</label>'+
                             '</div>'+
                         '</div>';
             

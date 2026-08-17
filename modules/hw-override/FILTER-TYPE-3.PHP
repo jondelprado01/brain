@@ -79,12 +79,12 @@
             <div class="input-group">
                 <div class="form-floating">
                     <input type="number" class="hwo-inputs-type3 form-control input-hms-count" input-name="HMS_COUNT_MIN" id="hms-count-min" min="0" placeholder="">
-                    <label class="fw-lighter" for="hms-count-min">HMS COUNT - MIN</label>
+                    <label style="font-size: 12px;" class="fw-lighter" for="hms-count-min">HMS PLANNABLE COUNT - MIN</label>
                 </div>
 
                 <div class="form-floating">
                     <input type="number" class="hwo-inputs-type3 form-control input-hms-count" input-name="HMS_COUNT_MAX" id="hms-count-max" min="0" placeholder="">
-                    <label class="fw-lighter" for="hms-count-max">HMS COUNT - MAX</label>
+                    <label style="font-size: 12px;" class="fw-lighter" for="hms-count-max">HMS PLANNABLE COUNT - MAX</label>
                 </div>
             </div>
         </div>

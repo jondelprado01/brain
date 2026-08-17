@@ -418,7 +418,7 @@ $weeks = $response['WEEKS'];
                                                             <th>EFF_START</th>
                                                             <th>EFF_END</th>
                                                             <th>OVERRIDE CAP</th>
-                                                            <th>HMS COUNT</th>
+                                                            <th>HMS PLANNABLE COUNT</th>
                                                             <th>HW_TYPE</th>
                                                             <th>ACTIONS</th>
                                                         </tr>
@@ -495,7 +495,7 @@ $weeks = $response['WEEKS'];
                                 <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-start"></strong></p><small>EFF_START</small></div>
                                 <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-end"></strong></p><small>EFF_END</small></div>
                                 <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-override-container"><p class="lead m-0"><strong class="view-override"></strong></p><small>OVERRIDE CAPACITY</small></div>
-                                <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container"><p class="lead m-0"><strong class="view-current"></strong></p><small>HMS COUNT</small></div>
+                                <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container"><p class="lead m-0"><strong class="view-current"></strong></p><small>HMS PLANNABLE COUNT</small></div>
                                 <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-site-num-container"><p class="lead m-0"><strong class="view-site-num"></strong></p><small>SITE_NUM</small></div>
                                 <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-res-area-container"><p class="lead m-0"><strong class="view-res-area"></strong></p><small>RES_AREA</small></div>
                                 <hr>
@@ -552,7 +552,7 @@ $weeks = $response['WEEKS'];
                                 <div style="display: none!important;" class="col-lg-6 edit-current-container-type3">
                                     <div class="form-floating mb-3">
                                         <input  class="form-control edit-data-type3 edit-current-type3" type="number" step="0.1" placeholder="" readonly>
-                                        <label class="label-type">HMS COUNT</label>
+                                        <label class="label-type">HMS PLANNABLE COUNT</label>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
