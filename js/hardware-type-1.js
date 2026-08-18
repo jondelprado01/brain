@@ -301,6 +301,10 @@ $(document).ready(function(){
         let genpool_hw = $(this).attr("parent-genpool");
         let mapping_type = $(".input-hidden-type[identifier='"+identifier+"']").val();
 
+        if (mapping_type != "DEDICATION") {
+            return;
+        }
+
         $(".loader-hms-type1").removeClass('d-none').fadeIn();
         $(".btn-save-type1").prop("disabled", true);
         
