@@ -549,7 +549,7 @@ $(document).ready(function(){
                                     raw_start = parseInt(raw_start);
                                     raw_end = parseInt(raw_end);
 
-                                    if ((gp_hw == hw_name) || (raw_start > raw_end)  || (capacity == 0) || (action != 'ADD' && (target_id == '' || $.inArray(target_id, target_id_arr) === -1))) {
+                                    if ((gp_hw == hw_name) || (raw_start > raw_end)  || /*(capacity == 0) ||*/ (action != 'ADD' && (target_id == '' || $.inArray(target_id, target_id_arr) === -1))) {
                                         //GENPOOL HW & HW_NAME MUST NOT BE EQUAL, HW_NAME MUST SUBSTRING
                                         if (gp_hw == hw_name) {
                                             concat = (error_type != "") ? "|" : "";
@@ -562,11 +562,11 @@ $(document).ready(function(){
                                             error_type += concat+"EFF_START > EFF_END";
                                         }
 
-                                        //CAPACITY MUST NOT BE ZERO
-                                        if (capacity == 0) {
-                                            concat = (error_type != "") ? "|" : "";
-                                            error_type += concat+"CAPACITY MUST BE GREATER THAN ZERO";
-                                        }
+                                        // //CAPACITY MUST NOT BE ZERO
+                                        // if (capacity == 0) {
+                                        //     concat = (error_type != "") ? "|" : "";
+                                        //     error_type += concat+"CAPACITY MUST BE GREATER THAN ZERO";
+                                        // }
 
                                         let process_arr = ['ADD', 'UPDATE'];
                                         if ($.inArray(action, process_arr) === -1) {
@@ -668,7 +668,7 @@ $(document).ready(function(){
 
                                         let error_type = "EMPTY CELL";
 
-                                        if ((gp_hw == hw_name) || (raw_start > raw_end)  || (capacity == 0)) {
+                                        if ((gp_hw == hw_name) || (raw_start > raw_end)  /*|| (capacity == 0)*/) {
                                             //GENPOOL HW & HW_NAME MUST NOT BE EQUAL, HW_NAME MUST SUBSTRING
                                             if (gp_hw != '' && hw_name != '') {
                                                 if (gp_hw == hw_name) {
@@ -683,10 +683,10 @@ $(document).ready(function(){
                                                 }
                                             }
 
-                                            //CAPACITY MUST NOT BE ZERO
-                                            if (capacity == 0 && capacity != '') {
-                                                error_type += "|CAPACITY MUST BE GREATER THAN ZERO";
-                                            }
+                                            // //CAPACITY MUST NOT BE ZERO
+                                            // if (capacity == 0 && capacity != '') {
+                                            //     error_type += "|CAPACITY MUST BE GREATER THAN ZERO";
+                                            // }
                                         }
 
                                         errors.push({
@@ -1668,6 +1668,11 @@ $(document).ready(function(){
         }
 
         if (exists || is_csv == false) {
+            if (process != "DELETE_DUMMY_HW") {
+                payload = payload.map(function(item) {
+                    return item.concat(["ADGT"]);
+                });
+            }
             $.ajax({
                 type: 'post',
                 url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+process+'&OUTPUT_TYPE=BODS_JDA_ADI',
