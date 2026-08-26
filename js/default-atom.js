@@ -1,8 +1,9 @@
 $(document).ready(function(){
     var table_default_atom = $(".table-default-atom").DataTable({
         scrollY: 'calc(100vh - 400px)',
-        lengthMenu: [[100, -1], [100, "All"]],
-        pageLength: 100,
+        lengthMenu: [[50, -1], [50, 100, "All"]],
+        pageLength: 50,
+        deferRender: true,
         columnDefs: [{
             targets: '_all',
             createdCell: function (td, cellData, rowData, row, col) {
@@ -128,7 +129,7 @@ function getDefaultAtom(table_default_atom) {
             setTimeout(function(){
                 $(".loading-alert").fadeOut();
                 table_default_atom.draw(false);
-            },1500);
+            },1000);
         },
         complete: function(){
             $('.modal').modal('hide');
