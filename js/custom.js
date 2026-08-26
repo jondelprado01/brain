@@ -1370,10 +1370,10 @@ $(document).ready(function(){
                 //SEND EMAIL NOTIFICATION IF THERE'S A CHANGES IN TESTER OR HANDLER
                 if (changed_primary.length > 0 || notif_primary.length > 0) {
                     if (notif_primary.length > 0) {
-                        changeTesterHandler(notif_primary, user_details, server);
+                        // changeTesterHandler(notif_primary, user_details, server);
                     }
                     if (changed_primary.length > 0) {
-                        changeTesterHandler(changed_primary, user_details, server); //MOVE THIS TO AJAX COMPLETE REQUEST
+                        // changeTesterHandler(changed_primary, user_details, server); //MOVE THIS TO AJAX COMPLETE REQUEST
     
                         //CHECK FOR HARDWARE CHANGES - (TO BE SET AS PRIMARY ONCE UPDATE HAS BEEN EXECUTED)
                         $.each(changed_primary, function(index, item){
@@ -3078,21 +3078,21 @@ function addChangeLog(payload, user_details, module){
     });
 }
 
-function changeTesterHandler(payload, user_details, server){
-    let url = 'http://afotcosj004.maxim-ic.com/API/HW-HANDSHAKE-PROCESS.PHP';
-    $.ajax({
-        type: 'post',
-        dataType: "json",
-        url: url,
-        data: {payload: payload, user_details: user_details, url: $(location).attr('href')},
-        success: function(data){
-            console.log(data);
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
+// function changeTesterHandler(payload, user_details, server){
+    // let url = 'http://afotcosj004.maxim-ic.com/API/HW-HANDSHAKE-PROCESS.PHP';
+    // $.ajax({
+    //     type: 'post',
+    //     dataType: "json",
+    //     url: url,
+    //     data: {payload: payload, user_details: user_details, url: $(location).attr('href')},
+    //     success: function(data){
+    //         console.log(data);
+    //     },
+    //     error: function(xhr, status, error) {
+    //         console.log(xhr);
+    //     }
+    // });
+// }
 
 function processHardwareChange(process, data){
     $.ajax({
@@ -3106,7 +3106,7 @@ function processHardwareChange(process, data){
             setTimeout(function(){
                 if (data) {
                     showSuccess("Record Saved Succesfully!");
-                    closeHandshakeLoop(JSON.parse(data), process);
+                    // closeHandshakeLoop(JSON.parse(data), process);
                     location.reload();
                 }
             }, 1500);
@@ -3117,44 +3117,44 @@ function processHardwareChange(process, data){
     });
 }
 
-function closeHandshakeLoop(payload, process){
+// function closeHandshakeLoop(payload, process){
 
-    let identifier = payload[0][9].split("|");
-    let target_setup = [];
-    let hw_list = [];
+//     let identifier = payload[0][9].split("|");
+//     let target_setup = [];
+//     let hw_list = [];
 
-    $.each(all_original_primary, function(index, item){
-        if (item[13] == identifier[0] && item[19] == identifier[1]) {
-            target_setup = item;
-            hw_list = JSON.parse(item[14]);
-        }
-    });
+//     $.each(all_original_primary, function(index, item){
+//         if (item[13] == identifier[0] && item[19] == identifier[1]) {
+//             target_setup = item;
+//             hw_list = JSON.parse(item[14]);
+//         }
+//     });
 
-    $.each(all_original_alternate, function(index, item){
-        let split = item[15].split("|");
+//     $.each(all_original_alternate, function(index, item){
+//         let split = item[15].split("|");
 
-        if (split[0] == payload[0][0] && split[2] == payload[0][2] && split[4] == payload[0][4] && 
-            item[13] == payload[0][3] && item[19] == payload[0][5]) {
+//         if (split[0] == payload[0][0] && split[2] == payload[0][2] && split[4] == payload[0][4] && 
+//             item[13] == payload[0][3] && item[19] == payload[0][5]) {
                 
-            payload[0][15] = item[1];
-            payload[0][16] = item[2];
-        }
-    });
+//             payload[0][15] = item[1];
+//             payload[0][16] = item[2];
+//         }
+//     });
 
-    let url = 'http://afotcosj004.maxim-ic.com/API/HW-HANDSHAKE-CLOSE.PHP';
-    $.ajax({
-        type: 'post',
-        dataType: "json",
-        url: url,
-        data: {payload: payload, target_setup: target_setup, hw_list: hw_list, process: process, user_details: user_details},
-        success: function(data){
-            console.log(data);
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
+//     let url = 'http://afotcosj004.maxim-ic.com/API/HW-HANDSHAKE-CLOSE.PHP';
+//     $.ajax({
+//         type: 'post',
+//         dataType: "json",
+//         url: url,
+//         data: {payload: payload, target_setup: target_setup, hw_list: hw_list, process: process, user_details: user_details},
+//         success: function(data){
+//             console.log(data);
+//         },
+//         error: function(xhr, status, error) {
+//             console.log(xhr);
+//         }
+//     });
+// }
 
 //CHNAGE IN PRIMARY HARDWARE WHILE CHANGING PRIMARY SETUP (TRIGGERS EMAIL NOTIFICATION - "HANDSHAKE PROCESS")
 function changePrimaryHardware(data){
