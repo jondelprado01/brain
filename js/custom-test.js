@@ -794,6 +794,11 @@ $(document).ready(function(){
                             let tpi_prio_keys = Object.keys(tpi_rte_data[itm]['RES_PRIO_CD']);
                             $.each(tpi_prio_keys, function(inner_idx, inner_item){
                                 let tpi_data = tpi_rte_data[itm]['RES_PRIO_CD'][inner_item];
+
+                                if (tpi_rte_data[itm]['RES_PRIO_CD'][inner_item]['TPD_ID'] == "" && tpi_rte_data[itm]['RES_PRIO_CD'][inner_item].hasOwnProperty('TPD_ID_DONOR')) {
+                                    tpi_rte_data[itm]['RES_PRIO_CD'][inner_item]['TPD_ID'] = tpd_id;
+                                }
+
                                 if(tpd_id == tpi_rte_data[itm]['RES_PRIO_CD'][inner_item]['TPD_ID']){
                                     tpi_data['CURRENT_PRIO_CD'] = inner_item;
                                     tpi_data['RTE_SEQ_NUM'] = itm;
