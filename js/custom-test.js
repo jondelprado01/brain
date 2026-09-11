@@ -335,8 +335,10 @@ $(document).ready(function(){
                 let split_hw_set_id = data[19].split(",");
 
                 $.each(split_hw_set_id, function(index, item){
-                    if (Object.keys(hw_set_arr[item]).length == 0) {
-                        is_invalid_row++;
+                    if (!item in hw_set_arr) {
+                        if (Object.keys(hw_set_arr[item]).length == 0) {
+                            is_invalid_row++;
+                        }
                     }
                 });
 
