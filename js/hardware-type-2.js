@@ -435,10 +435,10 @@ $(document).ready(function(){
                                 }
 
                                 //CAPACITY MUST NOT BE ZERO
-                                if (override == 0) {
-                                    concat = (error_type != "") ? "|" : "";
-                                    error_type += concat+"CAPACITY MUST BE GREATER THAN ZERO";
-                                }
+                                // if (override == 0) {
+                                //     concat = (error_type != "") ? "|" : "";
+                                //     error_type += concat+"CAPACITY MUST BE GREATER THAN ZERO";
+                                // }
 
                                 let process_arr = ['ADD', 'UPDATE'];
                                 if ($.inArray(action, process_arr) === -1) {
@@ -549,10 +549,10 @@ $(document).ready(function(){
                                         }
                                     }
     
-                                    //CAPACITY MUST NOT BE ZERO
-                                    if (override == 0 && override != '') {
-                                        error_type += "|CAPACITY MUST BE GREATER THAN ZERO";
-                                    }
+                                    // //CAPACITY MUST NOT BE ZERO
+                                    // if (override == 0 && override != '') {
+                                    //     error_type += "|CAPACITY MUST BE GREATER THAN ZERO";
+                                    // }
                                 }
     
                                 errors.push({
@@ -752,12 +752,12 @@ $(document).ready(function(){
         if (data[1] == '' || data[2] == '' || data[3] == '') {
             empty++;
         }
-        else{
-            if (data[3] == 0) {
-                showGenericAlertType2("error", "Override Capacity Must Be Greater Than Zero.");
-                return;
-            }
-        }
+        // else{
+        //     if (data[3] == 0) {
+        //         showGenericAlertType2("error", "Override Capacity Must Be Greater Than Zero.");
+        //         return;
+        //     }
+        // }
 
         if (empty == 0 && data[3] != 0) {
             crudProcessType2("ADD_HW_CAPACITY", data, user_details, false);
