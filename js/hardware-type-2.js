@@ -703,11 +703,11 @@ $(document).ready(function(){
 
         if (data.length > 0) {
             if (empty_counter == 0) {
-                if (zero_cap > 0) {
-                    showGenericAlertType2("error", "Hardware Capacity is Required!");
-                    return;
-                }
-                console.log(data);
+                // if (zero_cap > 0) {
+                //     showGenericAlertType2("error", "Hardware Capacity is Required!");
+                //     return;
+                // }
+                // console.log(data);
                 // return;
                 crudProcessType2("ADD_HW_CAPACITY", data, user_details, false);
             }
