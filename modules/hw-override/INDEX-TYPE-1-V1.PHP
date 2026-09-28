@@ -25,6 +25,8 @@ $_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
 $response = API_REQUEST('hw-override-tool', json_encode($_GET));
 // echo "<pre>", var_dump($response['TYPE_2']), "</pre>";
 
+$existing_mapping_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-1", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_1'];
+$existing_capacity_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-2", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_2'];
 $existing_mapping = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_capacity = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
 $existing_nonboard = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
@@ -47,8 +49,8 @@ $has_delinquent_end_t2 = 0;
                 emp_name: '<?php echo $_SESSION["EMP_NAME"];?>',
                 emp_email: '<?php echo $_SESSION["EMP_EMAIL"];?>',
             }
-            var existing_mapping = '<?php echo json_encode($existing_mapping);?>';
-            var existing_capacity = '<?php echo json_encode($existing_capacity);?>';
+            var existing_mapping = '<?php echo json_encode($existing_mapping_all);?>';
+            var existing_capacity = '<?php echo json_encode($existing_capacity_all);?>';
             var existing_nonboard = '<?php echo json_encode($existing_nonboard);?>';
             var weeks = '<?php echo json_encode($weeks);?>';
             var current_fyww = '<?php echo json_encode($weeks[0]);?>';
@@ -582,7 +584,7 @@ $has_delinquent_end_t2 = 0;
 
                                                                             ) ? $item : null;
 
-                                                                    }, $existing_mapping);
+                                                                    }, $existing_mapping_all);
                                                                         
                                                                     $res_map = array_filter($res_map, function($value) {
                                                                         return $value !== null;
@@ -620,7 +622,7 @@ $has_delinquent_end_t2 = 0;
                                                                     $emp_dedicated_cap = 0;
                                                                     $res_cap = 0;
                                                                     $hw_current_cap = $capacity['CURRENT_CAP'];
-                                                                    foreach ($existing_mapping as $key => $emp) {
+                                                                    foreach ($existing_mapping_all as $key => $emp) {
                                                                         $emp_start = (int)str_replace("_W", "", $emp['EFF_START']);
                                                                         $emp_end   = (int)str_replace("_W", "", $emp['EFF_END']);
 
