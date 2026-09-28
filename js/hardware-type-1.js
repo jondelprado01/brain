@@ -240,30 +240,52 @@ $(document).ready(function(){
 
     //ADD NEW DUMMY
     $(".btn-add-dummy").on("click", function(){
-        let dup_counter = 0;
-        let mapping = $("[name='input-mapping-type1']:checked").val();
-        let exists = existingField("type1", ".input-part-select option:selected");
-        let selected_part = exists['selected_data'];
-        let is_selected = exists['counter'];
-        
-        if (is_selected == 0) {
-            let is_exists = isExists('type1', selected_part);
-            let genpool_hw = is_exists['selected_data'].split('|')[1];
-            let genpool_cap = parseFloat(is_exists['selected_data'].split('|')[2]).toFixed(2);
-            let inputs = renderInputs('1', is_exists['selected_data'], is_exists['start_options'], is_exists['end_options'], is_exists['border'], null, mapping, genpool_cap);
-            $(".empty-filler-type1").removeClass('d-flex').hide();
-            $(".input-container-type1").prepend(inputs);
-            dup_counter = existingRecord("type1", JSON.parse(existing_mapping));
-            $(".btn-save-type1").prop("disabled", (dup_counter > 0) ? true : false);
-            if (dup_counter == 0) {
-                if (mapping == "DEDICATION") {
-                    calculateGenpoolCapacity(genpool_hw);
+        let selected_partnum = $(".input-select-type1 option:selected").val();
+        let selected_mapping = $("[name='input-mapping-type1']:checked").val();
+        let hwo_t1_current_val = $("#hwo-type1-current-val").val();
+        let hwo_t1_current_mtype = $("#hwo-type1-mapping-type").val();
+
+        if (hwo_t1_current_val != "" && hwo_t1_current_val != null) {
+            if (hwo_t1_current_val != selected_partnum) {
+                renderType1Fields(weeks, selected_partnum, JSON.parse(existing_capacity));
+            }
+            else{
+                if (hwo_t1_current_mtype != selected_mapping) {
+                    renderType1Fields(weeks, selected_partnum, JSON.parse(existing_capacity));
+                }
+                else{
+                    showToast(""+selected_partnum.split("|")[0]+" is already selected.", "warning");
                 }
             }
         }
         else{
-            showGenericAlert("warning", ""+selected_part.split("|")[0]+"\n"+selected_part.split("|")[2]+"\nis already selected.");
+            renderType1Fields(weeks, selected_partnum, JSON.parse(existing_capacity));
         }
+
+        // let dup_counter = 0;
+        // let mapping = $("[name='input-mapping-type1']:checked").val();
+        // let exists = existingField("type1", ".input-part-select option:selected");
+        // let selected_part = exists['selected_data'];
+        // let is_selected = exists['counter'];
+        
+        // if (is_selected == 0) {
+        //     let is_exists = isExists('type1', selected_part);
+        //     let genpool_hw = is_exists['selected_data'].split('|')[1];
+        //     let genpool_cap = parseFloat(is_exists['selected_data'].split('|')[2]).toFixed(2);
+        //     let inputs = renderInputs('1', is_exists['selected_data'], is_exists['start_options'], is_exists['end_options'], is_exists['border'], null, mapping, genpool_cap);
+        //     $(".empty-filler-type1").removeClass('d-flex').hide();
+        //     $(".input-container-type1").prepend(inputs);
+        //     dup_counter = existingRecord("type1", JSON.parse(existing_mapping));
+        //     $(".btn-save-type1").prop("disabled", (dup_counter > 0) ? true : false);
+        //     if (dup_counter == 0) {
+        //         if (mapping == "DEDICATION") {
+        //             calculateGenpoolCapacity(genpool_hw);
+        //         }
+        //     }
+        // }
+        // else{
+        //     showGenericAlert("warning", ""+selected_part.split("|")[0]+"\n"+selected_part.split("|")[2]+"\nis already selected.");
+        // }
     });
 
     //GEN POOL HW NAME CHECKER FOR HW NAME INPUT FIELD (INPUT EVENT - SAME HW NAME AND GENPOOL HW NAME IS NOT ALLOWED)
@@ -455,16 +477,18 @@ $(document).ready(function(){
         
                         $.each(text, function(idx, itm){
                             if (itm != '' && itm.split(",")[0] != 'MFG_PART_NUM') {
-                                let partnum     = itm.split(",")[0];
-                                let gp_hw       = itm.split(",")[1];
-                                let hw_name     = itm.split(",")[2];
-                                let hw_type     = itm.split(",")[7];
-                                let gp_cap      = itm.split(",")[5];
-                                let capacity    = itm.split(",")[6];
-                                let start       = itm.split(",")[3];
-                                let end         = itm.split(",")[4];
-                                let action      = itm.split(",")[8];
-                                let target_id   = itm.split(",")[9];
+                                let split_itm   = itm.split(",");
+                                let partnum     = split_itm[0];
+                                let gp_hw       = split_itm[1];
+                                let hw_name     = split_itm[2];
+                                let hw_type     = split_itm[7];
+                                let gp_cap      = split_itm[5];
+                                let capacity    = split_itm[6];
+                                let start       = split_itm[3];
+                                let end         = split_itm[4];
+                                let action      = split_itm[8];
+                                let target_id   = split_itm[9];
+                                let site_num    = split_itm[10];
                                 let raw_start   = start.replace("_W", "");
                                 let raw_end     = end.replace("_W", "");
                                 let error_type  = "";
@@ -483,8 +507,8 @@ $(document).ready(function(){
                                         csv_delete_id_arr.push(target_id);
                                     }
                                     else{
-                                        if (action == "UPDATE" || action == "DELETE") {
-                                            if ($.trim(gp_hw) == '' && ($.trim(partnum) == '' || $.trim(hw_name) == '' || $.trim(hw_type) == '' ||  $.trim(start) == '' || $.trim(capacity) == '')) {
+                                        if (action == "DELETE") {
+                                            if ($.trim(gp_hw) == '' && ($.trim(partnum) == '' || $.trim(hw_name) == '' || $.trim(hw_type) == '' ||  $.trim(start) == '' || $.trim(capacity) == '' || $.trim(site_num) == '')) {
                                                 invalid.push({
                                                     MFG_PART_NUM:   partnum,
                                                     GP_HW:          gp_hw,
@@ -496,11 +520,11 @@ $(document).ready(function(){
                                                     EFF_END:        end,
                                                     ACTION:         action,
                                                     TARGET_ID:      target_id,
+                                                    SITE_NUM:       site_num,
                                                     ERROR:          "INVALID ROW"
                                                 });
                                             }
                                             else{
-
                                                 if ($.inArray(gp_hw, gp_hw_arr) === -1) {
                                                     gp_hw_arr.push(gp_hw);
                                                 }
@@ -535,6 +559,7 @@ $(document).ready(function(){
                                                         EFF_END:        end,
                                                         ACTION:         action,
                                                         TARGET_ID:      target_id,
+                                                        SITE_NUM:       site_num,
                                                         ERROR:          error_type
                                                     });
                                                     target_id_passed.push(target_id);
@@ -544,7 +569,7 @@ $(document).ready(function(){
                                     }
                                 }
                                 
-                                if ($.trim(partnum) != '' && $.trim(gp_hw) != '' && $.trim(hw_name) != '' && $.trim(start) != '' && $.trim(capacity) != '' && $.trim(hw_type) != '' && action != 'DELETE') {
+                                if ($.trim(partnum) != '' && $.trim(gp_hw) != '' && $.trim(hw_name) != '' && $.trim(start) != '' && $.trim(capacity) != '' && $.trim(hw_type) != '' && (action != '' && action != 'DELETE') && site_num != '') {
 
                                     if ($.inArray(gp_hw, gp_hw_arr) === -1) {
                                         gp_hw_arr.push(gp_hw);
@@ -604,6 +629,7 @@ $(document).ready(function(){
                                                 EFF_END:        end,
                                                 ACTION:         action,
                                                 TARGET_ID:      target_id,
+                                                SITE_NUM:       site_num,
                                                 ERROR:          error_type
                                             });
                                         }
@@ -625,6 +651,7 @@ $(document).ready(function(){
                                             EFF_END:        end,
                                             ACTION:         action,
                                             TARGET_ID:      target_id,
+                                            SITE_NUM:       site_num,
                                             ERROR:          'CLEARED'
                                         });
                                         parts_opt.push([
@@ -637,6 +664,7 @@ $(document).ready(function(){
                                             hw_type,
                                             'null',
                                             gp_hw,
+                                            site_num
                                         ]);
                                     }
                                 }
@@ -650,7 +678,7 @@ $(document).ready(function(){
                                         gp_hw_arr.push(gp_hw);
                                     }
 
-                                    if ($.trim(partnum) == '' || $.trim(gp_hw) == '' || $.trim(hw_name) == '' || $.trim(hw_type) == '' ||  $.trim(start) == '' || $.trim(capacity) == '') {
+                                    if ($.trim(partnum) == '' || $.trim(gp_hw) == '' || $.trim(hw_name) == '' || $.trim(hw_type) == '' ||  $.trim(start) == '' || $.trim(capacity) == '' || site_num == '') {
                                         invalid.push({
                                             MFG_PART_NUM:   partnum,
                                             GP_HW:          gp_hw,
@@ -662,6 +690,7 @@ $(document).ready(function(){
                                             EFF_END:        end,
                                             ACTION:         action,
                                             TARGET_ID:      target_id,
+                                            SITE_NUM:       site_num,
                                             ERROR:          'INVALID ROW'
                                         });
                                     }
@@ -704,6 +733,7 @@ $(document).ready(function(){
                                             EFF_END:        end,
                                             ACTION:         action,
                                             TARGET_ID:      target_id,
+                                            SITE_NUM:       site_num,
                                             ERROR:          error_type
                                         });
                                     }
@@ -734,7 +764,14 @@ $(document).ready(function(){
                         });
                     });
                 }
+                // console.log(gp_hw_arr);
+                // console.log(parts_opt);
+                // console.log(unaffected);
+                // console.log(errors);
+                // console.log(invalid);
+                // console.log(csv_delete_id_arr);
                 
+                // return;
                 $.each(to_splice, function(index, item){
                     errors.splice(item, 1);
                 });
@@ -767,6 +804,7 @@ $(document).ready(function(){
             "MAPPING_TYPE",
             "PROCESS_TYPE",
             "TARGET_ID",
+            "SITE_NUM",
             "ERROR"
         ]);
         $.each(JSON.parse(sessionStorage.getItem("csv-error")), function(index, item){
@@ -781,6 +819,7 @@ $(document).ready(function(){
                 item['HW_TYPE'],
                 item['ACTION'],
                 item['TARGET_ID'],
+                item['SITE_NUM'],
                 item['ERROR']
             ]);
         });
@@ -853,7 +892,8 @@ $(document).ready(function(){
                         item['HW_TYPE'],
                         item['GENPOOL_CAPACITY'],
                         "EXISTING_DATA",
-                        item['GP_HW_TYPE']
+                        item['GP_HW_TYPE'],
+                        item['SITE_NUM']
                     ]);
                 }
             });
@@ -1119,7 +1159,7 @@ $(document).ready(function(){
         
         $.ajax({
             type: 'post',
-            url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE='+func+'&OUTPUT_TYPE=BODS_JDA_ADI',
+            url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE_TEST.PHP?PROCESS_TYPE='+func+'&OUTPUT_TYPE=BODS_JDA_ADI',
             data: {payload: string},
             beforeSend: function(){
                 $(".fa-circle-plus, .fa-magnifying-glass").hide();
@@ -1144,10 +1184,8 @@ $(document).ready(function(){
 
     function searchGenpool(genpool_hw, parts_opt, unaffected, errors, invalid, csv_delete_id_arr){
 
-        if (errors.length == 0 && unaffected.length == 0) {
-
+        if (errors.length == 0 && (unaffected.length == 0 || invalid.length > 0)) {
             $(".btn-validate-csv").fadeIn();
-
             setTimeout(function(){
                 $(".btn-validate-csv").fadeOut();
                 if (invalid.length > 0) {
@@ -1166,6 +1204,7 @@ $(document).ready(function(){
                                         '<td>'+item['HW_TYPE']+'</td>'+
                                         '<td>'+item['ACTION']+'</td>'+
                                         '<td>'+item['TARGET_ID'] +'</td>'+
+                                        '<td>'+item['SITE_NUM'] +'</td>'+
                                         '<td class="text-danger">'+item['ERROR']+'</td>'+
                                 '</tr>';
                         }
@@ -1176,7 +1215,6 @@ $(document).ready(function(){
                     $(".error-container").removeClass("d-none");
                     $(".csv-error-tbody").append(row);
                     $(".csv-error-count").text(invalid.length);
-                    return;
                 }
                 else{
                     if (csv_delete_id_arr.length > 0) {
@@ -1184,6 +1222,7 @@ $(document).ready(function(){
                     }
                 }
             }, 1500);
+            return;
         }
 
         $.ajax({
@@ -1276,11 +1315,10 @@ $(document).ready(function(){
                                             let int_new_end   = parseInt(item['EFF_END'].replace("_W", ""));
                                             return itm.HW_NM == item['GP_HW'] && (int_start <= int_new_end && int_new_start <= int_end);
                                         });
-            
                                         subject_data[index]['GENPOOL_QTY'] = (override_hw_data.length > 0) ? override_hw_data[0]['OVERRIDE_CAP'] : item['GENPOOL_QTY'];
                                     }
             
-                                    if (item['EFF_START'] != '' && item['GP_HW'] != '' && item['HW_NM'] && item['GENPOOL_QTY'] != '' && item['HW_TYPE'] == 'DEDICATION' && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
+                                    if (item['EFF_START'] != '' && item['GP_HW'] != '' && item['HW_NM'] && item['GENPOOL_QTY'] != '' && item['SITE_NUM'] != '' && item['HW_TYPE'] == 'DEDICATION' && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
             
                                         let res_gp = calculateGenpoolCapacityCSV(item['GP_HW'], subject_data, item['EFF_START']);
                                         if (res_gp != '') {
@@ -1295,30 +1333,27 @@ $(document).ready(function(){
                                                 errors.push(item);
                                             }
                                             additional_errors++;
-            
-                                            // if (errors.length == 0) {
-                                                // errors.push(item);
-                                            // }
                                         }
                                     }
                                     else{
+                                        let error_str = "";
+                                        let error_str_type = "";
                                         if (item['GENPOOL_QTY'] == '') {
-                                            let error_str = "";
-                                            let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
-                                            error_str = delimiter+"GENPOOL HW NAME/SPEC NOT FOUND";
-                                            if (item['ERROR'] != "CLEARED") {
-                                                item['ERROR'] += error_str;
-                                            }
-                                            else{
-                                                item['ERROR'] = error_str;
-                                                errors.push(item);
-                                            }
-                                            additional_errors++;
-            
-                                            // if (errors.length == 0) {
-                                                // errors.push(item);
-                                            // }
+                                            error_str_type = "GENPOOL HW NAME/SPEC NOT FOUND";
                                         }
+                                        if (item['SITE_NUM'] == '') {
+                                            error_str_type = "NO SITE_NUM PROVIDED";
+                                        }
+                                        let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
+                                        error_str = delimiter+error_str_type;
+                                        if (item['ERROR'] != "CLEARED") {
+                                            item['ERROR'] += error_str;
+                                        }
+                                        else{
+                                            item['ERROR'] = error_str;
+                                            errors.push(item);
+                                        }
+                                        additional_errors++;
                                     }
                                 });
                             }
@@ -1331,7 +1366,6 @@ $(document).ready(function(){
                                         let int_new_end   = parseInt(item['EFF_END'].replace("_W", ""));
                                         return itm.HW_NM == item['GP_HW'] && (int_start <= int_new_end && int_new_start <= int_end);
                                     });
-        
                                     subject_data[index]['GENPOOL_QTY'] = (override_hw_data.length > 0) ? override_hw_data[0]['OVERRIDE_CAP'] : item['GENPOOL_QTY'];
                                 }
         
@@ -1350,30 +1384,27 @@ $(document).ready(function(){
                                             errors.push(item);
                                         }
                                         additional_errors++;
-        
-                                        // if (errors.length == 0) {
-                                            // errors.push(item);
-                                        // }
                                     }
                                 }
                                 else{
+                                    let error_str = "";
+                                    let error_str_type = "";
                                     if (item['GENPOOL_QTY'] == '') {
-                                        let error_str = "";
-                                        let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
-                                        error_str = delimiter+"GENPOOL HW NAME/SPEC NOT FOUND";
-                                        if (item['ERROR'] != "CLEARED") {
-                                            item['ERROR'] += error_str;
-                                        }
-                                        else{
-                                            item['ERROR'] = error_str;
-                                            errors.push(item);
-                                        }
-                                        additional_errors++;
-        
-                                        // if (errors.length == 0) {
-                                            // errors.push(item);
-                                        // }
+                                        error_str_type = "GENPOOL HW NAME/SPEC NOT FOUND";
                                     }
+                                    if (item['SITE_NUM'] == '') {
+                                        error_str_type = "NO SITE_NUM PROVIDED";
+                                    }
+                                    let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
+                                    error_str = delimiter+error_str_type;
+                                    if (item['ERROR'] != "CLEARED") {
+                                        item['ERROR'] += error_str;
+                                    }
+                                    else{
+                                        item['ERROR'] = error_str;
+                                        errors.push(item);
+                                    }
+                                    additional_errors++;
                                 }
                             }
     
@@ -1398,6 +1429,7 @@ $(document).ready(function(){
                                                         '<td>'+item['HW_TYPE']+'</td>'+
                                                         '<td>'+item['ACTION']+'</td>'+
                                                         '<td>'+item['TARGET_ID'] +'</td>'+
+                                                        '<td>'+item['SITE_NUM'] +'</td>'+
                                                         '<td class="text-danger">'+item['ERROR']+'</td>'+
                                                 '</tr>';
                                         }
@@ -1417,6 +1449,7 @@ $(document).ready(function(){
                                                             '<td>'+item['HW_TYPE']+'</td>'+
                                                             '<td>'+item['ACTION']+'</td>'+
                                                             '<td>'+item['TARGET_ID'] +'</td>'+
+                                                            '<td>'+item['SITE_NUM'] +'</td>'+
                                                             '<td class="text-danger">'+item['ERROR']+'</td>'+
                                                     '</tr>';
                                             }
@@ -1442,7 +1475,8 @@ $(document).ready(function(){
                                             item['GP_HW'],
                                             item['GENPOOL_QTY'],
                                             item['GP_HW_TYPE'],
-                                            item['ACTION']
+                                            item['ACTION'],
+                                            item['SITE_NUM']
                                         ]);
                                     });
                                     crudProcess("ADD_DUMMY_HW", current_list_csv, user_details, true);
@@ -1465,31 +1499,36 @@ $(document).ready(function(){
                                                     '<td>'+item['HW_TYPE']+'</td>'+
                                                     '<td>'+item['ACTION']+'</td>'+
                                                     '<td>'+item['TARGET_ID'] +'</td>'+
+                                                    '<td>'+item['SITE_NUM'] +'</td>'+
                                                     '<td class="text-danger">'+item['ERROR']+'</td>'+
                                             '</tr>';
                                     }
-                                });
-    
-                                $.each(invalid, function(index, item){
-                                    if (errors.length < 4) {
-                                        if (index <= 4) {
-                                            row += '<tr>'+
-                                                        '<td>'+item['MFG_PART_NUM']+'</td>'+
-                                                        '<td>'+item['GP_HW']+'</td>'+
-                                                        '<td>'+item['HW_NM']+'</td>'+
-                                                        '<td>'+item['EFF_START']+'</td>'+
-                                                        '<td>'+item['EFF_END']+'</td>'+
-                                                        '<td>'+item['GENPOOL_QTY']+'</td>'+
-                                                        '<td>'+item['REQUIRED_QTY']+'</td>'+
-                                                        '<td>'+item['HW_TYPE']+'</td>'+
-                                                        '<td>'+item['ACTION']+'</td>'+
-                                                        '<td>'+item['TARGET_ID'] +'</td>'+
-                                                        '<td class="text-danger">'+item['ERROR']+'</td>'+
-                                                '</tr>';
-                                        }
-                                    }
                                     subject_data.push(item);
                                 });
+                                
+                                if (invalid.length > 0) {
+                                    $.each(invalid, function(index, item){
+                                        if (errors.length < 4) {
+                                            if (index <= 4) {
+                                                row += '<tr>'+
+                                                            '<td>'+item['MFG_PART_NUM']+'</td>'+
+                                                            '<td>'+item['GP_HW']+'</td>'+
+                                                            '<td>'+item['HW_NM']+'</td>'+
+                                                            '<td>'+item['EFF_START']+'</td>'+
+                                                            '<td>'+item['EFF_END']+'</td>'+
+                                                            '<td>'+item['GENPOOL_QTY']+'</td>'+
+                                                            '<td>'+item['REQUIRED_QTY']+'</td>'+
+                                                            '<td>'+item['HW_TYPE']+'</td>'+
+                                                            '<td>'+item['ACTION']+'</td>'+
+                                                            '<td>'+item['TARGET_ID'] +'</td>'+
+                                                            '<td>'+item['SITE_NUM'] +'</td>'+
+                                                            '<td class="text-danger">'+item['ERROR']+'</td>'+
+                                                    '</tr>';
+                                            }
+                                        }
+                                        subject_data.push(item);
+                                    });
+                                }
     
                                 sessionStorage.setItem("csv-error", JSON.stringify(subject_data));
                                 $(".error-container").removeClass("d-none");
@@ -1509,7 +1548,8 @@ $(document).ready(function(){
                                         item['GP_HW'],
                                         item['GENPOOL_QTY'],
                                         item['GP_HW_TYPE'],
-                                        item['ACTION']
+                                        item['ACTION'],
+                                        item['SITE_NUM']
                                     ]);
                                 });
                                 crudProcess("ADD_DUMMY_HW", current_list_csv, user_details, true);
@@ -1652,6 +1692,8 @@ $(document).ready(function(){
             });
         });
     }
+
+    window.crudProcessV2 = crudProcess;
 
     //TYPE 1 - ADD, EDIT, DELETE DUMMY HW MAPPING
     function crudProcess(process, payload, user_details, is_csv = false){
@@ -1828,6 +1870,7 @@ $(document).ready(function(){
         let override_data   = (type == 2 || type == '2-upload') ? split[3] : '';
         let current_list    = (type != '1-upload') ? current_list_db : current_list_csv;
         let part_options;
+        let site_options = renderOptions('type1-site-num', ['ADGT', 'ADPI'], data);
         if (type != 2) {
             part_options = renderOptions('inner-part', current_list, part_data);
         }
@@ -1871,10 +1914,11 @@ $(document).ready(function(){
                             for (var inner_key in data[key]) {
                                 let opt_val;
                                 let is_selected;
+                                let site_num_val = (data[key][inner_key]['SITE_NUM'] != '' && data[key][inner_key]['SITE_NUM'] != null) ? data[key][inner_key]['SITE_NUM'] : "NO_SITE_NUM";
                                 switch (type) {
                                     case '1':
                                     case 'inner-part':
-                                        opt_val = key_nm+'|'+data[key][inner_key]['HW_NM']+'|'+data[key][inner_key]['REQUIRED_QTY']+'|'+data[key][inner_key]['HW_TYPE'];
+                                        opt_val = key_nm+'|'+data[key][inner_key]['HW_NM']+'|'+data[key][inner_key]['REQUIRED_QTY']+'|'+data[key][inner_key]['HW_TYPE']+'|'+site_num_val;
                                         is_selected = (selected_option != null && selected_option == key_nm+'|'+data[key][inner_key]['HW_NM']) ? 'selected' : '';
                                         break;
                                     case '2':
@@ -1906,6 +1950,22 @@ $(document).ready(function(){
                 $(".input-mapping-type"+type+"").prop("disabled", true);
                 $(".input-select-type"+type+"").append('<option value="" selected>No Result Found!</option>'); 
             }
+        }
+        else if(type == 'type1-site-num'){
+            let site_val = selected_option.split("|")[4];
+            let site_opt_list = "";
+            let opt_selected = "";
+
+            if ($.inArray(site_val, ["ADGT", "ADPI"]) === -1) {
+                site_opt_list += '<option value="" selected>--/--</option>';
+            }
+            else{
+                $.each(data, function(index, item){
+                    opt_selected = ((site_val != "" && site_val != null) && item == site_val) ? "selected" : "";
+                    site_opt_list += '<option value="'+item+'" '+opt_selected+'>'+item+'</option>';
+                });
+            }
+            return site_opt_list;
         }
     }
 
@@ -1941,6 +2001,7 @@ $(document).ready(function(){
         });
         
         if (type == 'type1') {
+            site_num = val_arr[13];
             h1_type = 'HW Mapping';
             h1_record = val_arr[1];
             hw_name = val_arr[2];
@@ -1960,6 +2021,8 @@ $(document).ready(function(){
             class_name = 'btn-edit-dummy-type1';
         }
         
+        $('.edit-site-num-container option[value="'+site_num+'"]').prop("selected", true);
+        $('.edit-site-num').val(site_num);
         $(".edit-type-h1").html(h1_type);
         $(".edit-record-h1").html(h1_record);
         $(".edit-id").val(val_arr[0]);
@@ -1992,6 +2055,7 @@ $(document).ready(function(){
 
         $(".view-type-h1").html(h1_type);
         $(".view-record-h1").html(h1_record);
+        $(".view-site-num").html(value['SITE_NUM']);
         $(".view-hw-nm").html(value['HW_NM']);
         $(".view-start").html(value['EFF_START']);
         $(".view-end").html(value['EFF_END']);
@@ -2294,7 +2358,8 @@ $(document).ready(function(){
                         'EXISTING_DATA',
                         item['GENPOOL'],
                         item['GENPOOL_CAPACITY'],
-                        item['ID']
+                        item['ID'],
+                        item['SITE_NUM']
                     ]);
                 }
             });
@@ -2313,7 +2378,8 @@ $(document).ready(function(){
                         '',
                         item['GP_HW'],
                         item['GENPOOL_QTY'],
-                        (item['ACTION'] == 'ADD') ? '' : item['TARGET_ID']
+                        (item['ACTION'] == 'ADD') ? '' : item['TARGET_ID'],
+                        item['SITE_NUM']
                     ]);
 
                     let override_gp_cap = '';
@@ -2342,6 +2408,7 @@ $(document).ready(function(){
                 let eff_start_1 = parseInt(item1[2].replace("_W", ""));
                 let eff_end_1 = parseInt(item1[3].replace("_W", ""));
                 let target_id_1 = item1[9];
+                let site_num_1 = item1[10];
                 
                 if (data.length > 1) {
                     $.each(data, function(index2, item2){
@@ -2354,8 +2421,9 @@ $(document).ready(function(){
                         let eff_start_2 = parseInt(item2[2].replace("_W", ""));
                         let eff_end_2 = parseInt(item2[3].replace("_W", ""));
                         let target_id_2 = item2[9];
+                        let site_num_2 = item2[10];
 
-                        if (part1 == part2 && gp_hw1 == gp_hw2 && hw_nm1 == hw_nm2 && map1 == "DEDICATION" && map2 == "DEDICATION" ) { //INVESTIGATE GENPOOL CAPACITY AGAIN, BOTH ADD AND EDIT - NORMAL & CSV MASS UPLOAD
+                        if (part1 == part2 && gp_hw1 == gp_hw2 && hw_nm1 == hw_nm2 && map1 == "DEDICATION" && map2 == "DEDICATION" && site_num_1 == site_num_2) { //INVESTIGATE GENPOOL CAPACITY AGAIN, BOTH ADD AND EDIT - NORMAL & CSV MASS UPLOAD
 
                             if(target_id_1 != "" && target_id_2 != ""){
                                 if (target_id_1 == target_id_2) {
@@ -2375,7 +2443,7 @@ $(document).ready(function(){
         }
         
         //FILTER OUT IDENTICAL MAPPINGS
-        let uniqueIndexes = [1, 2, 3, 4, 5, 7]; // specify which indexes to check for uniqueness
+        let uniqueIndexes = [1, 2, 3, 4, 5, 7, 10]; // specify which indexes to check for uniqueness
         let seen = new Set();
         let result = [];
 

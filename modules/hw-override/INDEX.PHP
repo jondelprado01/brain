@@ -25,6 +25,8 @@ $_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
 $response = API_REQUEST('hw-override-tool', json_encode($_GET));
 // echo "<pre>", var_dump($response['TYPE_2']), "</pre>";
 
+$existing_mapping_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-1", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_1'];
+$existing_capacity_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-2", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_2'];
 $existing_mapping = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_capacity = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
 $existing_nonboard = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
@@ -47,8 +49,8 @@ $has_delinquent_end_t2 = 0;
                 emp_name: '<?php echo $_SESSION["EMP_NAME"];?>',
                 emp_email: '<?php echo $_SESSION["EMP_EMAIL"];?>',
             }
-            var existing_mapping = '<?php echo json_encode($existing_mapping);?>';
-            var existing_capacity = '<?php echo json_encode($existing_capacity);?>';
+            var existing_mapping = '<?php echo json_encode($existing_mapping_all);?>';
+            var existing_capacity = '<?php echo json_encode($existing_capacity_all);?>';
             var existing_nonboard = '<?php echo json_encode($existing_nonboard);?>';
             var weeks = '<?php echo json_encode($weeks);?>';
             var current_fyww = '<?php echo json_encode($weeks[0]);?>';
@@ -71,6 +73,7 @@ $has_delinquent_end_t2 = 0;
         <script src="../../js/plugins/buttons.print.min.js"></script>
         <script src="../../js/plugins/jquery.inputmask.min.js"></script>
         <script src="../../js/hardware-type-1.js"></script>
+        <script src="../../js/hardware-type-1.2.js"></script>
         <script src="../../js/hardware-type-2.js"></script>
         <script src="../../js/hardware-type-3.js"></script>
 
@@ -124,7 +127,7 @@ $has_delinquent_end_t2 = 0;
                         return c.split(" ").filter(function(cls) {return cls !== "toast";}).join(" ");
                     })
                     .addClass(type);
-                $("#notif-toast .toast-body").text(message);
+                $("#notif-toast .toast-body").text(message).css("white-space", "pre-line");
                 var toast = new bootstrap.Toast($("#notif-toast")[0]);
                 toast.show();
             }
@@ -159,6 +162,23 @@ $has_delinquent_end_t2 = 0;
             .custom-tooltip {
             --bs-tooltip-bg: var(--bd-violet-bg);
             --bs-tooltip-color: var(--bs-white);
+            }
+            .btn-remove-record{
+                cursor: pointer;
+            }
+
+            @keyframes pulse-bg {
+                0% { background-color: #e3f2fd; }
+                50% { background-color: #bbdefb; }
+                100% { background-color: #e3f2fd; }
+            }
+
+            .linked-partnum {
+                animation: pulse-bg 2s infinite; /* creates the pulsing color effect */
+            }
+
+            .custom-wide-popover {
+                --bs-popover-max-width: 700px; /* Adjust to desired width */
             }
         </style>
     </head>
@@ -270,28 +290,26 @@ $has_delinquent_end_t2 = 0;
                                             <div class="row">
                                                 <div class="col-lg-12">
                                                     <div class="modal fade zoom" id="modal-add-dummy-type1" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-                                                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"  style="min-width:90%;">
+                                                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                                                             <div class="modal-content">
                                                                 <div class="modal-header d-flex justify-content-between bg-success-subtle">
-                                                                    <div>
-                                                                        <h1 class="modal-title fs-5">Create HW Mapping</h1>
-                                                                        <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
-                                                                    </div>
+                                                                    <h1 class="modal-title fs-5">Create HW Mapping</h1>
+                                                                    <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="row">
-                                                                        <div class="col-lg-8 mb-3">
+                                                                        <div class="col-lg-12 mb-3">
                                                                             <div class="row">
                                                                                 <div class="col-lg-6">
                                                                                     <div class="input-group">
                                                                                         <input identifier="type1" class="form-control input-search-type1" type="text" placeholder="Search Part">
                                                                                         <input type="radio" class="btn-check" name="input-mapping-type1" id="dummy" value="DUMMY" checked>
-                                                                                        <label class="btn btn-outline-success" for="dummy">DUMMY</label>
+                                                                                        <label class="btn btn-outline-secondary" for="dummy">DUMMY</label>
                                                                                         
                                                                                         <input type="radio" class="btn-check" name="input-mapping-type1" id="dedication" value="DEDICATION">
                                                                                         <label class="btn btn-outline-success" for="dedication">DEDICATION</label>
                                                                                     </div>
-                                                                                    <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div>
+                                                                                    <!-- <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div> -->
                                                                                 </div>
                                                                                 <div class="col-lg-6">
                                                                                     <div class="input-group">
@@ -307,23 +325,34 @@ $has_delinquent_end_t2 = 0;
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-lg-4">
+                                                                        <!-- <div class="col-lg-4">
                                                                             <button class="btn btn-outline-secondary d-none loader-hms-type1" type="button" disabled>
                                                                                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                                                                                     <span role="status">Calculating HMS PLANNABLE COUNT, Please Wait...</span>
                                                                             </button>
-                                                                        </div>
+                                                                        </div> -->
                                                                         <hr>
                                                                     </div>
-                                                                    <div class="row g-2 input-container-type1">
+                                                                    <!-- <div class="row g-2 input-container-type1">
                                                                         <p class="lead empty-filler-type1 d-flex justify-content-center align-items-center">
                                                                             Create HW Mappings (Dummy or Dedication) Using Search or CSV Upload
                                                                         </p>
+                                                                    </div> -->
+                                                                    <div class="row g-2 input-container-hwo-type1-v2">
+                                                                        <?php
+                                                                            require 'ADD-MAPPING.PHP';
+                                                                        ?>
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer bg-success-subtle">
-                                                                    <button type="button" class="btn btn-danger btn-close-modal-type1" process-type="type1" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
-                                                                    <button type="button" class="btn btn-success btn-save-type1" process-type="type1">Save <i class="fa-regular fa-floppy-disk"></i></button>
+                                                                    <span style="display: none!important;" class="btn-prompt-type1">
+                                                                        Closing this window will wipe out your current input, proceed? 
+                                                                        <button type="button" btn-type="btn-proceed-yes-type1" class="btn btn-link text-danger p-0" data-bs-dismiss="modal">Yes</button>
+                                                                        <button type="button" btn-type="btn-proceed-no-type1" class="btn btn-link text-secondary p-0">No</button>
+                                                                    </span>
+                                                                    
+                                                                    <button type="button" class="btn btn-sm btn-danger btn-close-hwo-t1-modal" process-type="type1">Close <i class="fa-solid fa-xmark"></i></button>
+                                                                    <button type="button" class="btn btn-sm btn-success btn-save-hwo-t1" process-type="type1">Save <i class="fa-regular fa-floppy-disk"></i></button>
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -582,7 +611,7 @@ $has_delinquent_end_t2 = 0;
 
                                                                             ) ? $item : null;
 
-                                                                    }, $existing_mapping);
+                                                                    }, $existing_mapping_all);
                                                                         
                                                                     $res_map = array_filter($res_map, function($value) {
                                                                         return $value !== null;
@@ -620,7 +649,7 @@ $has_delinquent_end_t2 = 0;
                                                                     $emp_dedicated_cap = 0;
                                                                     $res_cap = 0;
                                                                     $hw_current_cap = $capacity['CURRENT_CAP'];
-                                                                    foreach ($existing_mapping as $key => $emp) {
+                                                                    foreach ($existing_mapping_all as $key => $emp) {
                                                                         $emp_start = (int)str_replace("_W", "", $emp['EFF_START']);
                                                                         $emp_end   = (int)str_replace("_W", "", $emp['EFF_END']);
 
@@ -912,13 +941,14 @@ $has_delinquent_end_t2 = 0;
                         <div class="row">
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-part-container"><p class="lead m-0"><strong class="view-part"></strong></p><small>PART</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-hw-nm"></strong></p><small>HW_NAME</small></div>
+                            <hr>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-start"></strong></p><small>EFF_START</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-end"></strong></p><small>EFF_END</small></div>
+                            <hr>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-capacity-container"><p class="lead m-0"><strong class="view-capacity"></strong></p><small>JDA FEED</small></div>
-                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-override-container"><p class="lead m-0"><strong class="view-override"></strong></p><small>OVERRIDE CAPACITY</small></div>
-                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container"><p class="lead m-0"><strong class="view-current"></strong></p><small>HMS PLANNABLE COUNT</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-hw-type"></strong></p><small>HW_TYPE</small></div>
-                            <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-site-num-container"><p class="lead m-0"><strong class="view-site-num"></strong></p><small>SITE_NUM</small></div>
+                            <hr>
+                            <div class="col-sm-6 text-center mb-2 view-site-num-container"><p class="lead m-0"><strong class="view-site-num"></strong></p><small>SITE_NUM</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-res-area-container"><p class="lead m-0"><strong class="view-res-area"></strong></p><small>RES_AREA</small></div>
                             <hr>
                             <div class="col-lg-4 col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-created-at"></strong></p><small>CREATED_AT</small></div>
@@ -938,17 +968,20 @@ $has_delinquent_end_t2 = 0;
                 <div class="modal-content">
                     <div class="modal-header d-flex justify-content-between bg-warning-subtle">
                         <div>
-                            <h1 class="modal-title fs-5">View <span class="view-type-h1"></span> - <span class="view-record-h1"></span></h1>
+                            <h1 class="modal-title fs-5">View <span class="view-type-h1-type2"></span> - <span class="view-record-h1-type2"></span></h1>
                         </div>
                     </div>
                     <div class="modal-body">
                         <div class="row">
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-hw-nm-type2"></strong></p><small>HW_NAME</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-hw-type-type2"></strong></p><small>HW_TYPE</small></div>
+                            <hr>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-start-type2"></strong></p><small>EFF_START</small></div>
                             <div class="col-sm-6 text-center mb-2"><p class="lead m-0"><strong class="view-end-type2"></strong></p><small>EFF_END</small></div>
+                            <hr>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-override-container-type2"><p class="lead m-0"><strong class="view-override-type2"></strong></p><small>OVERRIDE CAPACITY</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-current-container-type2"><p class="lead m-0"><strong class="view-current-type2"></strong></p><small>HMS PLANNABLE COUNT</small></div>
+                            <hr>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-site-num-container-type2"><p class="lead m-0"><strong class="view-site-num-type2"></strong></p><small>SITE_NUM</small></div>
                             <div style="display: none!important;" class="col-sm-6 text-center mb-2 view-res-area-container-type2"><p class="lead m-0"><strong class="view-res-area-type2"></strong></p><small>RES_AREA</small></div>
                             <hr>
@@ -1118,6 +1151,15 @@ $has_delinquent_end_t2 = 0;
                             <div style="display: none!important;" class="col-lg-6 edit-override-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-override" type="number" step="0.1" placeholder=""><label class="label-type"><i class="fa-solid fa-asterisk"></i> OVERRIDE CAP</label></div></div>
                             <div style="display: none!important;" class="col-lg-6 edit-current-container"><div class="form-floating mb-3"><input  class="form-control edit-data edit-current" type="number" step="0.1" placeholder="" readonly><label class="label-type">HMS PLANNABLE COUNT</label></div></div>
                             <div class="col-lg-6"><div class="form-floating mb-3"><input  class="form-control edit-data edit-hw-type" type="text"  placeholder="" readonly><label class="label-type">HW_TYPE</label></div></div>
+                            <div class="col-lg-6">
+                                <div class="form-floating mb-3">
+                                    <select class="form-select edit-site-num-container" placeholder="" disabled>
+                                        <option value="">--</option>
+                                        <option value="ADGT">ADGT</option>
+                                        <option value="ADPI">ADPI</option>
+                                    </select><label>SITE_NUM</label>
+                                </div>
+                            </div>
                             <hr>
                             <div class="col-lg-4 text-center">
                                 <small>Date Created:</small>
@@ -1134,7 +1176,9 @@ $has_delinquent_end_t2 = 0;
                             <input type="hidden" class="edit-data edit-genpool-cap">
                         </div>
                     </div>
+                    <input type="hidden" class="edit-data edit-record-type" value="FROM_EDIT_UI">
                     <input type="hidden" class="edit-data edit-gp-hw-type">
+                    <input type="hidden" class="edit-data edit-site-num">
                     <div class="modal-footer bg-primary-subtle">
                         <button type="button" class="btn btn-danger" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                         <button type="button" class="btn btn-success btn-edit-data">Save <i class="fa-regular fa-floppy-disk"></i></button>
@@ -1185,6 +1229,7 @@ $has_delinquent_end_t2 = 0;
                                             <th>MAPPING_TYPE</th>
                                             <th>ACTION</th>
                                             <th>TARGET_ID</th>
+                                            <th>SITE_NUM</th>
                                             <th>ERROR</th>
                                         </tr>
                                     </thead>
