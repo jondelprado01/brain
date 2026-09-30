@@ -721,13 +721,13 @@ $(document).ready(function(){
     });
 
     // //VIEW HW CAPACITY OVERRIDES - MODAL
-    $(".btn-view-hw").on("click", function(){
+    $(document).delegate(".btn-view-hw", "click", function(){
         let data = JSON.parse($(this).attr("data"));
         preFillElementsType2(data);
     });
 
     //EDIT HW CAPACITY - MODAL
-    $(".btn-edit-hw").on("click", function(){
+    $(document).delegate(".btn-edit-hw", "click", function(){
         let data = JSON.parse($(this).attr("data"));
         preFillInputsType2(data);
     });
