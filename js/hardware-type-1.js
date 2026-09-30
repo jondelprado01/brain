@@ -1338,7 +1338,7 @@ $(document).ready(function(){
                                     else{
                                         let error_str = "";
                                         let error_str_type = "";
-                                        if (item['GENPOOL_QTY'] == '') {
+                                        if (item['GENPOOL_QTY'] === '') {
                                             error_str_type = "GENPOOL HW NAME/SPEC NOT FOUND";
                                         }
                                         if (item['SITE_NUM'] == '') {
@@ -1389,7 +1389,7 @@ $(document).ready(function(){
                                 else{
                                     let error_str = "";
                                     let error_str_type = "";
-                                    if (item['GENPOOL_QTY'] == '') {
+                                    if (item['GENPOOL_QTY'] === '') {
                                         error_str_type = "GENPOOL HW NAME/SPEC NOT FOUND";
                                     }
                                     if (item['SITE_NUM'] == '') {

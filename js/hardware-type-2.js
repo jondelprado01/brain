@@ -1487,7 +1487,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                 }
                             }
                             else{
-                                if (item['GENPOOL_QTY'] == '') {
+                                if (item['GENPOOL_QTY'] === '') {
                                     let error_str = "";
                                     let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
                                     error_str = delimiter+"GENPOOL HW NAME/SPEC NOT FOUND";
@@ -1520,7 +1520,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                                 }
                             }
                             else{
-                                if (item['GENPOOL_QTY'] == '') {
+                                if (item['GENPOOL_QTY'] === '') {
                                     let error_str = "";
                                     let delimiter = (item['ERROR'] != "CLEARED") ? "|" : "";
                                     error_str = delimiter+"GENPOOL HW NAME/SPEC NOT FOUND";
