@@ -22,6 +22,9 @@ $assets = RENDER_ASSETS("module");
 $_GET["EMP_NAME"] = $_SESSION["EMP_NAME"];
 $response = API_REQUEST('nonate-tool', json_encode($_GET));
 // echo "<pre>", var_dump($response['TYPE_2']), "</pre>";
+$existing_burnin_all = API_REQUEST('nonate-tool', json_encode(["tab" => "type-1", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_1'];
+$existing_socket_all = API_REQUEST('nonate-tool', json_encode(["tab" => "type-2", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_2'];
+$existing_capacity_all = API_REQUEST('nonate-tool', json_encode(["tab" => "type-3", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_3'];
 $existing_burnin = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_socket = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
 $existing_capacity = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
@@ -41,9 +44,9 @@ $weeks = $response['WEEKS'];
                 emp_name: '<?php echo $_SESSION["EMP_NAME"];?>',
                 emp_email: '<?php echo $_SESSION["EMP_EMAIL"];?>',
             }
-            var existing_burnin = '<?php echo json_encode($existing_burnin);?>';
-            var existing_socket = '<?php echo json_encode($existing_socket);?>';
-            var existing_capacity = '<?php echo json_encode($existing_capacity);?>';
+            var existing_burnin = '<?php echo json_encode($existing_burnin_all);?>';
+            var existing_socket = '<?php echo json_encode($existing_socket_all);?>';
+            var existing_capacity = '<?php echo json_encode($existing_capacity_all);?>';
             var weeks = '<?php echo json_encode($weeks);?>';
         </script>
         <?php

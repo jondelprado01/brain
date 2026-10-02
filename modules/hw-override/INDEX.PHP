@@ -27,6 +27,7 @@ $response = API_REQUEST('hw-override-tool', json_encode($_GET));
 
 $existing_mapping_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-1", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_1'];
 $existing_capacity_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-2", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_2'];
+$existing_nonboard_all = API_REQUEST('hw-override-tool', json_encode(["tab" => "type-3", "CREATED_BY" => "ALL", "EMP_NAME" => $_SESSION["EMP_NAME"]]))['TYPE_3'];
 $existing_mapping = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_capacity = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
 $existing_nonboard = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
@@ -51,7 +52,7 @@ $has_delinquent_end_t2 = 0;
             }
             var existing_mapping = '<?php echo json_encode($existing_mapping_all);?>';
             var existing_capacity = '<?php echo json_encode($existing_capacity_all);?>';
-            var existing_nonboard = '<?php echo json_encode($existing_nonboard);?>';
+            var existing_nonboard = '<?php echo json_encode($existing_nonboard_all);?>';
             var weeks = '<?php echo json_encode($weeks);?>';
             var current_fyww = '<?php echo json_encode($weeks[0]);?>';
         </script>
