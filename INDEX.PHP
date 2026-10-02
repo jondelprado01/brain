@@ -71,6 +71,11 @@
             foreach ($assets as $asset) {
                 echo $asset;
             }
+            // foreach ($assets as $key => $asset) {
+            //     if (!in_array($key, [18,19])) {
+            //         echo $asset;
+            //     }
+            // }
         ?>
     </head>
 
@@ -185,8 +190,14 @@
         <script>
             //TOGGLE - RESOURCE PICKER
             const toggler = document.querySelector(".toggler-btn");
-            toggler.addEventListener("click", function () {
-            document.querySelector("#sidebar").classList.toggle("collapsed");
+                toggler.addEventListener("click", function () {
+                    if ($("#sidebar").hasClass("collapsed")) {
+                        $("#sidebar").removeClass("collapsed").addClass("animate");
+                    }
+                    else{
+                        $("#sidebar").addClass("collapsed animate");
+                    }
+                sessionStorage.setItem("is-collapsed", $("#sidebar").hasClass("collapsed"));
             });
         </script>
         
