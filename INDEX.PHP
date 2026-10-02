@@ -67,6 +67,63 @@
                 emp_user_group: '<?php echo json_encode($_SESSION["EMP_USER_GROUP"]);?>'
             }
         </script>
+        <!-- custom css styling for tree/folder structure in part selection table -->
+        <style>
+            .part-selection-table td .tree-node {
+                position: relative!important;
+            }
+            .part-selection-table .has-children > td .tree-node::before {
+                content: ''!important;
+                position: absolute!important;
+                top: 50%!important;
+                bottom: -25px!important;
+                left: -16px!important;
+                border-left: 1px dashed black!important;
+            }
+            .part-selection-table td .tree-node::after {
+                content: ''!important;
+                position: absolute!important;
+                top: 50%!important;
+                left: -16px!important;
+                width: 12px!important;
+                border-top: 1px dashed black!important;
+            }
+            .part-selection-table .last-child > td .tree-node::before {
+                bottom: 50%!important;
+            }
+            .part-rem{
+                padding-left: 2rem!important;
+            }
+            .part-rem:hover{
+                background-color: #5f9ffc;
+                transition: background-color 0.2s ease-in-out;
+                cursor: pointer;
+            }
+            tr:has(.part-rem:hover) td:not(.part-rem) {
+                background-color: #5f9ffc;
+                transition: background-color 0.2s ease-in-out;
+                cursor: pointer;
+            }
+            .site-rem{
+                padding-left: 2.7rem!important;
+            }
+            .sap-rem{
+                padding-left: 3.5rem!important;
+            }
+            .sap-rem:hover{
+                background-color: #d1ecf1;
+                color: #0c5460;
+                transition: background-color 0.2s ease-in-out;
+                cursor: pointer;
+            }
+            .mpn-selected td{
+                background-color: #5f9ffc!important;
+            }
+            .sri-selected td{
+                background-color: #d1ecf1!important;
+            }
+        </style>
+        
         <?php
             foreach ($assets as $asset) {
                 echo $asset;
@@ -151,19 +208,17 @@
                                 <table style="width: 100%;" class="table table-bordered table-hover display compact border display compact part-selection-table">
                                     <thead>
                                         <tr>
-                                            <th>Tested Part #</th>
+                                            <th><small>Tested MFG_PART_NUM</small></th>
                                             <th>Generic</th>
-                                            <th>&nbsp;</th>
+                                            <!-- <th>Action</th> -->
                                         </tr>
                                     </thead>
-                                    <tbody class="part-selection-body">
-                                    </tbody>
+                                    <tbody class="part-selection-body"></tbody>
                                 </table>
                             </div>
                         </div>
                     </div>
                 </div>
-                
             </aside>
 
             <div class="main">
@@ -190,13 +245,13 @@
         <script>
             //TOGGLE - RESOURCE PICKER
             const toggler = document.querySelector(".toggler-btn");
-                toggler.addEventListener("click", function () {
-                    if ($("#sidebar").hasClass("collapsed")) {
-                        $("#sidebar").removeClass("collapsed").addClass("animate");
-                    }
-                    else{
-                        $("#sidebar").addClass("collapsed animate");
-                    }
+            toggler.addEventListener("click", function () {
+                if ($("#sidebar").hasClass("collapsed")) {
+                    $("#sidebar").removeClass("collapsed").addClass("animate");
+                }
+                else{
+                    $("#sidebar").addClass("collapsed animate");
+                }
                 sessionStorage.setItem("is-collapsed", $("#sidebar").hasClass("collapsed"));
             });
         </script>
