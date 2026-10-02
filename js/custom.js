@@ -47,40 +47,7 @@ $(document).ready(function(){
         bInfo: false,
         searching: false,
         bPaginate: false,
-        responsive: true,
-        createdRow: function (row, data, index) {
-            if (data[1] === '&nbsp;') {
-                $('td', row).addClass('group-header');
-                $('td', row).eq(0).addClass('group-title');
-            }
-            else{
-                $('td', row).css("font-size", "15px");
-            }
-        },
-        rowCallback: function (row, data, index) {
-            $(row).on('click', function (e) {
-                if (data[1] != '&nbsp;') {
-                    e.currentTarget.classList.toggle('selected');
-                }
-                
-                let selected_rows = part_selection.rows('.selected').data().length;
-                
-                if (selected_rows > 0) {
-                    $(".btn-modify").removeClass("btn-secondary").addClass("btn-info").prop("disabled", false);
-        
-                    if (selected_rows > 1) {
-                        btn_text = "Batch Planning Assumptions";
-                    }
-                    else{
-                        btn_text = "Planning Assumptions";
-                    }
-                    $(".btn-modify").html(btn_text);
-                }
-                else{
-                    $(".btn-modify").removeClass("btn-info").addClass("btn-secondary").prop("disabled", true);
-                }
-            });
-        }
+        responsive: true
     });
 
     // $('.toast').toast('show');
@@ -101,18 +68,18 @@ $(document).ready(function(){
         renderPartSelectionTable(data_set, record_count, group_header, part_selection);
     }
     else{
-        if (session_part_selections != null && session_filters != null) {
+        if (session_filters != null) {
+            populateDropdown((session_filters != null) ? session_filters : new_data);
+        }
+        if (session_part_selections != null) {
             let data_set = (session_part_selections != null) ? session_part_selections['data_set'] : current_primary_data;
             let record_count = (session_part_selections != null) ? session_part_selections['record_count'] : null;
             let group_header = (session_part_selections != null) ? session_part_selections['group_header'] : group_header_arr;
-    
-            populateDropdown((session_filters != null) ? session_filters : new_data);
             renderPartSelectionTable(data_set, record_count, group_header, part_selection);
         }
     }
 
     //----------------------------------------------------------------------------DATATABLES - MAIN DISPLAY-------------------------------------------------------------
-
     var tp_id = $('.table_primary').map(function() {
         return $(this).attr('id');
     });
@@ -537,32 +504,48 @@ $(document).ready(function(){
 
     //-----------------------------------------------------------------------DATATABLES - DEDICATION----------------------------------------------------------------
     var table_dedication = $(".table-dedication").DataTable({
-            oLanguage: {
-                sEmptyTable: "No Existing Dedication"
-            },
-            language : {
-                zeroRecords: "&nbsp;"             
-            },
-            responsive: true,
-            searching: false,
-            ordering: false,
-            bLengthChange: false,
-            bInfo: false,
-            bPaginate: false,
-            columnDefs: [{
-                targets: '_all',
-                createdCell: function (td, cellData, rowData, row, col) {
-                    if (col == 10) {
-                        $(td).css('display', 'none');
-                    }
-                    if (col == 9) {
-                        $(td).addClass('fs-6');
-                    }
+        oLanguage: {
+            sEmptyTable: "No Existing Dedication"
+        },
+        language : {
+            zeroRecords: "&nbsp;"             
+        },
+        responsive: true,
+        searching: false,
+        ordering: false,
+        bLengthChange: false,
+        bInfo: false,
+        bPaginate: false,
+        columnDefs: [{
+            targets: '_all',
+            createdCell: function (td, cellData, rowData, row, col) {
+                if (col == 10) {
+                    $(td).css('display', 'none');
                 }
-            }],
-        });
+                if (col == 9) {
+                    $(td).addClass('fs-6');
+                }
+            }
+        }],
+    });
     
     //-----------------------------------------------------------------------------EVENTS---------------------------------------------------------------------------
+    
+    //10-01-2026 - new onclick event handler for part selection table (for partnums and sap_rte_ids)
+    $(document).delegate(".part-rem", "click", function(){
+        $('*').removeClass('mpn-selected').removeClass("sri-selected");
+        $(this).parent().addClass("mpn-selected");
+        $(".btn-oee-modal").prop("disabled", ($(".mpn-selected").length > 0) ? false : true);
+        $(".btn-modify").prop("disabled", ($(".sri-selected").length > 0) ? false : true);
+    });
+
+    $(document).delegate(".sap-rem", "click", function(){
+        $('*').removeClass('mpn-selected').removeClass("sri-selected");
+        $(this).parent().addClass("sri-selected");
+        $('tr[row-val="'+$(this).parent().attr("row-mpn-val")+'"]').addClass("mpn-selected");
+        $(".btn-oee-modal").prop("disabled", ($(".mpn-selected").length > 0) ? false : true);
+        $(".btn-modify").prop("disabled", ($(".sri-selected").length > 0) ? false : true);
+    });
 
     //RESOURCE PICKER - REMOVE PART NUMBER FROM PART SELECTION TABLE
     $(document).delegate(".btn-pst-del", "click", function(){
@@ -1639,8 +1622,7 @@ $(document).ready(function(){
                         showLoader('Processing... \n Please Wait!');
                     },
                     success: function(data){                        
-                        if (JSON.parse(data)['STATUS'] == "SUCCESS") {
-                            console.log(JSON.parse(data));
+                        if (JSON.parse(data)['STATUS'] == "SUCCESS") { 
                             setTimeout(function(){
 				                sessionStorage.setItem("instance-loaded", JSON.stringify(new_session_data));
                                 showGenericAlert("success", "Dedication Updated Successfully!");
@@ -2130,9 +2112,7 @@ $(document).ready(function(){
 
     //BTN OEE MODAL - CHECKER FOR EXISTING OEE OVERRIDE SETUP (SINGLE OR MULTIPLE PART NUMS)
     $(".btn-oee-modal").on("click", function(){
-
         $(".last-common-column").val("");
-
         //RESET TEMPORARY ARRAYS FIRST
         oee_partnum_arr = [];
         oee_tester_arr  = [];
@@ -2162,22 +2142,24 @@ $(document).ready(function(){
                         ignore_fields.push("TESTER");
                         hide_col.push(3,4);
                         break;
-
                     case 'ENGINEERING_TESTER':
                     case 'ATOM_TESTER':
                         common_fields['TESTER'].push(cat_val);
                         ignore_fields.push("HANDLER");
                         hide_col.push(3,4);
                         break;
-                
-                    default:
-                        common_fields['MFG_PART_NUM'].push(cat_val);
-                        hide_col.push(0);
-                        break;
                 }
                 all_category.push(category);
             }
         });
+
+        if ($(".mpn-selected").length > 0) {
+            $(".mpn-selected").each(function(){
+                common_fields['MFG_PART_NUM'].push($(this).attr("row-val"));
+                hide_col.push(0);
+            });
+            all_category.push('MFG_PART_NUM');
+        }
 
         if ($.inArray("MFG_PART_NUM", $.unique(all_category)) === -1) {
             ignore_fields.push("MFG_PART_NUM");
@@ -2187,7 +2169,6 @@ $(document).ready(function(){
         (common_fields['MFG_PART_NUM'].length == 0  && $.inArray("MFG_PART_NUM", ignore_fields) === -1) ? main_fields.splice(0,0, 'MFG_PART_NUM')  : "";
         (common_fields['TESTER'].length == 0        && $.inArray("TESTER", ignore_fields) === -1)       ? main_fields.splice(2, 0, 'TESTER')        : "";
         (common_fields['HANDLER'].length == 0       && $.inArray("HANDLER", ignore_fields) === -1)      ? main_fields.splice(3, 0, 'HANDLER')       : "";
-        
         (common_fields['MFG_PART_NUM'].length == 0) ? delete common_fields.MFG_PART_NUM : "";
         (common_fields['TESTER'].length == 0)       ? delete common_fields.TESTER       : "";
         (common_fields['HANDLER'].length == 0)      ? delete common_fields.HANDLER      : "";
@@ -2196,7 +2177,6 @@ $(document).ready(function(){
         if ('MFG_PART_NUM' in common_fields) {
             main_fields.push('MFG_PART_NUM');
         }
-        
         oeeGet(common_fields, main_fields, $.unique(ignore_fields), [...new Set(hide_col)], oee_main, [], true);
     });
 
@@ -2839,8 +2819,9 @@ $(document).ready(function(){
 });
 
 $(document).delegate('.btn-modify', 'click', function () {
-    let selected_parts = $(".part-selection-table").DataTable().rows('.selected').data();
-    getMainDisplayData(selected_parts);
+    let selected_part = $(".mpn-selected").attr("row-val");
+    let selected_route = $(".sri-selected").attr("row-sri-val");
+    getMainDisplayData(selected_part, selected_route, true);
 });
 
 // INPUT SEARCH FIELD - RESOURCE PICKER (ENTER KEYUP)
@@ -2891,23 +2872,73 @@ function searchPart(value) {
             showLoader('Processing... \n Please Wait!');
         },
         success: function(data){
-            setTimeout(function(){
+            setTimeout(async function(){
                 let data_result = JSON.parse(data)['DATA'];
                 let result_count = 0;
-                if(data_result[1]['value'].length == 1){
-                    let data_set = formatData("specific", data_result[1]['value'], "part-selection");
-                    getMainDisplayData(data_result[1]['value'][0], true);
-                    // resetSessions(['session_search', 'session_filters', 'session_part_selections']);
+                
+                const has_valid_items = data_result.some(item => 
+                    item.value && (
+                        (Array.isArray(item.value) && item.value.length > 0) || 
+                        (!Array.isArray(item.value) && !$.isEmptyObject(item.value))
+                    )
+                );
+
+                if(!has_valid_items){
+                    $(".alert-no-result").fadeIn();
+                    return;
+                }
+
+                if (data_result[1]['value'].length >= 1) {
+                    let has_multiple_records = (data_result[1]['value'].length == 1) ? 0 : 1;
+                    let mfg_part_num_res = data_result[1]['value'][0];
+                    let sap_rte_id_arr = JSON.parse(await searchRouteID([mfg_part_num_res]))['DATA'];
+
+                    if (data_result[1]['value'].length == 1) {
+                        if (Object.keys(sap_rte_id_arr).length > 0) {
+                            if (Object.keys(sap_rte_id_arr[mfg_part_num_res]).length == 1) {
+                                if (sap_rte_id_arr[mfg_part_num_res][Object.keys(sap_rte_id_arr[mfg_part_num_res])[0]].length == 1) {
+                                    let sri_res_val = sap_rte_id_arr[mfg_part_num_res][Object.keys(sap_rte_id_arr[mfg_part_num_res])[0]][0];
+                                    sessionRouteChecker(sap_rte_id_arr, [mfg_part_num_res]);
+                                    getMainDisplayData(data_result[1]['value'][0], sri_res_val, true);
+                                }
+                                else{has_multiple_records++;}
+                            }
+                            else{has_multiple_records++;}
+                        }
+                    }
+
+                    if (has_multiple_records > 0) {
+                        let temp_arr = [];
+                        let data_set = [];
+                        let group_header = [];
+                        let mfg_part_num_res = data_result[1]['value'];
+                        let res_gen_combo = data_result[1]['details'].map(row => ['RES_AREA', 'GENERIC'].map(index => row[index]));
+                        $.each(res_gen_combo, function(rgc_idx, rgc_itm){
+                            let exists = temp_arr.some(row => JSON.stringify(row) === JSON.stringify(rgc_itm));
+                            if (!exists) {
+                                temp_arr.push(rgc_itm);
+                                group_header.push(rgc_itm[1]+" ("+rgc_itm[0]+" - L-ADI)");
+                            }
+                        });
+                        $.each(data_result[1]['details'], function(dr_idx, dr_itm){
+                            let temp_dr = [dr_itm['MFG_PART_NUM'], dr_itm['GENERIC'], '', dr_itm['GENERIC']+" ("+dr_itm['RES_AREA']+" - L-ADI)"];
+                            data_set.push(temp_dr);
+                        });
+                        let sap_rte_id_arr = JSON.parse(await searchRouteID(mfg_part_num_res))['DATA'];
+                        sessionRouteChecker(sap_rte_id_arr, mfg_part_num_res);
+                        sessionStorage.setItem('session_part_selections', JSON.stringify({data_set: data_set, record_count: null, group_header: group_header}));
+                        renderPartSelectionTable(data_set, null, group_header, []);
+                    }
                 }
                 else{
                     $(".alert-result").hide();
                     $(".result-accordion").html("");
-
                     for (let index = 0; index < data_result.length; index++) {
-                        result_count += data_result[index]['value'].length;
+                        if (index != 1) {
+                            result_count += data_result[index]['value'].length;
+                        }
                     }
-
-                    if (result_count != 0) {
+                    if (result_count > 0) {
                         if (result_count > 10) {
                             $(".alert-large-result").fadeIn();
                         }
@@ -2915,9 +2946,7 @@ function searchPart(value) {
                         populateDropdown(data_result);
                     }
                     else{
-                        if(result_count == 0){
-                            $(".alert-no-result").fadeIn();
-                        }
+                        $(".alert-no-result").fadeIn();
                     }
                 }
             }, 1500);
@@ -2931,6 +2960,34 @@ function searchPart(value) {
     });
 }
 
+function sessionRouteChecker(sap_rte_id_arr, mfg_part_num){
+    let session_item = sessionStorage.getItem('session_sap_rte_ids');
+    let session_route = (session_item && session_item.trim() !== "" && session_item !== "null" && session_item !== "undefined") ? JSON.parse(session_item) : {};
+    if (Object.values(session_route).length == 0) {
+        session_route = sap_rte_id_arr;
+    }
+    else{
+        $.each(mfg_part_num, function(mpn_idx, mpn_itm){
+            if (session_route[mpn_itm] === undefined) {
+                session_route[mpn_itm] = sap_rte_id_arr[mpn_itm];
+            }
+        });
+    }
+    sessionStorage.setItem('session_sap_rte_ids', JSON.stringify(session_route));
+}
+
+async function searchRouteID(mfg_part_num) {
+    try {
+        const response = await $.ajax({
+            type: 'post',
+            url: 'http://mxhtafot01l.maxim-ic.com/TEST/MAPPER_ADI_TEST.PHP?INPUT_TYPE=MFG_PART_NUM&OUTPUT_TYPE=SEARCH_SAP_RTE_ID&INPUT[0]='+encodeURIComponent(mfg_part_num)
+        });
+        return response;
+    } catch (error) {
+        console.error("error:", error);
+    }
+}
+
 function searchProductData(payload, part_selection, data_set, group_header) {
     let data = "";
     for (let index = 0; index < payload.length; index++) {
@@ -2938,7 +2995,7 @@ function searchProductData(payload, part_selection, data_set, group_header) {
     }
     $.ajax({
         type: 'post',
-        url: 'http://mxhtafot01l.maxim-ic.com/TEST/MAPPER_ADI.PHP?INPUT_TYPE=GET_DETAILS&OUTPUT_TYPE=GET_DETAILS'+data,
+        url: 'http://mxhtafot01l.maxim-ic.com/TEST/MAPPER_ADI_TEST.PHP?INPUT_TYPE=GET_DETAILS&OUTPUT_TYPE=GET_DETAILS'+data,
         beforeSend: function(){
             showLoader('Processing... \n Please Wait!');
         },
@@ -2952,8 +3009,6 @@ function searchProductData(payload, part_selection, data_set, group_header) {
                 // let group_header = [];
                 let current_count = 0;
                 let sps = sessionStorage.getItem('session_part_selections');
-                console.log(JSON.parse(sps));
-                console.log(data_set, group_header);
                 $.each(data_result, function(index, item){
                     let session_cntr = 0;
                     let temp_arr_cntr = 0;
@@ -3016,11 +3071,10 @@ function searchProductData(payload, part_selection, data_set, group_header) {
     });
 }
 
-function getMainDisplayData(part_num, skip = false){
-
+async function getMainDisplayData(part_num, sap_rte_id, skip = false){
     let data = "";
     if (skip) {
-        data += "?partnum[0]="+encodeURIComponent(part_num)+"";
+        data += "?partnum[0]="+encodeURIComponent(sap_rte_id)+"";
     }
     else{
         for (let index = 0; index < part_num.length; index++) {
@@ -3028,6 +3082,9 @@ function getMainDisplayData(part_num, skip = false){
             data += prefix+"partnum["+index+"]="+encodeURIComponent(part_num[index][0])+"";
         }
     }
+    let mfg_part_num = (skip) ? [part_num] : part_num;
+    let sap_rte_id_arr = JSON.parse(await searchRouteID(mfg_part_num))['DATA'];
+    sessionRouteChecker(sap_rte_id_arr, mfg_part_num);
     window.location.href = env+data+'';
 }
 
@@ -3248,7 +3305,6 @@ function oeeGet(common_fields, main_fields, ignore_fields, hide_col, oee_main, c
                                 showGenericAlert("warning", "Record Not Found!");
                                 return;
                             }
-                            console.log(JSON.parse(data));
                             
                             if (is_initial) {
                                 let oee_values = [];
@@ -3812,7 +3868,7 @@ function populateDropdown(items){
         let value_len = value['value'].length;
         let collapsed = (result_counter <= 10) ? "" : "collapsed";
         let show = (result_counter <= 10) ? "show" : "";
-
+        if (value['type'] == 'MFG_PART_NUM') return true;
         if (value_len != 0) {
             let type = value['type'];
             $.each(value['value'], function(inner_index, inner_val){
@@ -3912,20 +3968,40 @@ function renderCategoryFilter(elem, part_selection){
     renderPartSelectionTable(data_set, null, group_header, part_selection);
 }
 
-function renderPartSelectionTable(data = null, record_count = null, group = null, part_selection) {
-    part_selection.rows().remove().draw();
-    let regroup_array = [];
-    $.each([...new Set(group)], function(index, item){
-        regroup_array.push([item, '&nbsp;', '&nbsp;']);
-        $.each(data, function(inner_index, inner_item){
-            if (item == inner_item[3]) {
-                regroup_array.push(inner_item);
+async function renderPartSelectionTable(data = null, record_count = null, group = null, part_selection) {
+    
+    //for rendering main display thru url partnum paramater (without resource picker)
+    let sap_rte_id_arr = JSON.parse(await searchRouteID(data.map(row => row[0])))['DATA'];
+    sessionRouteChecker(sap_rte_id_arr, data.map(row => row[0]));
+    let sap_rte_ids = JSON.parse(sessionStorage.getItem("session_sap_rte_ids"));
+
+    $(".part-selection-table tbody").empty();
+    let tr_str = "";
+    $.each([...new Set(group)], function(grp_idx, grp_itm){
+
+        tr_str += '<tr><th scope="row" colspan="2" class="table-secondary">'+grp_itm+'</th></tr>';
+
+        $.each(data, function(dt_idx, dt_itm){
+            if (dt_itm[3] == grp_itm) {
+                // let has_btn = dt_itm[2].includes('button') ? dt_itm[2] : "--"; delete btn removed, will put it back until further notice
+                tr_str += '<tr row-val="'+dt_itm[0]+'" class="has-children"><td class="part-rem"><span class="tree-node fw-bold">'+dt_itm[0]+'</span></td><td>'+dt_itm[1]+'</td></tr>';
+                if (sessionStorage.getItem("session_sap_rte_ids") !== null) {
+                    let part_routes = Object.entries(sap_rte_ids).find(([key, arr]) => key === dt_itm[0])?.[1];
+                    if (typeof part_routes !== 'undefined') {
+                        let part_sites = Object.keys(part_routes);
+                        $.each(part_sites, function(ps_idx, ps_itm){
+                            tr_str += '<tr class="has-children"><td class="site-rem" colspan="2"><span class="tree-node fw-bold">'+ps_itm+'</span></td></tr>';
+                            $.each(part_routes[ps_itm], function(pr_idx, pr_itm){
+                                tr_str += '<tr row-mpn-val="'+dt_itm[0]+'" row-sri-val="'+pr_itm+'"><td class="sap-rem" colspan="2"><span class="tree-node">'+pr_itm+'</span></td></tr>';
+                            });
+                        });
+                    }
+                }
             }
         });
     });
-    
-    part_selection.rows.add(regroup_array);
-    part_selection.draw(false);
+
+    $(".part-selection-table tbody").append(tr_str);
 }
 
 function deletePartSelectionTable(data, data_set, group_header, part_selection){
@@ -3955,8 +4031,6 @@ function deletePartSelectionTable(data, data_set, group_header, part_selection){
         $.each(session_ds, function(index, item){
             if ($.inArray(partnum, item) !== -1) {
                 session_ds_index = index;
-                console.log(item);
-                
             }
         });
         session_ds.splice(session_ds_index, 1);
