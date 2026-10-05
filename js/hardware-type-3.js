@@ -73,8 +73,15 @@ $(document).ready(function(){
                 buttons: [exportButtonType3('copy'), exportButtonType3('csv'), exportButtonType3('excel'), exportButtonType3('pdf'), exportButtonType3('print')],
             },
             bottomStart: "info"
+        },
+        serverSide: false,
+        initComplete: function(settings, json) {
+            var api = this.api();
+            updateHMSCount(this.api());
         }
     });
+
+    table_type_3.on('page.dt length.dt search.dt order.dt', function() { updateHMSCount(table_type_3); });
 
     // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
     $(".btn-export-process-type3").on("click", function(){
@@ -219,7 +226,7 @@ $(document).ready(function(){
     });
 
     //VIEW ALL NON-BOARDS - MODAL
-    $(".btn-view-nb").on("click", function(){
+    $(document).delegate(".btn-view-nb", "click", function(){
         let data = JSON.parse($(this).attr("data"));
         preFillElementsType3(data);
     });
@@ -312,6 +319,46 @@ function crudProcessType3(process, payload){
                     location.reload();
                 }
             }, 1500);
+        },
+        error: function(xhr, status, error) {
+            console.log(xhr);
+        }
+    });
+}
+
+function updateHMSCount(table_elem){
+    let payload = [];
+    let temp_arr = [];
+    table_elem.rows({ page: 'current' }).every(function() {
+        var row = this.data();
+        var node = this.node();
+        payload.push(row[4]);
+        temp_arr.push([row[1], row[2], row[3], row[4], row[5], node]);
+    });
+
+    if (payload.length == 0) {
+        return;
+    }
+
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=UPDATE_HMS_COUNT&OUTPUT_TYPE=BODS_JDA_ADI',
+        data: {payload: payload},
+        success: function(data){
+            let list = JSON.parse(data);
+            $.each(temp_arr, function(ta_idx, ta_itm){
+                let new_hms = ta_itm[4]; //assigned the current hms temporarily
+                $.each(list, function(l_idx, l_itm){
+                    if (l_itm['SITE_NUM'] == ta_itm[0] && l_itm['RES_AREA'] == ta_itm[1] && l_itm['HW_TYPE_HMS'] == ta_itm[2] && l_itm['HW_NM'] == ta_itm[3]) {
+                        new_hms = l_itm['AVAIL_QTY'];
+                    }
+                });
+                $(ta_itm[5]).find('td').eq(5).text(new_hms);
+                let btn_data_attr = $(ta_itm[5]).find('td').eq(6).find('button');
+                let data = JSON.parse(btn_data_attr.attr('data'));
+                data['CAPACITY'] = new_hms;
+                btn_data_attr.attr('data', JSON.stringify(data));
+            });
         },
         error: function(xhr, status, error) {
             console.log(xhr);
