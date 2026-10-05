@@ -1,5 +1,7 @@
 $(document).ready(function(){
 
+    updateExistingData();
+
     //initialize multiple select2
     $(".select2-nonate-type2").each(function(){
         let elem_id = $(this).attr("id");
@@ -358,8 +360,8 @@ function getBoardsSocket(board, table_type_2){
                 console.log(se_boards);
                 
                 if (se_boards.length > 0) {
-                    if (JSON.parse(existing_socket).length > 0) {
-                        $.each(JSON.parse(existing_socket), function(index, item){
+                    if (JSON.parse(existing_socket_all).length > 0) {
+                        $.each(JSON.parse(existing_socket_all), function(index, item){
                             if ($.inArray(item['HASH'], existing_cell_id) === -1) {
                                 existing_cell_id.push(item['HASH']);
                             }
@@ -372,7 +374,7 @@ function getBoardsSocket(board, table_type_2){
                         let user = "";
                         
                         if ($.inArray(item['SEID'], existing_cell_id) !== -1) {
-                            $.each(JSON.parse(existing_socket), function(idx, itm){
+                            $.each(JSON.parse(existing_socket_all), function(idx, itm){
                                 if (item['SEID'] == itm['HASH']) {
                                     id = itm['ID'];
                                     socket_efficiency = parseFloat((itm['SOCKET_EFFICIENCY'] * 100).toFixed(2))+'%';
@@ -450,9 +452,9 @@ function addSocketEfficiency(payload, user_details){
 function updateExistingData(){
     $.ajax({
         type: 'get',
-        url: 'http://MXHDAFOT01L.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=GET_SOCKET&OUTPUT_TYPE=BODS_JDA_ADI',
+        url: 'http://MXHDAFOT01L.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=GET_SOCKET_ALL&OUTPUT_TYPE=BODS_JDA_ADI',
         success: function(data){
-            existing_socket = data;
+            existing_socket_all = data;
         },
         error: function(xhr, status, error) {
             console.log(xhr);

@@ -1,5 +1,7 @@
 $(document).ready(function(){
     
+    getExistingBurnin();
+
     //initialize multiple select2
     $(".select2-nonate-type1").each(function(){
         let elem_id = $(this).attr("id");
@@ -423,10 +425,10 @@ $(document).ready(function(){
 function getExistingBurnin(){
     $.ajax({
         type: 'post',
-        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=GET_BOARD_BURNIN&OUTPUT_TYPE=BODS_JDA_ADI',
+        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE_TEST.PHP?PROCESS_TYPE=GET_BOARD_BURNIN_ALL&OUTPUT_TYPE=BODS_JDA_ADI',
         success: function(data){
             let updated_existing_boards = JSON.parse(data);
-            existing_burnin = JSON.stringify(updated_existing_boards);
+            existing_burnin_all = JSON.stringify(updated_existing_boards);
         },
         error: function(xhr, status, error) {
             console.log(xhr);
@@ -528,8 +530,8 @@ function getBoardsBurnin(board, table_type_1){
                 let bi_boards = JSON.parse(data);
                 
                 if (bi_boards.length > 0) {
-                    if (JSON.parse(existing_burnin).length > 0) {
-                        $.each(JSON.parse(existing_burnin), function(index, item){
+                    if (JSON.parse(existing_burnin_all).length > 0) {
+                        $.each(JSON.parse(existing_burnin_all), function(index, item){
                             if ($.inArray(item['HASH'], existing_cell_id) === -1) {
                                 existing_cell_id.push(item['HASH']);
                             }
@@ -544,7 +546,7 @@ function getBoardsBurnin(board, table_type_1){
                         let user = "";
         
                         if ($.inArray(item['BID'], existing_cell_id) !== -1) {
-                            $.each(JSON.parse(existing_burnin), function(idx, itm){
+                            $.each(JSON.parse(existing_burnin_all), function(idx, itm){
                                 if (item['BID'] == itm['HASH']) {
                                     id = itm['ID'];
                                     load_hours = itm['LOAD_HOURS'];
@@ -604,7 +606,7 @@ function addBoardsBurnin(payload, user_details){
                         
                         addChangeLog(JSON.parse(data)['CHANGE_LOG_DATA'], user_details, "non-ate update burn-in load/unload hours");
 
-                        let new_existing_burnin = JSON.parse(existing_burnin);
+                        let new_existing_burnin = JSON.parse(existing_burnin_all);
                         $.each(payload, function(index, item){
                             let part  = item[0];
                             let board = item[1];
@@ -619,7 +621,7 @@ function addBoardsBurnin(payload, user_details){
                                 new_existing_burnin[get_index]['LOAD_UNLOAD'] = uload;
                             }
                             else{
-                                getExistingBurnin(existing_burnin);
+                                getExistingBurnin();
                             }
 
                             $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
@@ -628,7 +630,7 @@ function addBoardsBurnin(payload, user_details){
                             $('[row-id="'+hash+'"]').attr('default-state', JSON.stringify(item));
                         });
 
-                        existing_burnin = JSON.stringify(new_existing_burnin);
+                        existing_burnin_all = JSON.stringify(new_existing_burnin);
 
                         showGenericAlertType1("success", "Record Saved Successfully!");
                         // location.reload();
