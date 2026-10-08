@@ -70,7 +70,7 @@ $(document).ready(function(){
         // bSort: false,
         responsive: true,
         columnDefs: [
-            {targets: [2,3,4], width: "15%"},
+            {targets: [2,3,4, 5], width: "10%"},
             {
                 targets: "_all",
                 createdCell: function(td, cellData, rowData, row, col){
@@ -91,6 +91,9 @@ $(document).ready(function(){
                         $(td).attr("default-val", rowData[5]);
                         $(td).addClass('turns-per-week');
                     }
+                    if (col == 7) {
+                        $(td).css("font-size", "12px");
+                    }
                 }
             },
             {
@@ -101,7 +104,7 @@ $(document).ready(function(){
             },
             {
                 targets: 7,
-                visible: false,
+                // visible: false,
                 render: function(data, type, row, meta) {
                     return row[9];
                 }
@@ -279,7 +282,12 @@ $(document).ready(function(){
                 data.push(temp);
             });
 
-            addBoardsBurnin(data, user_details);
+            let trim_data = data.map(row => {
+                row.splice(7, 1);
+                return row;
+            });
+
+            addBoardsBurnin(trim_data, user_details);
         }
     });
 
@@ -345,7 +353,6 @@ $(document).ready(function(){
                 }
             }
             else{
-                load_unload = bi_hours + parseFloat(cell_val);
                 if (default_cell_val != parseFloat(cell_val) && default_load_unload != load_unload) {
                     $('td[cell-id="'+cell_id+'"]').each(function(){
                         if ($(this).hasClass("load-hours")) {
@@ -384,40 +391,40 @@ $(document).ready(function(){
 
 
     //ONE TIME USE ONLY - ENABLE FOR FUTURE USE
-    $("#btn-mass-insert-type1").on("click", function(){
-        let file = $("#mass-insert-type1")[0].files[0];
-        var reader = new FileReader();
-        reader.addEventListener('load', function(e) {
-            var text = e.target.result.split("\r\n");
-            let source_data = [];
-            let partnum_arr = [];
-            let board_arr = [];
-            $.each(text, function(idx, itm){
-                if (idx > 0) {
-                    let partnum     = itm.split(",")[0];
-                    let board       = itm.split(",")[1];
-                    // let bi_hours    = itm.split(",")[2];
-                    // let load_hours  = itm.split(",")[3];
+    // $("#btn-mass-insert-type1").on("click", function(){
+    //     let file = $("#mass-insert-type1")[0].files[0];
+    //     var reader = new FileReader();
+    //     reader.addEventListener('load', function(e) {
+    //         var text = e.target.result.split("\r\n");
+    //         let source_data = [];
+    //         let partnum_arr = [];
+    //         let board_arr = [];
+    //         $.each(text, function(idx, itm){
+    //             if (idx > 0) {
+    //                 let partnum     = itm.split(",")[0];
+    //                 let board       = itm.split(",")[1];
+    //                 // let bi_hours    = itm.split(",")[2];
+    //                 // let load_hours  = itm.split(",")[3];
                     
-                    if (partnum != "" && board != "") {
-                        if ($.inArray(partnum, partnum_arr) === -1) {
-                            partnum_arr.push(partnum);
-                        }
+    //                 if (partnum != "" && board != "") {
+    //                     if ($.inArray(partnum, partnum_arr) === -1) {
+    //                         partnum_arr.push(partnum);
+    //                     }
         
-                        if ($.inArray(board, board_arr) === -1) {
-                            board_arr.push(board);
-                        }
+    //                     if ($.inArray(board, board_arr) === -1) {
+    //                         board_arr.push(board);
+    //                     }
 
-                        source_data.push(itm.split(","));
-                    }
+    //                     source_data.push(itm.split(","));
+    //                 }
 
-                }
-            });
-            massGetBoards(source_data, partnum_arr, board_arr);
-        });
-        reader.readAsText(file);
+    //             }
+    //         });
+    //         massGetBoards(source_data, partnum_arr, board_arr);
+    //     });
+    //     reader.readAsText(file);
 
-    });
+    // });
 
 });
 
@@ -437,54 +444,54 @@ function getExistingBurnin(){
 }
 
 //ONE TIME USE ONLY - ENABLE FOR FUTURE USE
-function massGetBoards(source_data, partnum_arr, board_arr){
-    $.ajax({
-        type: 'post',
-        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=MASS_SEARCH_BOARD_BURNIN&OUTPUT_TYPE=BODS_JDA_ADI',
-        data: {partnum: partnum_arr, board: board_arr},
-        success: function(data){
-            $.each(JSON.parse(data), function(index, item){
-                var index = source_data.findIndex(
-                    row => row[0] === item['MFG_PART_NUM'] && row[1] === item['BURNIN_BOARD']
-                );
+// function massGetBoards(source_data, partnum_arr, board_arr){
+//     $.ajax({
+//         type: 'post',
+//         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=MASS_SEARCH_BOARD_BURNIN&OUTPUT_TYPE=BODS_JDA_ADI',
+//         data: {partnum: partnum_arr, board: board_arr},
+//         success: function(data){
+//             $.each(JSON.parse(data), function(index, item){
+//                 var index = source_data.findIndex(
+//                     row => row[0] === item['MFG_PART_NUM'] && row[1] === item['BURNIN_BOARD']
+//                 );
                 
-                if (index !== -1) {
-                    if (item['BID'] != '') {
-                        let total_bi_hours = parseFloat(item['BURNIN_HOURS_1']) + parseFloat($.trim(source_data[index][3]));
-                        let turns_per_week = 168 / total_bi_hours;
+//                 if (index !== -1) {
+//                     if (item['BID'] != '') {
+//                         let total_bi_hours = parseFloat(item['BURNIN_HOURS_1']) + parseFloat($.trim(source_data[index][3]));
+//                         let turns_per_week = 168 / total_bi_hours;
     
-                        source_data[index][2] = item['BURNIN_HOURS_1'];
-                        source_data[index][3] = parseFloat($.trim(source_data[index][3]));
-                        source_data[index][4] = total_bi_hours;
-                        source_data[index][5] = parseFloat(turns_per_week.toFixed(2));
-                        source_data[index][6] = item['BID'];
-                    }
-                }
+//                         source_data[index][2] = item['BURNIN_HOURS_1'];
+//                         source_data[index][3] = parseFloat($.trim(source_data[index][3]));
+//                         source_data[index][4] = total_bi_hours;
+//                         source_data[index][5] = parseFloat(turns_per_week.toFixed(2));
+//                         source_data[index][6] = item['BID'];
+//                     }
+//                 }
                 
-            });
+//             });
 
-            source_data = source_data.filter(subarray => subarray.length >= 5);
-            MassAddBoardsBurnin(source_data);
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
+//             source_data = source_data.filter(subarray => subarray.length >= 5);
+//             MassAddBoardsBurnin(source_data);
+//         },
+//         error: function(xhr, status, error) {
+//             console.log(xhr);
+//         }
+//     });
+// }
 
-function MassAddBoardsBurnin(payload){
-    $.ajax({
-        type: 'post',
-        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=ADD_BOARD_BURNIN&OUTPUT_TYPE=BODS_JDA_ADI',
-        data: {payload: payload},
-        success: function(data){
-            console.log(data);  
-        },
-        error: function(xhr, status, error) {
-            console.log(xhr);
-        }
-    });
-}
+// function MassAddBoardsBurnin(payload){
+//     $.ajax({
+//         type: 'post',
+//         url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=ADD_BOARD_BURNIN&OUTPUT_TYPE=BODS_JDA_ADI',
+//         data: {payload: payload},
+//         success: function(data){
+//             console.log(data);  
+//         },
+//         error: function(xhr, status, error) {
+//             console.log(xhr);
+//         }
+//     });
+// }
 
 function preloadBurnin(board, table_type_1){
     let data = JSON.parse(board);
@@ -624,6 +631,7 @@ function addBoardsBurnin(payload, user_details){
                                 getExistingBurnin();
                             }
 
+                            $('.load-unload-hours[cell-id="'+hash+'"]').attr("default-val", uload);
                             $('.load-hours[cell-id="'+hash+'"]').attr("default-val", load);
 
                             item.splice(8, 1);

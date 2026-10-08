@@ -387,10 +387,11 @@ $has_delinquent_end_t2 = 0;
                                                                 <th>JDA FEED</th>
                                                                 <th>MAPPING_TYPE</th>
                                                                 <th>REMARKS</th>
+                                                                <th>OWNER</th>
                                                                 <th>ACTIONS</th>
                                                             </tr>
                                                         </thead>
-                                                        <tbody>
+                                                        <tbody style="font-size: 12px!important;">
                                                             <?php
                                                                 foreach ($existing_mapping as $key => $mapping) {
 
@@ -409,7 +410,7 @@ $has_delinquent_end_t2 = 0;
                                                                             </div>
                                                                         </td>
                                                                         <td><?php echo $mapping['ID']?></td>
-                                                                        <td class="text-sm"><?php echo $mapping['MFG_PART_NUM']?></td>
+                                                                        <td><?php echo $mapping['MFG_PART_NUM']?></td>
                                                                         <td><?php echo $mapping['GENPOOL']?></td>
                                                                         <td><?php echo $mapping['HW_NM']?></td>
                                                                         <td><?php echo $mapping['EFF_START']?></td>
@@ -430,6 +431,7 @@ $has_delinquent_end_t2 = 0;
                                                                                 }
                                                                             ?>
                                                                         </td>
+                                                                        <td><small><?php echo $mapping['CREATED_BY']?></small></td>
                                                                         <td class="">
                                                                             <div class="btn-group">
                                                                                 <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -454,7 +456,6 @@ $has_delinquent_end_t2 = 0;
                                                                                 </ul>
                                                                             </div>
                                                                         </td>
-                                                                        <td><?php echo $mapping['CREATED_BY']; ?></td>
                                                                     </tr>
                                                                 <?php
                                                                 }
@@ -584,6 +585,7 @@ $has_delinquent_end_t2 = 0;
                                                                 <th>OVERRIDE CAP</th>
                                                                 <th>HMS PLANNABLE COUNT</th>
                                                                 <th>HW_TYPE</th>
+                                                                <th>OWNER</th>
                                                                 <th>ACTIONS</th>
                                                             </tr>
                                                         </thead>
@@ -719,6 +721,7 @@ $has_delinquent_end_t2 = 0;
                                                                             
                                                                         </td>
                                                                         <td><?php echo $capacity['HW_TYPE']?></td>
+                                                                        <td><small><?php echo $capacity['CREATED_BY']; ?></small></td>
                                                                         <td>
                                                                             <div class="btn-group">
                                                                                 <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -738,7 +741,6 @@ $has_delinquent_end_t2 = 0;
                                                                                 </ul>
                                                                             </div>
                                                                         </td>
-                                                                        <td><?php echo $capacity['CREATED_BY']; ?></td>
                                                                     </tr>
                                                                 <?php
                                                                 }
@@ -884,6 +886,7 @@ $has_delinquent_end_t2 = 0;
                                                             <th>HW TYPE</th>
                                                             <th>HW NAME</th>
                                                             <th>HMS PLANNABLE COUNT</th>
+                                                            <th>OWNER</th>
                                                             <th>ACTION</th>
                                                         </tr>
                                                     </thead>
@@ -902,12 +905,12 @@ $has_delinquent_end_t2 = 0;
                                                                     <td><?php echo $nonboard['HW_TYPE_HMS']; ?></td>
                                                                     <td><?php echo $nonboard['HW_NAME']; ?></td>
                                                                     <td><?php echo $nonboard['CAPACITY']; ?></td>
+                                                                    <td><?php echo $nonboard['CREATED_BY']; ?></td>
                                                                     <td>
                                                                         <button type="button" data='<?php echo json_encode($nonboard);?>' class="btn btn-warning btn-sm btn-view-nb">
                                                                             <i class="fa-solid fa-eye"></i> View
                                                                         </button>
                                                                     </td>
-                                                                    <td><?php echo $nonboard['CREATED_BY']; ?></td>
                                                                 </tr>
                                                             <?php
                                                             }

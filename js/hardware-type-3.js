@@ -19,7 +19,7 @@ $(document).ready(function(){
         let cols = [];
         let title_object = {};
         for (var i = 1; i <= 7; i++) {
-            if (i != 6) {
+            if (i != 7) {
                 cols.push(i);
             }
         }
@@ -48,7 +48,13 @@ $(document).ready(function(){
             },
             className: 'd-none buttons-' + type +'-type-3',
             exportOptions: {
-                columns: cols
+                columns: cols,
+                format: {
+                    body: function (data, rowIdx, colIdx, node) {
+                        // Extract and return the actual text content from the DOM cell node
+                        return $(node).text().trim();
+                    }
+                }
             },
             ...title_object,
         }
@@ -61,12 +67,6 @@ $(document).ready(function(){
         scrollY: 'calc(100vh - 550px)',
         bSort: false,
         responsive: true,
-        columnDefs: [
-            {
-                targets: 7,
-                visible: false
-            }
-        ],
         layout: {
             topStart: "pageLength",
             top2Start: {
@@ -354,7 +354,7 @@ function updateHMSCount(table_elem){
                     }
                 });
                 $(ta_itm[5]).find('td').eq(5).text(new_hms);
-                let btn_data_attr = $(ta_itm[5]).find('td').eq(6).find('button');
+                let btn_data_attr = $(ta_itm[5]).find('td').eq(7).find('button');
                 let data = JSON.parse(btn_data_attr.attr('data'));
                 data['CAPACITY'] = new_hms;
                 btn_data_attr.attr('data', JSON.stringify(data));

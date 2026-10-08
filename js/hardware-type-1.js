@@ -28,7 +28,7 @@ $(document).ready(function(){
         let cols = [];
         let title_object = {};
         for (var i = 1; i <= 11; i++) {
-            if ($.inArray(i, [9, 10]) === -1) {
+            if ($.inArray(i, [9, 11]) === -1) {
                 cols.push(i);
             }
         }
@@ -68,6 +68,7 @@ $(document).ready(function(){
         scrollY: 'calc(100vh - 570px)',
         // bSort: false,
         order: [[ 6, "asc" ]],
+        autoWidth: false,
         columnDefs: [
             {
                 targets: 6,
@@ -82,13 +83,10 @@ $(document).ready(function(){
                 }
             },
             {
-                targets: [0,1,8,9,10],
+                targets: [0,1,8,9,10,11],
                 orderable: false
             },
-            {
-                targets: 11,
-                visible: false
-            }
+            { targets: [0,1,7], width: "1%"}
         ],
         responsive: true,
         layout: {

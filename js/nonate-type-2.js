@@ -64,7 +64,8 @@ $(document).ready(function(){
         responsive: true,
         autoWidth: false,
         columnDefs: [
-            {targets: 1, width: "15%"},
+            {targets: [1,3], width: "15%"},
+            {targets: 2, width: "20%"},
             {
                 targets: "_all",
                 createdCell: function(td, cellData, rowData, row, col){
@@ -73,12 +74,15 @@ $(document).ready(function(){
                         $(td).attr("default-se", rowData[2]);
                         $(td).addClass("socket-efficiency bg-info-subtle dt-left");
                     }
+                    if (col == 3) {
+                        $(td).css("font-size", "12px");
+                    }
                     $(td).attr("cell-id-type2", rowData[3]);
                 }
             },
             {
                 targets: 3,
-                visible: false,
+                // visible: false,
                 render: function(data, type, row, meta) {
                     return row[5];
                 }
@@ -306,9 +310,14 @@ $(document).ready(function(){
 
                 data.push(temp);
             });
+            
+            let trim_data = data.map(row => {
+                row.splice(3, 1);
+                return row;
+            });
 
             if (error == 0) {
-                addSocketEfficiency(data, user_details);
+                addSocketEfficiency(trim_data, user_details);
             }
             else{
                 showGenericAlertType1("error", "Error: Please review the entered data.");

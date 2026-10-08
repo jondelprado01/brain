@@ -29,7 +29,7 @@ $(document).ready(function(){
         let cols = [];
         let title_object = {};
         for (var i = 1; i <= 11; i++) {
-            if (i != 10) {
+            if (i != 11) {
                 cols.push(i);
             }
         }
@@ -82,10 +82,6 @@ $(document).ready(function(){
             {
                 targets: '_all',
                 orderable: false
-            },
-            {
-                targets: 11,
-                visible: false
             }
         ],
         responsive: true,

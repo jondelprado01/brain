@@ -22,7 +22,7 @@ $(document).ready(function(){
         let cols = [];
         let title_object = {};
         for (var i = 1; i <= 10; i++) {
-            if (i != 9) {
+            if (i != 10) {
                 cols.push(i);
             }
         }
@@ -67,12 +67,6 @@ $(document).ready(function(){
         scrollY: 'calc(100vh - 550px)',
         bSort: false,
         responsive: true,
-        columnDefs:[
-            {
-                targets: 10,
-                visible: false
-            }
-        ],
         layout: {
             topStart: "pageLength",
             top2Start: {

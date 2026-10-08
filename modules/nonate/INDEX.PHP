@@ -277,6 +277,7 @@ $weeks = $response['WEEKS'];
                                                             <th>TOTAL_BI_HRS</th>
                                                             <th>TURNS_PER_WEEK</th>
                                                             <th>HW_TYPE</th>
+                                                            <th>OWNER</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -354,6 +355,7 @@ $weeks = $response['WEEKS'];
                                                             <th>BOARD</th>
                                                             <th>HW_TYPE</th>
                                                             <th>SOCKET EFFICIENCY</th>
+                                                            <th>OWNER</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
@@ -425,6 +427,7 @@ $weeks = $response['WEEKS'];
                                                             <th>OVERRIDE CAP</th>
                                                             <th>HMS PLANNABLE COUNT</th>
                                                             <th>HW_TYPE</th>
+                                                            <th>OWNER</th>
                                                             <th>ACTIONS</th>
                                                         </tr>
                                                     </thead>
@@ -446,6 +449,7 @@ $weeks = $response['WEEKS'];
                                                                     <td><?php echo $capacity['OVERRIDE_CAP']?></td>
                                                                     <td><?php echo $capacity['CURRENT_CAP']?></td>
                                                                     <td><?php echo $capacity['HW_TYPE']?></td>
+                                                                     <td><?php echo $capacity['CREATED_BY']?></td>
                                                                     <td>
                                                                         <div class="btn-group">
                                                                             <button class="btn btn-outline-info btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -465,7 +469,6 @@ $weeks = $response['WEEKS'];
                                                                             </ul>
                                                                         </div>
                                                                     </td>
-                                                                    <td><?php echo $capacity['CREATED_BY']?></td>
                                                                 </tr>
                                                             <?php
                                                             }
