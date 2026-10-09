@@ -255,7 +255,19 @@
                 sessionStorage.setItem("is-collapsed", $("#sidebar").hasClass("collapsed"));
             });
         </script>
-        
+
+        <?php
+            // 2026-10-08 RM (AI: Claude Code): [AI-generated] load the timephasing instance live-calc + save-gate JS ONLY on the instance-edit view
+            // (?timephase-instance=<TPI_ID>). Promoted from INDEX_ALT into the original; loaded here (NOT via assets/LIST.PHP) so custom.js binds first. It
+            // computes TD EFF / WFR IDX % for ATE WS / ATE PBS setups via requests/TIMEPHASE_RUNRATE_PROXY.PHP and blocks Save until recompute settles. Gated
+            // on the URL param so the normal planning-assumptions page never loads it. ?v=filemtime busts the browser cache on each deploy.
+            if (isset($_GET['timephase-instance'])) {
+                $tp_calc_js = 'js/timephase-instance-calc.js';
+                $tp_calc_v  = @filemtime($tp_calc_js);
+                echo '<script src="'.$tp_calc_js.'?v='.($tp_calc_v ? $tp_calc_v : time()).'"></script>';
+            }
+        ?>
+
     </body>
     <!-- <footer class="bg-body-tertiary text-center text-lg-start fixed-bottom" data-bs-theme="dark">
         <div class="text-center p-3">

@@ -15,6 +15,13 @@ if (in_array('HW Planning', $_SESSION['EMP_USER_GROUP']) || count($_SESSION['EMP
 
 $row_disabled_pad = ($pd['ENGR_TESTER'] == null || $pd['ENGR_HANDLER'] == null || $pd['ENGR_TESTER'] == "NONE" || $pd['ENGR_HANDLER'] == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
 
+// 2026-10-08 RM (AI: Claude Code): [AI-generated] Promoted to production -- WS-gated display strings for the two trailing columns TD EFF (2dp) / WFR IDX % (3dp).
+// Values render ONLY for RES_AREA (=TEST_TYPE) 'ATE WS'/'ATE PBS' (source BRAIN_ADI_ALLDB_ALL, already in $pd); any other area or null/empty -> blank.
+$io_ws_areas  = array('ATE WS', 'ATE PBS');
+$io_is_ws     = in_array(strtoupper(trim($pd['TEST_TYPE'])), $io_ws_areas, true);
+$td_eff_disp  = ($io_is_ws && isset($pd['TD_EFF'])      && $pd['TD_EFF'] !== null      && $pd['TD_EFF'] !== '')      ? number_format((float)$pd['TD_EFF'], 2)      : '';
+$wfr_idx_disp = ($io_is_ws && isset($pd['WFR_IDX_PCT']) && $pd['WFR_IDX_PCT'] !== null && $pd['WFR_IDX_PCT'] !== '') ? number_format((float)$pd['WFR_IDX_PCT'], 3) : '';
+
 echo '<tr '.$row_disabled_pad.'>
         <td>
             <button class="btn btn-outline-warning btn-sm btn-dedication-table_source_'.$table_id.'" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -69,6 +76,8 @@ echo '<tr '.$row_disabled_pad.'>
         <td class="'.$cls.'">NOT_INSTANCE</td>
         <td class="'.$cls.'">NOT_INSTANCE</td>
         <td class="'.$cls.'">'.$pd['TEST_TYPE'].'</td>
+        <td>'.$td_eff_disp.'</td>
+        <td>'.$wfr_idx_disp.'</td>
     </tr>';
 
 ?>

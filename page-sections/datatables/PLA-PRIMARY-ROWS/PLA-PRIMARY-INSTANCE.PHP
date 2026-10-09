@@ -91,6 +91,25 @@ if ($result['RES_PRIO_CD'][1]['IS_DED'] == "1") {
 }
 
 $row_disabled_ppi = ($pi_eng_tester == null || $pi_eng_handler == null || $pi_eng_tester == "NONE" || $pi_eng_handler == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
+
+// 2026-10-08 RM (AI: Claude Code): [AI-generated] Promoted from the _ALT build into the original, TP-instance view ONLY (this INSTANCE template renders only
+// when a timephase instance is loaded, so the normal planning-assumptions display is untouched). WS/PBS-gated HARVESTABLE cells for TD EFF (col 34) / WFR IDX %
+// (col 35): stamped instance-field + the setup identity ($instance_idtf/$instance_attr) so the UNCHANGED custom.js save loop persists them via TPI_PUT, and
+// js/timephase-instance-calc.js live-recomputes them through requests/TIMEPHASE_RUNRATE_PROXY.PHP. ATE FT (non-WS/PBS) -> blank + inert. TD EFF 2dp, WFR IDX % 3dp.
+$io_ws_areas  = array('ATE WS', 'ATE PBS');
+$io_is_ws     = (count($result) > 0) && in_array(strtoupper(trim($pi_res_area)), $io_ws_areas, true);
+$pi_td_eff    = isset($result['RES_PRIO_CD'][1]['TD_EFF'])      ? $result['RES_PRIO_CD'][1]['TD_EFF']      : '';
+$pi_wfr_idx   = isset($result['RES_PRIO_CD'][1]['WFR_IDX_PCT']) ? $result['RES_PRIO_CD'][1]['WFR_IDX_PCT'] : '';
+$td_eff_disp  = ($io_is_ws && $pi_td_eff  !== null && $pi_td_eff  !== '') ? number_format((float)$pi_td_eff, 2)  : '';
+$wfr_idx_disp = ($io_is_ws && $pi_wfr_idx !== null && $pi_wfr_idx !== '') ? number_format((float)$pi_wfr_idx, 3) : '';
+if ($io_is_ws) {
+    $io_calc_attr = 'data-partnum="'.htmlspecialchars($pi_partnum, ENT_QUOTES).'" data-site="'.htmlspecialchars($part_data[0]['SITE'], ENT_QUOTES).'" data-step="'.htmlspecialchars($pi_step_nm, ENT_QUOTES).'" data-res-area="'.htmlspecialchars($pi_res_area, ENT_QUOTES).'" data-handler="'.htmlspecialchars($pi_atom_handler, ENT_QUOTES).'" data-rte="'.htmlspecialchars($pi_route, ENT_QUOTES).'"';
+    $td_eff_cell  = '<td class="'.$cls.' td-eff-cell" instance-field="TD_EFF" instance-default="'.$td_eff_disp.'" '.$instance_idtf.' '.$instance_attr.' '.$io_calc_attr.'>'.$td_eff_disp.'</td>';
+    $wfr_idx_cell = '<td class="'.$cls.' wfr-idx-cell" instance-field="WFR_IDX_PCT" instance-default="'.$wfr_idx_disp.'" '.$instance_idtf.' '.$instance_attr.'>'.$wfr_idx_disp.'</td>';
+} else {
+    $td_eff_cell  = '<td class="'.$cls.'"></td>';
+    $wfr_idx_cell = '<td class="'.$cls.'"></td>';
+}
 echo '<tr '.$row_disabled_ppi.'>
         <td class="'.$cls.'">
             <button class="btn btn-success btn-sm btn-dedication-table_primary_'.$table_id.'" 
@@ -143,6 +162,8 @@ echo '<tr '.$row_disabled_ppi.'>
         <td class="'.$cls.' '.$hide.'">'.$pi_step_nm.'|'.$pi_rte_seq.'|1|'.$pi_atom_tester.'|'.$pi_atom_handler.'</td>
         <td class="'.$cls.' '.$hide.'">'.json_encode($pi_data).'</td>
         <td class="'.$cls.' '.$hide.'">'.$pi_res_area.'</td>
+        '.$td_eff_cell.'
+        '.$wfr_idx_cell.'
     </tr>';
 // <td class="'.$cls.'">'.round($pi_qcf, 2).'</td>
 // <td class="'.$cls.'">'.round($pi_suph, 2).'</td>

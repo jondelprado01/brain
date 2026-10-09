@@ -84,6 +84,9 @@ echo '<tr '.$row_disabled_paded.'>
         <td class="'.$cls.' '.$hide.'">NOT_INSTANCE</td>
         <td class="'.$cls.' '.$hide.'">NOT_INSTANCE</td>
         <td class="'.$cls.' '.$hide.'">'.$res_area_arr[0].'</td>
+        <!-- 2026-10-08 RM (AI: Claude Code) [AI-generated]: TD EFF / WFR IDX % (cols 34/35) blank for dedication rows (no WS/PBS source value). -->
+        <td class="'.$cls.'"></td>
+        <td class="'.$cls.'"></td>
     </tr>';
 
 ?>

@@ -103,6 +103,24 @@ if (count($result) > 0) {
             $row_disabled_pai = ($pi_eng_tester == null || $pi_eng_handler == null || $pi_eng_tester == "NONE" || $pi_eng_handler == "NONE") ? 'style="pointer-events: none!important; opacity: 0.6!important;"' : '';
             $editable = ($row_disabled_pai == '') ? $editable : '';
 
+            // 2026-10-08 RM (AI: Claude Code): [AI-generated] Promoted from the _ALT build into the original, TP-instance view ONLY (alternate, per-setup $skey).
+            // WS/PBS-gated HARVESTABLE TD EFF (col 34) / WFR IDX % (col 35) cells: instance-field + setup identity so the UNCHANGED custom.js save loop persists
+            // via TPI_PUT, and js/timephase-instance-calc.js live-recomputes via requests/TIMEPHASE_RUNRATE_PROXY.PHP. ATE FT (non-WS/PBS) -> blank + inert.
+            $io_ws_areas  = array('ATE WS', 'ATE PBS');
+            $io_is_ws     = in_array(strtoupper(trim($pi_res_area)), $io_ws_areas, true);
+            $pi_td_eff    = isset($result['RES_PRIO_CD'][$skey]['TD_EFF'])      ? $result['RES_PRIO_CD'][$skey]['TD_EFF']      : '';
+            $pi_wfr_idx   = isset($result['RES_PRIO_CD'][$skey]['WFR_IDX_PCT']) ? $result['RES_PRIO_CD'][$skey]['WFR_IDX_PCT'] : '';
+            $td_eff_disp  = ($io_is_ws && $pi_td_eff  !== null && $pi_td_eff  !== '') ? number_format((float)$pi_td_eff, 2)  : '';
+            $wfr_idx_disp = ($io_is_ws && $pi_wfr_idx !== null && $pi_wfr_idx !== '') ? number_format((float)$pi_wfr_idx, 3) : '';
+            if ($io_is_ws) {
+                $io_calc_attr = 'data-partnum="'.htmlspecialchars($pi_partnum, ENT_QUOTES).'" data-site="'.htmlspecialchars($part_data[0]['SITE'], ENT_QUOTES).'" data-step="'.htmlspecialchars($pi_step_nm, ENT_QUOTES).'" data-res-area="'.htmlspecialchars($pi_res_area, ENT_QUOTES).'" data-handler="'.htmlspecialchars($pi_atom_handler, ENT_QUOTES).'" data-rte="'.htmlspecialchars($pi_route, ENT_QUOTES).'"';
+                $td_eff_cell  = '<td class="'.$bg_cell.' td-eff-cell" instance-field="TD_EFF" instance-default="'.$td_eff_disp.'" '.$instance_idtf.' '.$instance_attr.' '.$io_calc_attr.'>'.$td_eff_disp.'</td>';
+                $wfr_idx_cell = '<td class="'.$bg_cell.' wfr-idx-cell" instance-field="WFR_IDX_PCT" instance-default="'.$wfr_idx_disp.'" '.$instance_idtf.' '.$instance_attr.'>'.$wfr_idx_disp.'</td>';
+            } else {
+                $td_eff_cell  = '<td class="'.$bg_cell.'"></td>';
+                $wfr_idx_cell = '<td class="'.$bg_cell.'"></td>';
+            }
+
             echo '<tr '.$row_disabled_pai.'>
                     <td class="'.$bg_cell.'">
                         <button class="btn '.$bg_btn.' btn-sm btn-dedication-table_source_'.$table_id.'" 
@@ -155,6 +173,8 @@ if (count($result) > 0) {
                     <td class="'.$cls.' ">'.$pi_step_nm.'|'.$pi_rte_seq.'|'.$skey.'|'.$pi_atom_tester.'|'.$pi_atom_handler.'</td>
                     <td class="'.$cls.' ">'.json_encode($pi_data).'</td>
                     <td class="'.$cls.' ">'.$pi_res_area.'</td>
+                    '.$td_eff_cell.'
+                    '.$wfr_idx_cell.'
                 </tr>';
         }
     }
