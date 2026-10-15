@@ -208,6 +208,63 @@ $(document).ready(function(){
 
 //-----------------------------------------------------------------------API---------------------------------------------------------------------
 
+// 2026-10-01 RM (AI: Claude Code): apply deep-link filters passed by the Default Atom Ledger "jump to editor" links.
+// INDEX.PHP sets window.da_jump_filters from $_GET; here we map them onto the per-column searches and redraw. No-op on a
+// normal visit (all empty). Column index map: 0 DA_ID | 1 TYPE | 2 SITE | 3 RES_AREA | 4 ENG_NAME | 5 ATOM_NAME | ...
+// Uses plain substring search (regex=false, smart=false) so a value with a space like "ATE FT" matches literally.
+//
+// 2026-10-01 RM (AI: Claude Code) FIX: the filter was applied (rows restricted) but the in-column search box stayed
+// BLANK. Cause: ColumnControl OWNS those per-column search <input>s. Calling table.column().search() filters the data
+// but does NOT update ColumnControl's own state, so on its next render ColumnControl rewrites the input back to its
+// (empty) internal value - wiping a value we set directly on the DOM. The same reason let a stale, stateSave-restored
+// ColumnControl search survive a bare table.columns().search('') and keep hiding rows. Fix: drive each box THROUGH
+// ColumnControl - set the input's .val() and dispatch the native input/keyup/change events it listens on - so
+// ColumnControl's OWN state becomes authoritative; it then both applies the search and keeps the box populated. We
+// still call column().search() as a guaranteed data-side fallback. Selector matches drawCallback's proven
+// "thead .dtcc-search input" (NOT a positional tr.eq(1) guess), scoped to the real table node so FixedHeader's clone
+// isn't matched. Inputs are one-per-column in column order (col 0 DA_ID .. col 8 ACTION).
+function daApplyJumpFilters(table){
+    if (typeof da_jump_filters === 'undefined' || !da_jump_filters) { return; }
+    var map = [[1,'resource_type'], [2,'site_num'], [3,'res_area'], [4,'eng_name']];
+    var i, v, want = {}, k, hasAny = false;
+
+    // Collect this jump's wanted per-column values (data column index -> value).
+    for (i = 0; i < map.length; i++){
+        v = da_jump_filters[map[i][1]];
+        if (v !== undefined && v !== null && String(v) !== ''){ want[map[i][0]] = String(v); hasAny = true; }
+    }
+    if (!hasAny) { return; }   // normal visit: leave the user's own (stateSave-restored) column searches intact
+
+    var $inputs = $(table.table().node()).find('thead .dtcc-search input');
+
+    // Set a column's search box value THROUGH ColumnControl (val + native events) so ColumnControl's own state holds it
+    // and won't blank it on re-render; also hit the column API directly as a guaranteed data-side filter.
+    function driveSearch(colIdx, val){
+        var $in = $inputs.eq(colIdx);
+        if ($in.length){
+            $in.val(val);
+            var el = $in[0];
+            el.dispatchEvent(new Event('input',  { bubbles: true }));   // native dispatch also triggers jQuery handlers
+            el.dispatchEvent(new Event('keyup',  { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        table.column(colIdx).search(val, false, false);   // plain substring (regex=false, smart=false) so "ATE FT" matches literally
+    }
+
+    // A jump defines the COMPLETE filter set. First clear EVERY column through ColumnControl (box + its state + search)
+    // so a stale stateSave-restored filter can't linger and silently hide rows; THEN apply only this jump's params and
+    // pulse them so it's obvious which boxes drive the current view.
+    $inputs.removeClass('da-jump-pulse');
+    for (i = 0; i < $inputs.length; i++){ driveSearch(i, ''); }
+    for (k in want){
+        if (want.hasOwnProperty(k)){
+            driveSearch(parseInt(k, 10), want[k]);
+            $inputs.eq(parseInt(k, 10)).addClass('da-jump-pulse');
+        }
+    }
+    table.draw(false);
+}
+
 //GET DEFAULT ATOM LIST FROM BRAIN.DEFAULT_ATOM TABLE
 function getDefaultAtom(table_default_atom) {
     $.ajax({
@@ -238,6 +295,7 @@ function getDefaultAtom(table_default_atom) {
             setTimeout(function(){
                 $(".loading-alert").fadeOut();
                 table_default_atom.draw(false);
+                daApplyJumpFilters(table_default_atom);   // apply any Default Atom Ledger "jump to editor" deep-link filters
             },1000);
         },
         complete: function(){
@@ -264,6 +322,7 @@ function getAtom(type, site, atom){
                 if (Object.keys(JSON.parse(data)['DATA'][0]).length > 0) {
                     let options = "";
                     let raw_atoms = JSON.parse(data)['DATA'][0];
+                    raw_atoms['HANDTEST'] = {COUNT: '1', CONFIG_PCNT: 1};
                     let atom_names = Object.keys(raw_atoms);
                     if (atom != null && atom != '--') {
                         let index = atom_names.indexOf(atom);
