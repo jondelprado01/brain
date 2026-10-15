@@ -70,42 +70,33 @@
         <!-- custom css styling for tree/folder structure in part selection table -->
         <style>
             .part-selection-table td .tree-node {
-                position: relative!important;
+                position: relative !important;
             }
-            .part-selection-table .has-children > td .tree-node::before {
-                content: ''!important;
-                position: absolute!important;
-                top: 50%!important;
-                bottom: -25px!important;
-                left: -16px!important;
-                border-left: 1px dashed black!important;
-            }
-            .part-selection-table td .tree-node::after {
-                content: ''!important;
-                position: absolute!important;
-                top: 50%!important;
-                left: -16px!important;
-                width: 12px!important;
-                border-top: 1px dashed black!important;
-            }
-            .part-selection-table .last-child > td .tree-node::before {
-                bottom: 50%!important;
+            .part-selection-table .is-child td .tree-node::before {
+                content: '' !important;
+                position: absolute !important;
+                top: -6px !important;
+                left: -16px !important;
+                width: 10px !important; 
+                height: 18px !important; 
+                border-left: 1px dashed black !important;
+                border-bottom: 1px dashed black !important;
             }
             .part-rem{
-                padding-left: 2rem!important;
+                padding-left: 2.5rem!important;
             }
             .part-rem:hover{
-                background-color: #5f9ffc;
+                background-color: #d1ecf1;
                 transition: background-color 0.2s ease-in-out;
                 cursor: pointer;
             }
             tr:has(.part-rem:hover) td:not(.part-rem) {
-                background-color: #5f9ffc;
+                background-color: #d1ecf1;
                 transition: background-color 0.2s ease-in-out;
                 cursor: pointer;
             }
-            .site-rem{
-                padding-left: 2.7rem!important;
+            .res-rem{
+                padding-left: 2rem!important;
             }
             .sap-rem{
                 padding-left: 3.5rem!important;
@@ -116,10 +107,7 @@
                 transition: background-color 0.2s ease-in-out;
                 cursor: pointer;
             }
-            .mpn-selected td{
-                background-color: #5f9ffc!important;
-            }
-            .sri-selected td{
+            .mpn-selected td, .sri-selected td, .stn-selected td, .res-selected td{
                 background-color: #d1ecf1!important;
             }
         </style>
@@ -206,11 +194,11 @@
                         <div style="min-height: 4em;" class="card-body">
                             <div class="part-selection-container">
                                 <table style="width: 100%;" class="table table-bordered table-hover display compact border display compact part-selection-table">
-                                    <thead>
+                                    <thead style="display:none!important;">
                                         <tr>
                                             <th><small>Tested MFG_PART_NUM</small></th>
                                             <th>Generic</th>
-                                            <!-- <th>Action</th> -->
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody class="part-selection-body"></tbody>

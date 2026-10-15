@@ -533,16 +533,31 @@ $(document).ready(function(){
     
     //10-01-2026 - new onclick event handler for part selection table (for partnums and sap_rte_ids)
     $(document).delegate(".part-rem", "click", function(){
-        $('*').removeClass('mpn-selected').removeClass("sri-selected");
+        let stn_idtf = $(this).parent().attr("row-stn-val");
+        let res_idtf = $(this).parent().attr("row-res-val");
+
+        $('*').removeClass('stn-selected res-selected mpn-selected sri-selected');
+
         $(this).parent().addClass("mpn-selected");
+        $(this).parent().prevAll('tr[row-val="'+stn_idtf+'"]').first().addClass("stn-selected");
+        $(this).parent().prevAll('tr[row-val="'+res_idtf+'"]').first().addClass("res-selected");
+
         $(".btn-oee-modal").prop("disabled", ($(".mpn-selected").length > 0) ? false : true);
         $(".btn-modify").prop("disabled", ($(".sri-selected").length > 0) ? false : true);
     });
 
     $(document).delegate(".sap-rem", "click", function(){
-        $('*').removeClass('mpn-selected').removeClass("sri-selected");
+        let stn_idtf = $(this).parent().attr("row-stn-val");
+        let res_idtf = $(this).parent().attr("row-res-val");
+        let mpn_idtf = $(this).parent().attr("row-mpn-val");
+        
+        $('*').removeClass('stn-selected res-selected mpn-selected sri-selected');
+
         $(this).parent().addClass("sri-selected");
-        $('tr[row-val="'+$(this).parent().attr("row-mpn-val")+'"]').addClass("mpn-selected");
+        $(this).parent().prevAll('tr[row-val="'+stn_idtf+'"]').first().addClass("stn-selected");
+        $(this).parent().prevAll('tr[row-val="'+res_idtf+'"]').first().addClass("res-selected");
+        $(this).parent().prevAll('tr[row-val="'+mpn_idtf+'"]').first().addClass("mpn-selected");
+
         $(".btn-oee-modal").prop("disabled", ($(".mpn-selected").length > 0) ? false : true);
         $(".btn-modify").prop("disabled", ($(".sri-selected").length > 0) ? false : true);
     });
@@ -3974,30 +3989,112 @@ async function renderPartSelectionTable(data = null, record_count = null, group 
     let sap_rte_id_arr = JSON.parse(await searchRouteID(data.map(row => row[0])))['DATA'];
     sessionRouteChecker(sap_rte_id_arr, data.map(row => row[0]));
     let sap_rte_ids = JSON.parse(sessionStorage.getItem("session_sap_rte_ids"));
+    
+
+    let group_cleaned = group.map(function(item) {
+        return item.replace(/\s+\(.*/, "").trim();
+    });
+
+    let res_area_str = group.map(function(item) {
+        return item.replace(/^.*?\(/, "").replace(/[()]/g, "").split(" - ")[0];
+    });
+
+    let master_list = [];
+    let site_list = [...new Set(Object.values(sap_rte_ids).map(item => Object.keys(item)[0]).filter(key => key !== 'GTBURNIN'))].sort();
+    let merge = [];
+    // let srid_list = 
+    
+    $.each(site_list, function(sl_idx, sl_itm){
+        if (!(sl_itm in master_list)) {
+            master_list[sl_itm] = [];
+        }
+        $.each([...new Set(res_area_str.sort())], function(ra_idx, ra_itm){
+            if (!(ra_itm in master_list[sl_itm])) {
+                master_list[sl_itm][ra_itm] = [];
+            }
+        });
+    });
+
+    $.each(sap_rte_ids, function(sri_idx, sri_itm){
+        $.each(sri_itm, function(s_idx, s_itm){
+            let temp_arr = [sri_idx];
+            let mfg_part_num = sri_idx;
+            temp_arr.splice(0, 0, s_idx);
+            $.each(data, function(dt_idx, dt_itm){
+                if (mfg_part_num == dt_itm[0]) {
+                    temp_arr.splice(1, 0, dt_itm[3].replace(/^.*?\(/, "").replace(/[()]/g, "").split(" - ")[0]);
+                    temp_arr.push(dt_itm[1]);
+                }
+            });
+            temp_arr.push(sri_itm[s_idx]);
+            merge.push(temp_arr);
+        });
+    });
+    
+    const validArr = merge.filter(row => {
+        const val = row[4];
+        return val !== undefined && val !== null && val !== "";
+    });
+    validArr.sort((rowA, rowB) => {
+        // Compare Primary Index
+        let valA1 = String(rowA[0]);
+        let valB1 = String(rowB[0]);
+        let primaryCompare = valA1.localeCompare(valB1, undefined, { numeric: true });
+        if (primaryCompare !== 0) {
+            return primaryCompare;
+        }
+        let valA2 = String(rowA[3]);
+        let valB2 = String(rowB[3]);
+        return valA2.localeCompare(valB2, undefined, { numeric: true });
+    });
+    merge = validArr;
+    $.each(merge, function(idx, itm){
+        if (Object.keys(itm).length > 3) {
+            if (itm[0] != "GTBURNIN") {
+                master_list[itm[0]][itm[1]][itm[2]+' ('+itm[3]+')'] = itm[4];
+            }
+        }
+    });
+
+    $.each(merge, function(idx, itm){
+        if (Object.keys(itm).length > 3) {
+            if (itm[0] == "GTBURNIN") {
+                let gt_srids = master_list['ADGT'][itm[1]][itm[2]+' ('+itm[3]+')'];
+                $.each(itm[4], function(gtb_idx, gtb_itm){
+                    if ($.inArray(gtb_itm, gt_srids) === -1) {
+                        gt_srids.push(gtb_itm);
+                    }
+                });
+            }
+        }
+    });
 
     $(".part-selection-table tbody").empty();
     let tr_str = "";
-    $.each([...new Set(group)], function(grp_idx, grp_itm){
 
-        tr_str += '<tr><th scope="row" colspan="2" class="table-secondary">'+grp_itm+'</th></tr>';
-
-        $.each(data, function(dt_idx, dt_itm){
-            if (dt_itm[3] == grp_itm) {
-                // let has_btn = dt_itm[2].includes('button') ? dt_itm[2] : "--"; delete btn removed, will put it back until further notice
-                tr_str += '<tr row-val="'+dt_itm[0]+'" class="has-children"><td class="part-rem"><span class="tree-node fw-bold">'+dt_itm[0]+'</span></td><td>'+dt_itm[1]+'</td></tr>';
-                if (sessionStorage.getItem("session_sap_rte_ids") !== null) {
-                    let part_routes = Object.entries(sap_rte_ids).find(([key, arr]) => key === dt_itm[0])?.[1];
-                    if (typeof part_routes !== 'undefined') {
-                        let part_sites = Object.keys(part_routes);
-                        $.each(part_sites, function(ps_idx, ps_itm){
-                            tr_str += '<tr class="has-children"><td class="site-rem" colspan="2"><span class="tree-node fw-bold">'+ps_itm+'</span></td></tr>';
-                            $.each(part_routes[ps_itm], function(pr_idx, pr_itm){
-                                tr_str += '<tr row-mpn-val="'+dt_itm[0]+'" row-sri-val="'+pr_itm+'"><td class="sap-rem" colspan="2"><span class="tree-node">'+pr_itm+'</span></td></tr>';
-                            });
-                        });
-                    }
-                }
+    $.each(Object.keys(master_list), function(ml_idx, ml_itm){
+        $.each(Object.keys(master_list[ml_itm]), function(ra_idx, ra_itm){
+            if (Object.values(master_list[ml_itm][ra_itm]).length == 0) {
+                delete master_list[ml_itm][ra_itm];
             }
+        });
+        if (Object.values(master_list[ml_itm]).length == 0) {
+            delete master_list[ml_itm];
+        }
+    });
+
+    $.each(Object.keys(master_list), function(ml_idx, ml_itm){
+        tr_str += '<tr row-val="'+ml_itm+'" class="has-children"><td cell-idtf="'+ml_itm+'" class="site-rem"><span class="tree-node">'+ml_itm+'</span></td></tr>';
+        $.each(Object.keys(master_list[ml_itm]), function(ra_idx, ra_itm){
+            tr_str += '<tr row-val="'+ra_itm+'" class="has-children is-child"><td cell-idtf="'+ra_itm+'" class="res-rem"><span class="tree-node">'+ra_itm+'</span></td></tr>';
+            $.each(Object.keys(master_list[ml_itm][ra_itm]), function(mfg_idx, mfg_itm){
+                tr_str += '<tr row-stn-val="'+ml_itm+'" row-res-val="'+ra_itm+'" row-val="'+mfg_itm+'" class="has-children is-child">'+
+                '<td cell-idtf="'+mfg_itm+'" class="part-rem"><span class="tree-node">'+mfg_itm+'</span></td></tr>';
+                $.each(master_list[ml_itm][ra_itm][mfg_itm], function(sri_idx, sri_itm){
+                    tr_str += '<tr row-stn-val="'+ml_itm+'" row-res-val="'+ra_itm+'" row-mpn-val="'+mfg_itm+'" row-sri-val="'+sri_itm+'" class="is-child">'+
+                    '<td cell-idtf="'+sri_itm+'" class="sap-rem"><span class="tree-node">'+sri_itm+'</span></td></tr>';
+                });
+            });
         });
     });
 
