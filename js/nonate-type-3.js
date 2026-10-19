@@ -1,5 +1,11 @@
 $(document).ready(function(){
 
+    //show delinquents
+    if (has_delinquent_t3 > 0) {
+        $(".delinquent-container-type3").show();
+        $(".delinquent-type3").text(has_delinquent_t3);
+    }
+
     //initialize inputmask - eff dates input
     $("#eff-start-from-nonate-type3, #eff-start-to-nonate-type3, #eff-end-from-nonate-type3, #eff-end-to-nonate-type3").inputmask("99\\_W99");
 
@@ -65,7 +71,26 @@ $(document).ready(function(){
     //DATATABLES
     var table_type_3 = $(".table-non-type3").DataTable({
         scrollY: 'calc(100vh - 550px)',
-        bSort: false,
+        order: [[ 4, "asc" ], [ 5, "asc" ]],
+        columnDefs: [
+            {
+                targets: 4,
+                render: function(data, type, row, meta) {
+                    if (type === 'sort') {
+                        if (parseInt(JSON.parse(has_delinquent_t3)) > 0) {
+                            return parseFloat("20"+data.replace("_W", ""));
+                            
+                        }
+                        return -meta.row[1];
+                    }
+                    return data;
+                }
+            },
+            {
+                targets: '_all',
+                orderable: false
+            }
+        ],
         responsive: true,
         layout: {
             topStart: "pageLength",
@@ -73,8 +98,15 @@ $(document).ready(function(){
                 buttons: [exportButtonNonateType3('copy'), exportButtonNonateType3('csv'), exportButtonNonateType3('excel'), exportButtonNonateType3('pdf'), exportButtonNonateType3('print')]
             },
             bottomStart: "info"
+        },
+        serverSide: false,
+        initComplete: function(settings, json) {
+            var api = this.api();
+            updateHMSCountType3(this.api());
         }
     });
+
+    table_type_3.on('page.dt length.dt search.dt order.dt', function() { updateHMSCountType3(table_type_3); });
 
     // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
     $(".btn-export-process-nonate-type3").on("click", function(){
@@ -315,13 +347,13 @@ $(document).ready(function(){
     });
 
     //VIEW HW CAPACITY OVERRIDES - MODAL
-    $(".btn-view-hw").on("click", function(){
+    $(document).delegate(".btn-view-hw", "click", function(){
         let data = JSON.parse($(this).attr("data"));
         preFillElementsType3(data);
     });
 
     //EDIT HW CAPACITY - MODAL
-    $(".btn-edit-hw").on("click", function(){
+    $(document).delegate(".btn-edit-hw", "click", function(){
         let data = JSON.parse($(this).attr("data"));
         preFillInputsType3(data);
     });
@@ -453,6 +485,45 @@ function searchData(string){
         },
         error: function(xhr, status, error) {
             console.log(xhr);
+        }
+    });
+}
+
+function updateHMSCountType3(table_elem){
+    let payload = [];
+    let temp_arr = [];
+    table_elem.rows({ page: 'current' }).every(function() {
+        var row = this.data();
+        var node = this.node();
+        payload.push(row[1]);
+        temp_arr.push([row[1], row[2], row[3], row[8], node]);
+    });
+    if (payload.length == 0) {return;}
+
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_NONATE.PHP?PROCESS_TYPE=SEARCH_HW&OUTPUT_TYPE=BODS_JDA_ADI',
+        data: {payload: payload},
+        success: function(data){
+            let list = JSON.parse(data);
+            $.each(temp_arr, function(ta_idx, ta_itm){
+                let new_hms = ta_itm[4];
+                $.each(list[ta_itm[3]], function(l_idx, l_itm){
+                    if (l_itm['HW_NM'] == ta_itm[0] && l_itm['SITE_NUM'] == ta_itm[1] && l_itm['RES_AREA'] == ta_itm[2] && l_itm['HW_TYPE'] == ta_itm[3]) {
+                        new_hms = l_itm['REQUIRED_QTY'];
+                    }
+                });
+                $(ta_itm[4]).find('td').eq(7).text(new_hms);
+                let btn_view_data = $(ta_itm[4]).find('td').eq(10).find('.btn-view-hw');
+                let btn_edit_data = $(ta_itm[4]).find('td').eq(10).find('.btn-edit-hw');
+                let view_data = JSON.parse(btn_view_data.attr('data'));
+                let edit_data = JSON.parse(btn_edit_data.attr('data'));
+
+                view_data['CURRENT_CAP'] = new_hms;
+                btn_view_data.attr('data', JSON.stringify(view_data));
+                edit_data['CURRENT_CAP'] = new_hms;
+                btn_edit_data.attr('data', JSON.stringify(edit_data));
+            });
         }
     });
 }
