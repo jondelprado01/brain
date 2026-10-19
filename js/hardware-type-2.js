@@ -91,9 +91,15 @@ $(document).ready(function(){
                 buttons: [exportButtonType2('copy'), exportButtonType2('csv'), exportButtonType2('excel'), exportButtonType2('pdf'), exportButtonType2('print')],
             },
             bottomStart: "info"
+        },
+        serverSide: false,
+        initComplete: function(settings, json) {
+            var api = this.api();
+            updateHMSCountType2(this.api());
         }
     });
 
+    table_type_2.on('page.dt length.dt search.dt order.dt', function() { updateHMSCountType2(table_type_2); });
 
     // -----------------------------------------------------------------------------------EXPORTS------------------------------------------------------------------------------
     $(".btn-export-process-type2").on("click", function(){
@@ -1920,6 +1926,44 @@ function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_
         // });
 
     }
+}
+
+function updateHMSCountType2(table_elem){
+    let payload = [];
+    let temp_arr = [];
+    table_elem.rows({ page: 'current' }).every(function() {
+        var row = this.data();
+        var node = this.node();
+        payload.push(row[2]);
+        temp_arr.push([row[2], row[3], row[4], row[9], node]);
+    });
+    if (payload.length == 0) {return;}
+    $.ajax({
+        type: 'post',
+        url: 'http://mxhdafot01l.maxim-ic.com/API/MODULE_HW_OVERRIDE.PHP?PROCESS_TYPE=SEARCH_HW&OUTPUT_TYPE=BODS_JDA_ADI',
+        data: {payload: payload},
+        success: function(data){
+            let list = JSON.parse(data);
+            $.each(temp_arr, function(ta_idx, ta_itm){
+                let new_hms = ta_itm[4];
+                $.each(list[ta_itm[3]], function(l_idx, l_itm){
+                    if (l_itm['HW_NM'] == ta_itm[0] && l_itm['SITE_NUM'] == ta_itm[1] && l_itm['RES_AREA'] == ta_itm[2] && l_itm['HW_TYPE'] == ta_itm[3]) {
+                        new_hms = l_itm['REQUIRED_QTY'];
+                    }
+                });
+                $(ta_itm[4]).find('td').eq(8).text(new_hms);
+                let btn_view_data = $(ta_itm[4]).find('td').eq(11).find('.btn-view-hw');
+                let btn_edit_data = $(ta_itm[4]).find('td').eq(11).find('.btn-edit-hw');
+                let view_data = JSON.parse(btn_view_data.attr('data'));
+                let edit_data = JSON.parse(btn_edit_data.attr('data'));
+
+                view_data['CURRENT_CAP'] = new_hms;
+                btn_view_data.attr('data', JSON.stringify(view_data));
+                edit_data['CURRENT_CAP'] = new_hms;
+                btn_edit_data.attr('data', JSON.stringify(edit_data));
+            });
+        }
+    });
 }
 
 //FOR CSV MASS UPLOAD - DELETE ONLY
