@@ -29,6 +29,8 @@ $existing_burnin = ($response['TYPE_1'] == NULL) ? [] : $response['TYPE_1'];
 $existing_socket = ($response['TYPE_2'] == NULL) ? [] : $response['TYPE_2'];
 $existing_capacity = ($response['TYPE_3'] == NULL) ? [] : $response['TYPE_3'];
 $weeks = $response['WEEKS'];
+$has_delinquent_t3 = 0;
+$has_delinquent_end_t3 = 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -434,6 +436,19 @@ $weeks = $response['WEEKS'];
                                                     <tbody>
                                                         <?php
                                                             foreach ($existing_capacity as $key => $capacity) {
+                                                                $hw_start = (int)str_replace("_W", "", $capacity['EFF_START']);
+                                                                $hw_end   = (int)str_replace("_W", "", $capacity['EFF_END']);
+                                                                $current_fyww = (int)str_replace("_W", "", $weeks[0]);
+                                                                $current_hw_start = "20".$hw_start;
+                                                                $current_hw_end = "20".$hw_end;
+                                                                $delinquent_code = ($current_fyww > $current_hw_start) ? "bg-danger-subtle" : "";
+                                                                $delinquent_code_end = ($current_fyww > $current_hw_end) ? "bg-danger-subtle" : "";
+                                                                if ($delinquent_code != "") {
+                                                                    $has_delinquent_t3++;
+                                                                }
+                                                                if ($delinquent_code_end != "") {
+                                                                    $has_delinquent_end_t3++;
+                                                                }
                                                             ?>
                                                                 <tr>
                                                                     <td>
@@ -444,8 +459,8 @@ $weeks = $response['WEEKS'];
                                                                     <td><?php echo $capacity['HW_NM']?></td>
                                                                     <td><?php echo $capacity['SITE_NUM']?></td>
                                                                     <td><?php echo $capacity['RES_AREA']?></td>
-                                                                    <td><?php echo $capacity['EFF_START']?></td>
-                                                                    <td><?php echo $capacity['EFF_END']?></td>
+                                                                    <td class="<?php echo $delinquent_code; ?>"><?php echo $capacity['EFF_START']?></td>
+                                                                    <td class="<?php echo $delinquent_code_end; ?>"><?php echo $capacity['EFF_END']?></td>
                                                                     <td><?php echo $capacity['OVERRIDE_CAP']?></td>
                                                                     <td><?php echo $capacity['CURRENT_CAP']?></td>
                                                                     <td><?php echo $capacity['HW_TYPE']?></td>
@@ -724,3 +739,7 @@ $weeks = $response['WEEKS'];
     </body>
     
 </html>
+<script>
+    var has_delinquent_t3 = '<?php echo json_encode($has_delinquent_t3); ?>';
+    var has_delinquent_end_t3 = '<?php echo json_encode($has_delinquent_end_t3); ?>';
+</script>
