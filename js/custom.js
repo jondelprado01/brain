@@ -2170,7 +2170,8 @@ $(document).ready(function(){
 
         if ($(".mpn-selected").length > 0) {
             $(".mpn-selected").each(function(){
-                common_fields['MFG_PART_NUM'].push($(this).attr("row-val"));
+                let mpn_val = $(this).attr("row-val").split(' ')[0];
+                common_fields['MFG_PART_NUM'].push(mpn_val);
                 hide_col.push(0);
             });
             all_category.push('MFG_PART_NUM');
