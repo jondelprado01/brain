@@ -1935,7 +1935,7 @@ function updateHMSCountType2(table_elem){
         var row = this.data();
         var node = this.node();
         payload.push(row[2]);
-        temp_arr.push([row[2], row[3], row[4], row[9], node]);
+        temp_arr.push([row[2], row[3], row[4], row[9], node, row[8]]);
     });
     if (payload.length == 0) {return;}
     $.ajax({
@@ -1945,22 +1945,24 @@ function updateHMSCountType2(table_elem){
         success: function(data){
             let list = JSON.parse(data);
             $.each(temp_arr, function(ta_idx, ta_itm){
-                let new_hms = ta_itm[4];
-                $.each(list[ta_itm[3]], function(l_idx, l_itm){
-                    if (l_itm['HW_NM'] == ta_itm[0] && l_itm['SITE_NUM'] == ta_itm[1] && l_itm['RES_AREA'] == ta_itm[2] && l_itm['HW_TYPE'] == ta_itm[3]) {
-                        new_hms = l_itm['REQUIRED_QTY'];
-                    }
-                });
-                $(ta_itm[4]).find('td').eq(8).text(new_hms);
-                let btn_view_data = $(ta_itm[4]).find('td').eq(11).find('.btn-view-hw');
-                let btn_edit_data = $(ta_itm[4]).find('td').eq(11).find('.btn-edit-hw');
-                let view_data = JSON.parse(btn_view_data.attr('data'));
-                let edit_data = JSON.parse(btn_edit_data.attr('data'));
-
-                view_data['CURRENT_CAP'] = new_hms;
-                btn_view_data.attr('data', JSON.stringify(view_data));
-                edit_data['CURRENT_CAP'] = new_hms;
-                btn_edit_data.attr('data', JSON.stringify(edit_data));
+                if (list[ta_itm[3]] !== undefined) {
+                    let new_hms = ta_itm[5];
+                    $.each(list[ta_itm[3]], function(l_idx, l_itm){
+                        if (l_itm['HW_NM'] == ta_itm[0] && l_itm['SITE_NUM'] == ta_itm[1] && l_itm['RES_AREA'] == ta_itm[2] && l_itm['HW_TYPE'] == ta_itm[3]) {
+                            new_hms = l_itm['REQUIRED_QTY'];
+                        }
+                    });
+                    $(ta_itm[4]).find('td').eq(8).text(new_hms);
+                    let btn_view_data = $(ta_itm[4]).find('td').eq(11).find('.btn-view-hw');
+                    let btn_edit_data = $(ta_itm[4]).find('td').eq(11).find('.btn-edit-hw');
+                    let view_data = JSON.parse(btn_view_data.attr('data'));
+                    let edit_data = JSON.parse(btn_edit_data.attr('data'));
+    
+                    view_data['CURRENT_CAP'] = new_hms;
+                    btn_view_data.attr('data', JSON.stringify(view_data));
+                    edit_data['CURRENT_CAP'] = new_hms;
+                    btn_edit_data.attr('data', JSON.stringify(edit_data));
+                }
             });
         }
     });
