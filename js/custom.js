@@ -2661,9 +2661,9 @@ $(document).ready(function(){
 
             if (page_type == "paginate-previous") {
                 target_date = temp_container[0];
-                if ($.inArray(current_date, temp_container) !== -1) {
-                    return false;
-                }
+                // if ($.inArray(current_date, temp_container) !== -1) {
+                //     return false;
+                // }
             }
             else{
                 target_date = temp_container[temp_container.length - 1];
