@@ -149,27 +149,31 @@ $(document).ready(function(){
 
     //ADD HW CAPACITY OVERRIDE FIELDS
     $(".btn-add-hw").on("click", function(){
-        let val = $(".input-select-type2").val().split("|");
-        let start_options = renderWeeksType2(weeks, '', "EFF_START");
-        let end_options = renderWeeksType2(weeks, '', "EFF_END");
-        let inputs = renderInputsType2(val, start_options, end_options);
+
+        let selected_hw = $(".input-select-type2 option:selected").val();
+        renderType2Fields(weeks, selected_hw, JSON.parse(existing_capacity));
+
+        // let val = $(".input-select-type2").val().split("|");
+        // let start_options = renderWeeksType2(weeks, '', "EFF_START");
+        // let end_options = renderWeeksType2(weeks, '', "EFF_END");
+        // let inputs = renderInputsType2(val, start_options, end_options);
         
-        let is_exists = existingFieldType2(val[1], val[3], val[4]);
+        // let is_exists = existingFieldType2(val[1], val[3], val[4]);
 
-        if (!is_exists) {
-            $(".empty-filler-type2").removeClass('d-flex').hide();
-            $(".input-container-type2").prepend(inputs);
+        // if (!is_exists) {
+        //     $(".empty-filler-type2").removeClass('d-flex').hide();
+        //     $(".input-container-type2").prepend(inputs);
 
-            // dup_counter = existingRecordType2(JSON.parse(existing_capacity), "ADD_HW");
-            // $(".btn-save-type2").prop("disabled", (dup_counter > 0) ? true : false);
+        //     // dup_counter = existingRecordType2(JSON.parse(existing_capacity), "ADD_HW");
+        //     // $(".btn-save-type2").prop("disabled", (dup_counter > 0) ? true : false);
 
-            // if (dup_counter == 0) {
-                calculateGenpoolCapacityType2(val[1], val[3], val[4]);
-            // }
-        }
-        else{
-            showGenericAlertType2("warning", ""+val[1]+"\n"+val[0]+"\nis already selected.");
-        }
+        //     // if (dup_counter == 0) {
+        //         calculateGenpoolCapacityType2(val[1], val[3], val[4]);
+        //     // }
+        // }
+        // else{
+        //     showGenericAlertType2("warning", ""+val[1]+"\n"+val[0]+"\nis already selected.");
+        // }
     });
 
     //VALIDATE OVERRIDE VALUE - INCREMENTAL BY .5 ONLY
@@ -1244,7 +1248,7 @@ function calculateGenpoolCapacityCSVType2(target_gp = null, subject_data, target
     }
 
     $.each(subject_data, function(index, item){
-        if (item['EFF_START'] != '' && item['EFF_END'] != '' && item['GP_HW'] != '' && item['REQUIRED_QTY'] && item['GENPOOL_QTY'] != '') {
+        if (item['EFF_START'] != '' && item['EFF_END'] != '' && item['GP_HW'] != '' && $.isNumeric(item['REQUIRED_QTY']) && $.isNumeric(item['GENPOOL_QTY'])) {
             if (item['GP_HW'] == target_gp) {
                 data.push([
                     item['GP_HW'],
@@ -1268,6 +1272,8 @@ function calculateGenpoolCapacityCSVType2(target_gp = null, subject_data, target
     if (data.length > 0) {
         $.each(data, function(index1, item1){
             let hw_nm1 = item1[0];
+            let site_num_1 = item1[1];
+            let res_area_1 = item1[2];
             let eff_start_1 = parseInt(item1[3].replace("_W", ""));
             let eff_end_1 = parseInt(item1[4].replace("_W", ""));
             let target_id_1 = item1[9];
@@ -1276,11 +1282,13 @@ function calculateGenpoolCapacityCSVType2(target_gp = null, subject_data, target
                 $.each(data, function(index2, item2){
                     if (index1 >= index2) return;
                     let hw_nm2 = item2[0];
+                    let site_num_2 = item2[1];
+                    let res_area_2 = item2[2];
                     let eff_start_2 = parseInt(item2[3].replace("_W", ""));
                     let eff_end_2 = parseInt(item2[4].replace("_W", ""));
                     let target_id_2 = item2[9];
 
-                    if (hw_nm1 == hw_nm2) {
+                    if (hw_nm1 == hw_nm2 && site_num_1 == site_num_2 && res_area_1 == res_area_2) {
 
                         if(target_id_1 != "" && target_id_2 != ""){
                             if (target_id_1 == target_id_2) {
@@ -1472,7 +1480,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                         }
                         
                         if (typeof(promises) != 'undefined') {
-                            if (item['EFF_START'] != '' && item['EFF_END'] != '' && item['GENPOOL_QTY'] != '' && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
+                            if (item['EFF_START'] != '' && item['EFF_END'] != '' && $.isNumeric(item['GENPOOL_QTY']) && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
                                 let res_gp = calculateGenpoolCapacityCSVType2(item['GP_HW'], subject_data, item['EFF_START']);
                                 if (res_gp != '') {
                                     let error_str = "";
@@ -1505,7 +1513,7 @@ function searchGenpoolType2(genpool_hw, hw_opt, unaffected, errors, invalid, csv
                             }
                         }
                         else{
-                            if (item['EFF_START'] != '' && item['EFF_END'] != '' && item['GENPOOL_QTY'] != '' && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
+                            if (item['EFF_START'] != '' && item['EFF_END'] != '' && $.isNumeric(item['GENPOOL_QTY']) && $.inArray(item['ERROR'], ['INVALID TARGET_ID', 'MISSING TARGET_ID', 'DUPLICATE TARGET_ID']) === -1) {
                                 let res_gp = calculateGenpoolCapacityCSVType2(item['GP_HW'], subject_data, item['EFF_START']);
                                 if (res_gp != '') {
                                     let error_str = "";
@@ -1773,7 +1781,7 @@ function chunkArray(arr, size) {
 
     return result;
 }
-
+window.crudProcessV2Type2 = crudProcessType2;
 function crudProcessType2(process, payload, user_details, is_csv, csv_delete_id_arr_type2 = []){
     
     var exists = ['ADD', 'UPDATE'].some(function(val) {

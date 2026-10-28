@@ -76,6 +76,7 @@ $has_delinquent_end_t2 = 0;
         <script src="../../js/hardware-type-1.js"></script>
         <script src="../../js/hardware-type-1.2.js"></script>
         <script src="../../js/hardware-type-2.js"></script>
+        <script src="../../js/hardware-type-2.2.js"></script>
         <script src="../../js/hardware-type-3.js"></script>
 
         <script>
@@ -164,7 +165,7 @@ $has_delinquent_end_t2 = 0;
             --bs-tooltip-bg: var(--bd-violet-bg);
             --bs-tooltip-color: var(--bs-white);
             }
-            .btn-remove-record{
+            .btn-remove-record, .btn-remove-override{
                 cursor: pointer;
             }
 
@@ -380,6 +381,7 @@ $has_delinquent_end_t2 = 0;
                                                                 </th>
                                                                 <th>ID</th>
                                                                 <th>MFG_PART_NUM</th>
+                                                                <th>SITE_NUM</th>
                                                                 <th>GENPOOL HW</th>
                                                                 <th>HW_NAME</th>
                                                                 <th>EFF_START</th>
@@ -411,6 +413,7 @@ $has_delinquent_end_t2 = 0;
                                                                         </td>
                                                                         <td><?php echo $mapping['ID']?></td>
                                                                         <td><?php echo $mapping['MFG_PART_NUM']?></td>
+                                                                        <td><?php echo $mapping['SITE_NUM']?></td>
                                                                         <td><?php echo $mapping['GENPOOL']?></td>
                                                                         <td><?php echo $mapping['HW_NM']?></td>
                                                                         <td><?php echo $mapping['EFF_START']?></td>
@@ -505,23 +508,21 @@ $has_delinquent_end_t2 = 0;
                                             <div class="row">
                                                 <div class="col-lg-12">
                                                     <div class="modal fade zoom" id="modal-add-hw-type2" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-                                                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"  style="min-width:90%;">
+                                                        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                                                             <div class="modal-content">
                                                                 <div class="modal-header d-flex justify-content-between bg-success-subtle">
-                                                                    <div>
-                                                                        <h1 class="modal-title fs-5">Create HW Capacity Override</h1>
-                                                                        <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
-                                                                    </div>
+                                                                    <h1 class="modal-title fs-5">Create HW Capacity Override</h1>
+                                                                    <small>All fields with <i class="fa-solid fa-asterisk"></i> are required.</small>
                                                                 </div>
                                                                 <div class="modal-body">
                                                                     <div class="row">
-                                                                        <div class="col-lg-8 mb-3">
+                                                                        <div class="col-lg-12 mb-3">
                                                                             <div class="row g-2">
-                                                                                <div class="col-lg-5">
+                                                                                <div class="col-lg-6">
                                                                                     <input identifier="type2" class="form-control input-search-type2" type="text" placeholder="Search HW">
-                                                                                    <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div>
+                                                                                    <!-- <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div> -->
                                                                                 </div>
-                                                                                <div class="col-lg-7">
+                                                                                <div class="col-lg-6">
                                                                                     <div class="input-group">
                                                                                         <select class="form-select input-select-type2" disabled>
                                                                                         </select>
@@ -535,24 +536,39 @@ $has_delinquent_end_t2 = 0;
                                                                                 </div>
                                                                             </div>
                                                                         </div>
-                                                                        <div class="col-lg-4">
+                                                                        <!-- <div class="col-lg-4">
                                                                             <button class="btn btn-outline-secondary d-none loader-override-type2" type="button" disabled>
                                                                                     <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                                                                                     <span role="status">Validating Override Capacity, Please Wait...</span>
                                                                             </button>
-                                                                        </div>
+                                                                        </div> -->
                                                                         <hr>
                                                                     </div>
-                                                                    <div class="row g-2 input-container-type2">
+                                                                    <!-- <div class="row g-2 input-container-type2">
                                                                         <p class="lead empty-filler-type2 d-flex justify-content-center align-items-center">
                                                                             Create HW Capacity Overrides Using Search or CSV Upload
                                                                         </p>
+                                                                    </div> -->
+                                                                    <div class="row g-2 input-container-hwo-type2-v2">
+                                                                        <?php
+                                                                            require 'ADD-OVERRIDE.PHP';
+                                                                        ?>
                                                                     </div>
                                                                 </div>
                                                                 <div class="modal-footer bg-success-subtle">
+                                                                    <span style="display: none!important;" class="btn-prompt-type2">
+                                                                        Closing this window will wipe out your current input, proceed? 
+                                                                        <button type="button" btn-type="btn-proceed-yes-type2" class="btn btn-link text-danger p-0" data-bs-dismiss="modal">Yes</button>
+                                                                        <button type="button" btn-type="btn-proceed-no-type2" class="btn btn-link text-secondary p-0">No</button>
+                                                                    </span>
+                                                                    
+                                                                    <button type="button" class="btn btn-sm btn-danger btn-close-hwo-t2-modal" process-type="type2">Close <i class="fa-solid fa-xmark"></i></button>
+                                                                    <button type="button" class="btn btn-sm btn-success btn-save-hwo-t2" process-type="type2">Save <i class="fa-regular fa-floppy-disk"></i></button>
+                                                                </div>
+                                                                <!-- <div class="modal-footer bg-success-subtle">
                                                                     <button type="button" class="btn btn-danger btn-close-modal-type2" process-type="type2" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                                                                     <button type="button" class="btn btn-success btn-save-type2" process-type="type2">Save <i class="fa-regular fa-floppy-disk"></i></button>
-                                                                </div>
+                                                                </div> -->
                                                             </div>
                                                         </div>
                                                     </div>
