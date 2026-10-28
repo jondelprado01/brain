@@ -92,8 +92,15 @@
         <div class="mb-3">
             <select class="hwo-inputs-type3 select2-type3 form-control" input-name="HW_TYPE" id="hw-type-type3" multiple="multiple" name="hw-type[]" data-placeholder="HW_TYPE">
                 <?php
-                    $hw_type_arr = ["CNTCR", "CONVKIT", "DGHTRBD", "DUTBD", "FMYBD", "FPLATE", "LOADBD", "PERFBD", "PERFBRD", "PGMCARD", "PRBCARD", "TCVOSBD", "TCVSBRD", "TESTCARD"];
-                    foreach ($hw_type_arr as $hwtkey => $hwt_val) {
+                    $hw_type_arr = ["BENCHBOX", "CABLE","CARDLET","CNTCRADT","EXTDRBD","FLOATING","HNDLINSRT","NOISEBOX","NOISEBRD","NOISETST","PDLBD","PICALB",
+                                    "PIENGG","PIPM","PIQUAL","PIREPR","PIXFER","PRBCRD","PREXFER","PURGEBX","QUARANTINE","SCNBD","SCRMBLR",
+                                    "TGBIPM","TGBIRPR","TGCALB","TGDEBUG","TGFAREL","TGFLOATING","TGMDOWN","TGNDHWDEF","TGPCSCRAP","TGPCSHIP","TGPCXFER",
+                                    "TGPM","TGPR","TGPREXFER","TGQUAL","TGREPAIR","TGREWORK","TGSCRAP","TGSPARE","TGUNAVAIL","TGVERF","TGXFER", 
+                                    "CNTCR", "CONVKIT", "CUH", "DGHTRBD", "DUTBD", "FMYBD", "FPLATE", "HNDLINSRT", "LOADBD", "PERFBD", "PERFBRD", 
+                                    "PGMCARD", "PRBCARD", "TCVOSBD", "TCVSBRD", "TESTCARD"];
+                    sort($hw_type_arr);
+                    $filtered_hw_types = array_unique($hw_type_arr);
+                    foreach ($filtered_hw_types as $hwtkey => $hwt_val) {
                         echo '<option value="'.$hwt_val.'">'.$hwt_val.'</option>';
                     }
                 ?>
