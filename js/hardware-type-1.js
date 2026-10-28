@@ -27,8 +27,8 @@ $(document).ready(function(){
     function exportButtonType1(type) {
         let cols = [];
         let title_object = {};
-        for (var i = 1; i <= 11; i++) {
-            if ($.inArray(i, [9, 11]) === -1) {
+        for (var i = 1; i <= 12; i++) {
+            if ($.inArray(i, [10, 12]) === -1) {
                 cols.push(i);
             }
         }
