@@ -4001,10 +4001,13 @@ async function renderPartSelectionTable(data = null, record_count = null, group 
     });
 
     let master_list = [];
-    let site_list = [...new Set(Object.values(sap_rte_ids).map(item => Object.keys(item)[0]).filter(key => key !== 'GTBURNIN'))].sort();
+    let site_list  = [];
     let merge = [];
-    // let srid_list = 
-    
+    $.each(Object.keys(sap_rte_ids), function(sri_idx, sri_itm){
+        $.each(Object.keys(sap_rte_ids[sri_itm]), function(sn_idx, sn_itm){
+            site_list.push(sn_itm);
+        });
+    });    
     $.each(site_list, function(sl_idx, sl_itm){
         if (!(sl_itm in master_list)) {
             master_list[sl_itm] = [];
