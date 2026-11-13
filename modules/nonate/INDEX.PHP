@@ -73,6 +73,7 @@ $has_delinquent_end_t3 = 0;
         <script src="../../js/nonate-type-1.js"></script>
         <script src="../../js/nonate-type-2.js"></script>
         <script src="../../js/nonate-type-3.js"></script>
+        <script src="../../js/nonate-type-3.2.js"></script>
 
         <!-- FOR CHANGE LOG FEATURE ONLY (ALL HW OVERRIDE TYPES) -->
         <script>
@@ -134,6 +135,15 @@ $has_delinquent_end_t3 = 0;
             #dt-length-0, #dt-length-1, #dt-length-2{
                 margin-right: 1em!important;
             }
+            input:read-only, input:read-only .label-type, select:disabled{
+                background-color: white!important;
+            }
+            .btn-remove-record, .btn-remove-override{
+                cursor: pointer;
+            }
+            .custom-wide-popover {
+                --bs-popover-max-width: 700px; /* Adjust to desired width */
+            }
         </style>
     </head>
 
@@ -158,6 +168,19 @@ $has_delinquent_end_t3 = 0;
             </div>
             <div class="card">
                 <div class="card-header">
+                    <div>
+                        <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="collapse" data-bs-target="#pa-whats-new">
+                            What's New <i class="fa-solid fa-bullhorn"></i>
+                        </button>
+                        <div id="pa-whats-new" class="collapse mt-2">
+                            <div class="alert alert-info small mb-0">
+                                <ul class="mb-0">
+                                    <li><strong>2026-11-13</strong> &mdash; <strong>Type 3 - Capacity Override</strong>: Redesigned the HW Capacity Override modal interface with overrides now grouped by <strong>HW Type</strong>. 
+                                    Added a preview of existing override records to help users avoid duplicate record validation error.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
                     <h3 class="card-title text-center">NONATE</h3>
                 </div>
                 <div class="card-body p-0">
@@ -536,7 +559,7 @@ $has_delinquent_end_t3 = 0;
              </div>
 
              <div class="modal fade zoom" id="modal-edit-data-type3" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header d-flex justify-content-between bg-primary-subtle">
                             <div>
@@ -620,7 +643,7 @@ $has_delinquent_end_t3 = 0;
             </div>
 
              <div class="modal fade zoom" id="modal-add-non-type3" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
-                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable"  style="min-width:90%;">
+                <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header d-flex justify-content-between bg-success-subtle">
                             <div>
@@ -630,13 +653,13 @@ $has_delinquent_end_t3 = 0;
                         </div>
                         <div class="modal-body">
                             <div class="row">
-                                <div class="col-lg-8 mb-3">
+                                <div class="col-lg-12 mb-3">
                                     <div class="row g-2">
-                                        <div class="col-lg-5">
+                                        <div class="col-lg-6">
                                             <input identifier="type3" class="form-control input-search-type3" type="text" placeholder="Search HW">
-                                            <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div>
+                                            <!-- <div class="form-text" id="basic-addon4">Hit "Enter" to proceed</div> -->
                                         </div>
-                                        <div class="col-lg-7">
+                                        <div class="col-lg-6">
                                             <div class="input-group">
                                                 <select class="form-select input-select-type3" disabled>
                                                 </select>
@@ -650,24 +673,39 @@ $has_delinquent_end_t3 = 0;
                                         </div>
                                     </div>
                                 </div>
-                                <div class="col-lg-4">
+                                <!-- <div class="col-lg-4">
                                     <button class="btn btn-outline-secondary d-none loader-override-type3" type="button" disabled>
                                             <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                                             <span role="status">Validating Override Capacity, Please Wait...</span>
                                     </button>
-                                </div>
+                                </div> -->
                                 <hr>
                             </div>
-                            <div class="row g-2 input-container-type3">
+                            <!-- <div class="row g-2 input-container-type3">
                                 <p class="lead empty-filler-type3 d-flex justify-content-center align-items-center">
                                     Create HW Capacity Overrides Using Search
                                 </p>
+                            </div> -->
+                            <div class="row g-2 input-container-non-type3-v2">
+                                <?php
+                                    require 'ADD-OVERRIDE.PHP';
+                                ?>
                             </div>
                         </div>
                         <div class="modal-footer bg-success-subtle">
+                            <span style="display: none!important;" class="btn-prompt-type3">
+                                Closing this window will wipe out your current input, proceed? 
+                                <button type="button" btn-type="btn-proceed-yes-type3" class="btn btn-link text-danger p-0" data-bs-dismiss="modal">Yes</button>
+                                <button type="button" btn-type="btn-proceed-no-type3" class="btn btn-link text-secondary p-0">No</button>
+                            </span>
+                            
+                            <button type="button" class="btn btn-sm btn-danger btn-close-non-t3-modal" process-type="type2">Close <i class="fa-solid fa-xmark"></i></button>
+                            <button type="button" class="btn btn-sm btn-success btn-save-non-t3" process-type="type2">Save <i class="fa-regular fa-floppy-disk"></i></button>
+                        </div>
+                        <!-- <div class="modal-footer bg-success-subtle">
                             <button type="button" class="btn btn-danger btn-close-modal-type3" process-type="type3" data-bs-dismiss="modal">Close <i class="fa-solid fa-xmark"></i></button>
                             <button type="button" class="btn btn-success btn-save-type3" process-type="type3">Save <i class="fa-regular fa-floppy-disk"></i></button>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
             </div>

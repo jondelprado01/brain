@@ -172,27 +172,29 @@ $(document).ready(function(){
 
     //ADD HW CAPACITY OVERRIDE FIELDS
     $(".btn-add-hw").on("click", function(){
-        let val = $(".input-select-type3").val().split("|");
-        let start_options = renderWeeksType3(weeks, '', "EFF_START");
-        let end_options = renderWeeksType3(weeks, '', "EFF_END");
-        let inputs = renderInputsType3(val, start_options, end_options);
+        let selected_hw = $(".input-select-type3 option:selected").val();
+        renderType3Fields(weeks, selected_hw, JSON.parse(existing_capacity));
+        // let val = $(".input-select-type3").val().split("|");
+        // let start_options = renderWeeksType3(weeks, '', "EFF_START");
+        // let end_options = renderWeeksType3(weeks, '', "EFF_END");
+        // let inputs = renderInputsType3(val, start_options, end_options);
 
-        let is_exists = existingFieldType3(val[1], val[3], val[4]);
+        // let is_exists = existingFieldType3(val[1], val[3], val[4]);
 
-        if (!is_exists) {
-            $(".empty-filler-type3").removeClass('d-flex').hide();
-            $(".input-container-type3").prepend(inputs);
+        // if (!is_exists) {
+        //     $(".empty-filler-type3").removeClass('d-flex').hide();
+        //     $(".input-container-type3").prepend(inputs);
 
-            // dup_counter = existingRecordType3(JSON.parse(existing_capacity), "ADD_HW");
-            // $(".btn-save-type3").prop("disabled", (dup_counter > 0) ? true : false);
+        //     // dup_counter = existingRecordType3(JSON.parse(existing_capacity), "ADD_HW");
+        //     // $(".btn-save-type3").prop("disabled", (dup_counter > 0) ? true : false);
 
-            // if (dup_counter == 0) {
-                calculateGenpoolCapacityType3(val[1], val[3], val[4]);
-            // }
-        }
-        else{
-            showGenericAlertType3("warning", ""+val[1]+"\n"+val[0]+"\nis already selected.");
-        }
+        //     // if (dup_counter == 0) {
+        //         calculateGenpoolCapacityType3(val[1], val[3], val[4]);
+        //     // }
+        // }
+        // else{
+        //     showGenericAlertType3("warning", ""+val[1]+"\n"+val[0]+"\nis already selected.");
+        // }
     });
 
     //VALIDATE OVERRIDE VALUE - INCREMENTAL BY .5 ONLY
@@ -527,7 +529,7 @@ function updateHMSCountType3(table_elem){
         }
     });
 }
-
+window.crudProcessV2Type3 = crudProcessType3;
 function crudProcessType3(process, payload, user_details){
     $.ajax({
         type: 'post',
